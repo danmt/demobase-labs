@@ -1,7 +1,3 @@
 {
-    "cSpell.words": [
-        "demobase",
-        "Pubkey",
-        "solana"
-    ]
+  "cSpell.words": ["demobase", "pubkey", "solana", "lamport", "lamports"]
 }
