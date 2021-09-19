@@ -1,6 +1,34 @@
 {
   "version": 2,
-  "projects": {},
+  "projects": {
+    "demobase": {
+      "root": "apps/demobase",
+      "projectType": "application",
+      "targets": {
+        "build": {
+          "executor": "@danmt/nx-anchor:build",
+          "options": {
+            "projectPath": "apps/demobase",
+            "monitor": true
+          }
+        },
+        "test": {
+          "executor": "@danmt/nx-anchor:test",
+          "options": {
+            "projectPath": "apps/demobase",
+            "monitor": true
+          }
+        },
+        "deploy": {
+          "executor": "@danmt/nx-anchor:deploy",
+          "options": {
+            "projectPath": "apps/demobase",
+            "monitor": true
+          }
+        }
+      }
+    }
+  },
   "cli": {
     "defaultCollection": "@nrwl/workspace"
   }
