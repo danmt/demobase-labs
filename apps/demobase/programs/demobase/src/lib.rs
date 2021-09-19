@@ -6,10 +6,11 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod demobase {
     use super::*;
 
-    pub fn create_application(ctx: Context<CreateApplication>, name: String) -> ProgramResult {
+    pub fn create_application(ctx: Context<CreateApplication>, name: String, bump: u8) -> ProgramResult {
         msg!("Create application");
         ctx.accounts.application.count = 0;
         ctx.accounts.application.name = parse_string(name);
+        ctx.accounts.application.bump = bump;
         ctx.accounts.application.authority = ctx.accounts.authority.key();
         Ok(())
     }
@@ -51,12 +52,17 @@ pub mod demobase {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String)]
+#[instruction(name: String, bump: u8)]
 pub struct CreateApplication<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8 + 32,
+        space = 8 + 32 + 1 + 8 + 32,
+        seeds = [
+            b"application",
+            name.as_bytes()
+        ],
+        bump = bump
     )]
     pub application: Box<Account<'info, Application>>,
     #[account(mut)]
@@ -132,6 +138,7 @@ pub struct DeleteDocument<'info> {
 #[account]
 pub struct Application {
     pub authority: Pubkey,
+    pub bump: u8,
     pub count: u64,
     pub name: [u8; 32],
 }
