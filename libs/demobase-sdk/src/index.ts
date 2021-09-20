@@ -1,1 +1,1 @@
-export * from './lib/demobase-program.service';
+export * from './lib/demobase.service';

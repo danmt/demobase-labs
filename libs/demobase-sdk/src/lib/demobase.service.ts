@@ -7,9 +7,11 @@ import {
   SystemProgram,
 } from '@solana/web3.js';
 
+import * as idl from './idl.json';
 import { Application, RawApplication } from './types';
+import { DEMOBASE_PROGRAM_ID } from './utils';
 
-export class DemobaseProgramService {
+export class DemobaseService {
   get programId() {
     return this._program.programId;
   }
@@ -24,22 +26,16 @@ export class DemobaseProgramService {
 
   constructor(private _program: Program) {}
 
-  static create(
-    connection: Connection,
-    wallet: Wallet,
-    idl: Idl,
-    programId: PublicKey,
-    opts: ConfirmOptions
-  ) {
+  static create(connection: Connection, wallet: Wallet, opts: ConfirmOptions) {
     const provider = new Provider(connection, wallet, opts);
-    const program = new Program(idl, programId, provider);
-    const service = new DemobaseProgramService(program);
+    const program = new Program(idl as Idl, DEMOBASE_PROGRAM_ID, provider);
+    const service = new DemobaseService(program);
 
     return service;
   }
 
   static fromProgram(program: Program) {
-    const service = new DemobaseProgramService(program);
+    const service = new DemobaseService(program);
 
     return service;
   }
