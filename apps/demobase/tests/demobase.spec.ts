@@ -5,14 +5,12 @@ import {
   utils,
   workspace,
 } from '@project-serum/anchor';
-import { SystemProgram } from '@solana/web3.js';
+import { Keypair, SystemProgram } from '@solana/web3.js';
 import { assert } from 'chai';
 
 import {
-  createApplicationAddress,
   createCollectionAddress,
   createDocumentAddress,
-  findApplicationAddress,
   findCollectionAddress,
   findDocumentAddress,
 } from './utils';
@@ -21,25 +19,24 @@ describe('demobase', () => {
   // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
-  let applicationBump: number, collectionBump: number, documentBump: number;
+  let collectionBump: number, documentBump: number;
   const documentId = 'ABCD1234';
   const applicationName = 'myApp';
+  const application = Keypair.generate();
 
   it('should create application', async () => {
-    // arrange
-    const [application, bump] = await findApplicationAddress(applicationName);
-    applicationBump = bump;
     // act
-    await program.rpc.createApplication(applicationName, applicationBump, {
+    await program.rpc.createApplication(applicationName, {
       accounts: {
-        application,
+        application: application.publicKey,
         authority: program.provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },
+      signers: [application],
     });
     // assert
     const applicationAccount = await program.account.application.fetch(
-      application
+      application.publicKey
     );
     assert.ok(applicationAccount.count.eq(new BN(0)));
     assert.ok(
@@ -57,13 +54,9 @@ describe('demobase', () => {
 
   it('should create collection', async () => {
     // arrange
-    const application = await createApplicationAddress(
-      applicationName,
-      applicationBump
-    );
     const collectionName = 'things';
     const [collection, bump] = await findCollectionAddress(
-      application,
+      application.publicKey,
       collectionName
     );
     collectionBump = bump;
@@ -71,14 +64,14 @@ describe('demobase', () => {
     await program.rpc.createCollection(collectionName, bump, {
       accounts: {
         collection,
-        application,
+        application: application.publicKey,
         authority: program.provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },
     });
     // assert
     const applicationAccount = await program.account.application.fetch(
-      application
+      application.publicKey
     );
     const collectionAccount = await program.account.collection.fetch(
       collection
@@ -92,18 +85,14 @@ describe('demobase', () => {
 
   it('should create document', async () => {
     // arrange
-    const application = await createApplicationAddress(
-      applicationName,
-      applicationBump
-    );
     const collectionName = 'things';
     const collectionId = await createCollectionAddress(
-      application,
+      application.publicKey,
       collectionName,
       collectionBump
     );
     const [document, bump] = await findDocumentAddress(
-      application,
+      application.publicKey,
       collectionId,
       documentId
     );
@@ -114,7 +103,7 @@ describe('demobase', () => {
       accounts: {
         document,
         collection: collectionId,
-        application: application,
+        application: application.publicKey,
         authority: program.provider.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },
@@ -140,18 +129,14 @@ describe('demobase', () => {
 
   it('should update document', async () => {
     // arrange
-    const application = await createApplicationAddress(
-      applicationName,
-      applicationBump
-    );
     const collectionName = 'things';
     const collectionId = await createCollectionAddress(
-      application,
+      application.publicKey,
       collectionName,
       collectionBump
     );
     const document = await createDocumentAddress(
-      application,
+      application.publicKey,
       collectionId,
       documentId,
       documentBump
@@ -180,18 +165,14 @@ describe('demobase', () => {
 
   it('should delete document', async () => {
     // arrange
-    const application = await createApplicationAddress(
-      applicationName,
-      applicationBump
-    );
     const collectionName = 'things';
     const collectionId = await createCollectionAddress(
-      application,
+      application.publicKey,
       collectionName,
       collectionBump
     );
     const document = await createDocumentAddress(
-      application,
+      application.publicKey,
       collectionId,
       documentId,
       documentBump
