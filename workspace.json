@@ -28,6 +28,126 @@
         }
       }
     },
+    "demobase-angular": {
+      "projectType": "application",
+      "root": "apps/demobase-angular",
+      "sourceRoot": "apps/demobase-angular/src",
+      "prefix": "demobase",
+      "targets": {
+        "build": {
+          "executor": "@angular-devkit/build-angular:browser",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/demobase-angular",
+            "index": "apps/demobase-angular/src/index.html",
+            "main": "apps/demobase-angular/src/main.ts",
+            "polyfills": "apps/demobase-angular/src/polyfills.ts",
+            "tsConfig": "apps/demobase-angular/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "apps/demobase-angular/src/favicon.ico",
+              "apps/demobase-angular/src/assets"
+            ],
+            "styles": ["apps/demobase-angular/src/styles.scss"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "apps/demobase-angular/src/environments/environment.ts",
+                  "with": "apps/demobase-angular/src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "executor": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "demobase-angular:build:production"
+            },
+            "development": {
+              "browserTarget": "demobase-angular:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "executor": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "demobase-angular:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/demobase-angular/src/**/*.ts",
+              "apps/demobase-angular/src/**/*.html"
+            ]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/demobase-angular"],
+          "options": {
+            "jestConfig": "apps/demobase-angular/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "demobase-angular-e2e": {
+      "root": "apps/demobase-angular-e2e",
+      "sourceRoot": "apps/demobase-angular-e2e/src",
+      "projectType": "application",
+      "targets": {
+        "e2e": {
+          "executor": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/demobase-angular-e2e/cypress.json",
+            "devServerTarget": "demobase-angular:serve:development",
+            "tsConfig": "apps/demobase-angular-e2e/tsconfig.json"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "demobase-angular:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "outputs": ["{options.outputFile}"],
+          "options": {
+            "lintFilePatterns": ["apps/demobase-angular-e2e/**/*.{js,ts}"]
+          }
+        }
+      }
+    },
     "demobase-sdk": {
       "root": "libs/demobase-sdk",
       "sourceRoot": "libs/demobase-sdk/src",
@@ -62,6 +182,22 @@
     }
   },
   "cli": {
-    "defaultCollection": "@nrwl/workspace"
+    "defaultCollection": "@nrwl/angular"
+  },
+  "generators": {
+    "@nrwl/angular:application": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "cypress"
+    },
+    "@nrwl/angular:library": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/angular:component": {
+      "style": "scss"
+    }
   }
 }

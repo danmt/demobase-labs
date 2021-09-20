@@ -28,6 +28,13 @@
   },
   "projects": {
     "demobase": {},
+    "demobase-angular": {
+      "tags": []
+    },
+    "demobase-angular-e2e": {
+      "tags": [],
+      "implicitDependencies": ["demobase-angular"]
+    },
     "demobase-sdk": {
       "tags": []
     }
