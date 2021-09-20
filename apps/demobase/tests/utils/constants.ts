@@ -1,5 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
 
 export const DEMOBASE_PROGRAM_ID = new PublicKey(
-  'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS'
+  'E4kBuz9gC7T32LBKnH3kscxjay1Y3KqFkXJt8UHq1BN4'
 );
