@@ -1,0 +1,264 @@
+{
+  "version": "0.0.0",
+  "name": "demobase",
+  "instructions": [
+    {
+      "name": "createApplication",
+      "accounts": [
+        {
+          "name": "application",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "bump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "createCollection",
+      "accounts": [
+        {
+          "name": "collection",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "application",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "bump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "createDocument",
+      "accounts": [
+        {
+          "name": "document",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "application",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collection",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "content",
+          "type": "string"
+        },
+        {
+          "name": "bump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "updateDocument",
+      "accounts": [
+        {
+          "name": "document",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "content",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleteDocument",
+      "accounts": [
+        {
+          "name": "document",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collection",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Application",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "count",
+            "type": "u64"
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Collection",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "application",
+            "type": "publicKey"
+          },
+          {
+            "name": "count",
+            "type": "u64"
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Document",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "application",
+            "type": "publicKey"
+          },
+          {
+            "name": "collection",
+            "type": "publicKey"
+          },
+          {
+            "name": "content",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "id",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "address": "E4kBuz9gC7T32LBKnH3kscxjay1Y3KqFkXJt8UHq1BN4"
+  }
+}
