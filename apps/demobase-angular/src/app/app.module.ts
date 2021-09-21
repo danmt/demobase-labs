@@ -10,10 +10,40 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { ObscureAddressPipe } from './obscure-address.pipe';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [AppComponent, ObscureAddressPipe],
-  imports: [BrowserModule, ReactiveFormsModule, ReactiveComponentModule],
+  imports: [
+    BrowserModule,
+    RouterModule.forRoot([
+      {
+        path: 'applications',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./applications/applications.module').then(
+                (m) => m.ApplicationsModule
+              ),
+          },
+          {
+            path: ':applicationId',
+            loadChildren: () =>
+              import('./application/application.module').then(
+                (m) => m.ApplicationModule
+              ),
+          },
+        ],
+      },
+      {
+        path: '**',
+        redirectTo: 'applications',
+      },
+    ]),
+    ReactiveFormsModule,
+    ReactiveComponentModule,
+  ],
   providers: [
     {
       provide: WALLET_CONFIG,
