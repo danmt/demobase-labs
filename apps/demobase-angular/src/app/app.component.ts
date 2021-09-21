@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ConnectionStore, WalletStore } from '@danmt/wallet-adapter-angular';
-import { WalletName } from '@solana/wallet-adapter-wallets';
-import { map, tap } from 'rxjs/operators';
+import { DemobaseService, getApplications } from '@demobase-labs/demobase-sdk';
+import { combineLatest } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+
+import { isNotNullOrUndefined } from './is-not-null-or-undefined.operator';
 
 @Component({
   selector: 'demobase-root',
@@ -11,8 +15,7 @@ import { map, tap } from 'rxjs/operators';
 
       <select
         *ngrxLet="wallets$; let wallets"
-        [ngModel]="walletName$ | async"
-        (ngModelChange)="onSelectWallet($event)"
+        [formControl]="selectWalletControl"
       >
         <option [ngValue]="null">Select wallet</option>
         <option *ngFor="let wallet of wallets" [ngValue]="wallet.name">
@@ -30,18 +33,57 @@ import { map, tap } from 'rxjs/operators';
       </ng-container>
     </header>
 
-    <main></main>
+    <main>
+      <section>
+        <h2>Applications</h2>
+
+        <form
+          *ngIf="demobaseService$ | ngrxPush as demobaseService"
+          [formGroup]="createApplicationGroup"
+          (ngSubmit)="onCreateApplication(demobaseService)"
+        >
+          <label> Name: <input formControlName="name" type="text" /> </label>
+
+          <button>Submit</button>
+        </form>
+
+        <ul *ngrxLet="applicationAccounts$; let applicationAccounts">
+          <li *ngFor="let applicationAccount of applicationAccounts">
+            {{ applicationAccount.info.name }}
+          </li>
+        </ul>
+      </section>
+    </main>
   `,
   styles: [],
   providers: [ConnectionStore, WalletStore],
 })
 export class AppComponent implements OnInit {
+  selectWalletControl = new FormControl(null);
+  createApplicationGroup = new FormGroup({
+    name: new FormControl('', { validators: [Validators.required] }),
+  });
   connected$ = this._walletStore.connected$;
-  walletName$ = this._walletStore.name$;
   address$ = this._walletStore.publicKey$.pipe(
     map((publicKey) => publicKey && publicKey.toBase58())
   );
   wallets$ = this._walletStore.wallets$;
+  demobaseService$ = combineLatest([
+    this._connectionStore.connection$.pipe(isNotNullOrUndefined),
+    this._walletStore.anchorWallet$.pipe(isNotNullOrUndefined),
+  ]).pipe(
+    map(([connection, anchorWallet]) =>
+      DemobaseService.create(connection, anchorWallet)
+    )
+  );
+  applicationAccounts$ = this._connectionStore.connection$.pipe(
+    isNotNullOrUndefined,
+    switchMap((connection) => getApplications(connection))
+  );
+
+  get applicationNameControl() {
+    return this.createApplicationGroup.get('name') as FormControl;
+  }
 
   constructor(
     private readonly _walletStore: WalletStore,
@@ -50,10 +92,14 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this._connectionStore.setEndpoint('http://localhost:8899');
-  }
 
-  onSelectWallet(walletName: WalletName) {
-    this._walletStore.selectWallet(walletName);
+    this._walletStore.name$.subscribe((walletName) =>
+      this.selectWalletControl.setValue(walletName, { emitEvent: false })
+    );
+
+    this.selectWalletControl.valueChanges.subscribe((walletName) =>
+      this._walletStore.selectWallet(walletName)
+    );
   }
 
   onConnect() {
@@ -63,6 +109,12 @@ export class AppComponent implements OnInit {
   onDisconnect() {
     if (confirm('Are you sure?')) {
       this._walletStore.disconnect().subscribe();
+    }
+  }
+
+  onCreateApplication(demobaseService: DemobaseService) {
+    if (this.createApplicationGroup.valid) {
+      demobaseService.createApplication(this.applicationNameControl.value);
     }
   }
 }

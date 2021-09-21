@@ -1,4 +1,4 @@
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { AccountInfo, PublicKey, Transaction } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
 
 export interface Wallet {
@@ -10,6 +10,18 @@ export interface Wallet {
 export interface Application {
   name: string;
   count: number;
+}
+
+export interface ApplicationAccountInfo {
+  name: string;
+  count: number;
+  authority: PublicKey;
+}
+
+export interface ApplicationAccount {
+  pubkey: PublicKey;
+  info: ApplicationAccountInfo;
+  account: AccountInfo<Buffer>;
 }
 
 export interface RawApplication {

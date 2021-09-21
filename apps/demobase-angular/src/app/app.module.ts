@@ -6,14 +6,14 @@ import {
   getPhantomWallet,
   getSolletWallet,
 } from '@solana/wallet-adapter-wallets';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { ObscureAddressPipe } from './obscure-address.pipe';
 
 @NgModule({
   declarations: [AppComponent, ObscureAddressPipe],
-  imports: [BrowserModule, FormsModule, ReactiveComponentModule],
+  imports: [BrowserModule, ReactiveFormsModule, ReactiveComponentModule],
   providers: [
     {
       provide: WALLET_CONFIG,

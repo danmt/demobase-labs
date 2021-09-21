@@ -1,0 +1,1 @@
+export const APPLICATION_ACCOUNT_DATA_SIZE = 80;

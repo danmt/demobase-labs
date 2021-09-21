@@ -1,14 +1,13 @@
-import { Idl, Program, Provider, utils, Wallet } from '@project-serum/anchor';
+import { Idl, Program, Provider } from '@project-serum/anchor';
 import {
   ConfirmOptions,
   Connection,
   Keypair,
-  PublicKey,
   SystemProgram,
 } from '@solana/web3.js';
 
 import * as idl from './idl.json';
-import { Application, RawApplication } from './types';
+import { Wallet } from './types';
 import { DEMOBASE_PROGRAM_ID } from './utils';
 
 export class DemobaseService {
@@ -26,8 +25,13 @@ export class DemobaseService {
 
   constructor(private _program: Program) {}
 
-  static create(connection: Connection, wallet: Wallet, opts: ConfirmOptions) {
-    const provider = new Provider(connection, wallet, opts);
+  static create(connection: Connection, wallet: Wallet, opts?: ConfirmOptions) {
+    const provider = new Provider(
+      connection,
+      wallet,
+      opts || Provider.defaultOptions()
+    );
+
     const program = new Program(idl as Idl, DEMOBASE_PROGRAM_ID, provider);
     const service = new DemobaseService(program);
 
@@ -51,20 +55,5 @@ export class DemobaseService {
       },
       signers: [application],
     });
-  }
-
-  async getApplication(applicationId: PublicKey): Promise<Application> {
-    const application = (await this._program.account.application.fetch(
-      applicationId
-    )) as RawApplication;
-
-    return {
-      name: utils.bytes.utf8.decode(
-        new Uint8Array(
-          application.name.filter((segment: number) => segment !== 0)
-        )
-      ),
-      count: application.count.toNumber(),
-    };
   }
 }

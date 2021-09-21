@@ -8,7 +8,7 @@
         {
           "name": "application",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "authority",
@@ -25,10 +25,6 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "bump",
-          "type": "u8"
         }
       ]
     },
@@ -173,10 +169,6 @@
           {
             "name": "authority",
             "type": "publicKey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           },
           {
             "name": "count",

@@ -13,7 +13,7 @@
           "error",
           {
             "type": "attribute",
-            "prefix": "dbng",
+            "prefix": "demobase",
             "style": "camelCase"
           }
         ],
@@ -21,7 +21,7 @@
           "error",
           {
             "type": "element",
-            "prefix": "dbng",
+            "prefix": "demobase",
             "style": "kebab-case"
           }
         ]
