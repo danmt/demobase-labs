@@ -1,10 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
 
-import { ApplicationComponent } from './application.component';
+import { CollectionComponent } from './collection.component';
 
 @NgModule({
   imports: [
@@ -12,13 +11,14 @@ import { ApplicationComponent } from './application.component';
     RouterModule.forChild([
       {
         path: '',
-        component: ApplicationComponent,
+        component: CollectionComponent,
         pathMatch: 'full',
       },
     ]),
-    ReactiveFormsModule,
     ReactiveComponentModule,
   ],
-  declarations: [ApplicationComponent],
+  exports: [],
+  declarations: [CollectionComponent],
+  providers: [],
 })
-export class ApplicationModule {}
+export class CollectionModule {}

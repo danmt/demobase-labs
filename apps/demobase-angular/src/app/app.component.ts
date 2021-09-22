@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ConnectionStore, WalletStore } from '@danmt/wallet-adapter-angular';
 import { DemobaseService } from '@demobase-labs/demobase-sdk';
 import { combineLatest } from 'rxjs';
-import { isNotNullOrUndefined } from './is-not-null-or-undefined.operator';
+import { isNotNullOrUndefined } from './shared/operators/is-not-null-or-undefined.operator';
 
 @Component({
   selector: 'demobase-root',

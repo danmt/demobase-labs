@@ -26,6 +26,7 @@ import { filter, map, takeUntil } from 'rxjs/operators';
 
       <nav>
         <a [routerLink]="['/applications']">Applications</a>
+        <a [routerLink]="['/collections']">Collections</a>
       </nav>
     </header>
   `,

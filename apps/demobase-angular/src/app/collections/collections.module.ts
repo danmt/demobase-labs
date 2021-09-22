@@ -4,7 +4,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
 
-import { ApplicationComponent } from './application.component';
+import { SharedModule } from '../shared/shared.module';
+import { CollectionsComponent } from './collections.component';
 
 @NgModule({
   imports: [
@@ -12,13 +13,14 @@ import { ApplicationComponent } from './application.component';
     RouterModule.forChild([
       {
         path: '',
-        component: ApplicationComponent,
+        component: CollectionsComponent,
         pathMatch: 'full',
       },
     ]),
     ReactiveFormsModule,
     ReactiveComponentModule,
+    SharedModule,
   ],
-  declarations: [ApplicationComponent],
+  declarations: [CollectionsComponent],
 })
-export class ApplicationModule {}
+export class CollectionsModule {}

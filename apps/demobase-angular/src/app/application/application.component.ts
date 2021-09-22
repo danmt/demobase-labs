@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DemobaseService } from '@demobase-labs/demobase-sdk';
 import { PublicKey } from '@solana/web3.js';
@@ -8,18 +9,42 @@ import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'demobase-application',
   template: `
-    <section>
-      <h2>Application</h2>
+    <section *ngIf="applicationAccount$ | ngrxPush as applicationAccount">
+      <h2>{{ applicationAccount.info.name }}</h2>
+      <p>Visualize all the details about this application.</p>
 
-      <ng-container
-        *ngIf="applicationAccount$ | ngrxPush as applicationAccount"
+      <form
+        [formGroup]="createCollectionGroup"
+        (ngSubmit)="onCreateCollection(applicationAccount.pubkey)"
       >
-        {{ applicationAccount.info.name }}
-      </ng-container>
+        <label> Name: <input formControlName="name" type="text" /> </label>
+
+        <button>Submit</button>
+      </form>
+
+      <ul *ngrxLet="collectionAccounts$; let collectionAccounts">
+        <li *ngFor="let collectionAccount of collectionAccounts">
+          {{ collectionAccount.info.name }}
+
+          <a
+            [routerLink]="[
+              '/collections',
+              applicationAccount.pubkey.toBase58(),
+              collectionAccount.info.name,
+              collectionAccount.info.bump
+            ]"
+            >view</a
+          >
+        </li>
+      </ul>
     </section>
   `,
 })
 export class ApplicationComponent {
+  readonly createCollectionGroup = new FormGroup({
+    name: new FormControl('', { validators: [Validators.required] }),
+  });
+
   readonly applicationAccount$ = this._route.paramMap.pipe(
     switchMap((paramMap) => {
       const applicationId = paramMap.get('applicationId');
@@ -30,8 +55,33 @@ export class ApplicationComponent {
     })
   );
 
+  readonly collectionAccounts$ = this._route.paramMap.pipe(
+    switchMap((paramMap) => {
+      const applicationId = paramMap.get('applicationId');
+
+      return applicationId
+        ? this._demobaseService.getCollectionsByApplication(
+            new PublicKey(applicationId)
+          )
+        : of(null);
+    })
+  );
+
+  get collectionNameControl() {
+    return this.createCollectionGroup.get('name') as FormControl;
+  }
+
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _demobaseService: DemobaseService
   ) {}
+
+  onCreateCollection(applicationId: PublicKey) {
+    if (this.createCollectionGroup.valid) {
+      this._demobaseService.createCollection(
+        applicationId,
+        this.collectionNameControl.value
+      );
+    }
+  }
 }

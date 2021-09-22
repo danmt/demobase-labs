@@ -4,9 +4,10 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import {
   ConnectionStore,
-  WalletStore,
   WALLET_CONFIG,
+  WalletStore,
 } from '@danmt/wallet-adapter-angular';
+import { DemobaseService } from '@demobase-labs/demobase-sdk';
 import { ReactiveComponentModule } from '@ngrx/component';
 import {
   getPhantomWallet,
@@ -14,13 +15,12 @@ import {
 } from '@solana/wallet-adapter-wallets';
 
 import { AppComponent } from './app.component';
-import { AuthGuard } from './auth.guard';
-import { demobaseServiceProvider } from './demobase-service.provider';
-import { NavigationModule } from './navigation/navigation.module';
-import { UnauthorizedComponent } from './unauthorized.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { CoreModule } from './core/core.module';
+import { UnauthorizedComponent } from './core/components/unauthorized.component';
 
 @NgModule({
-  declarations: [AppComponent, UnauthorizedComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     RouterModule.forRoot([
@@ -45,6 +45,26 @@ import { UnauthorizedComponent } from './unauthorized.component';
         ],
       },
       {
+        path: 'collections',
+        canActivate: [AuthGuard],
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('./collections/collections.module').then(
+                (m) => m.CollectionsModule
+              ),
+          },
+          {
+            path: ':applicationId/:collectionName/:collectionBump',
+            loadChildren: () =>
+              import('./collection/collection.module').then(
+                (m) => m.CollectionModule
+              ),
+          },
+        ],
+      },
+      {
         path: 'unauthorized',
         component: UnauthorizedComponent,
       },
@@ -55,7 +75,7 @@ import { UnauthorizedComponent } from './unauthorized.component';
     ]),
     ReactiveFormsModule,
     ReactiveComponentModule,
-    NavigationModule,
+    CoreModule,
   ],
   providers: [
     {
@@ -65,7 +85,10 @@ import { UnauthorizedComponent } from './unauthorized.component';
         autoConnect: true,
       },
     },
-    demobaseServiceProvider,
+    {
+      provide: DemobaseService,
+      useClass: DemobaseService,
+    },
     AuthGuard,
     ConnectionStore,
     WalletStore,

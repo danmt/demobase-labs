@@ -1,5 +1,4 @@
 import { AccountInfo, PublicKey, Transaction } from '@solana/web3.js';
-import { BN } from '@project-serum/anchor';
 
 export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;
@@ -24,7 +23,16 @@ export interface ApplicationAccount {
   account: AccountInfo<Buffer>;
 }
 
-export interface RawApplication {
-  name: Uint8Array;
-  count: BN;
+export interface CollectionAccountInfo {
+  name: string;
+  count: number;
+  authority: PublicKey;
+  application: PublicKey;
+  bump: number;
+}
+
+export interface CollectionAccount {
+  pubkey: PublicKey;
+  info: CollectionAccountInfo;
+  account: AccountInfo<Buffer>;
 }
