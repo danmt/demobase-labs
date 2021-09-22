@@ -1,12 +1,9 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ConnectionStore } from '@danmt/wallet-adapter-angular';
-import { getApplication } from '@demobase-labs/demobase-sdk';
+import { DemobaseService } from '@demobase-labs/demobase-sdk';
 import { PublicKey } from '@solana/web3.js';
-import { combineLatest, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-
-import { isNotNullOrUndefined } from '../is-not-null-or-undefined.operator';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'demobase-application',
@@ -23,23 +20,18 @@ import { isNotNullOrUndefined } from '../is-not-null-or-undefined.operator';
   `,
 })
 export class ApplicationComponent {
-  applicationAccount$ = combineLatest([
-    this._connectionStore.connection$.pipe(isNotNullOrUndefined),
-    this._route.paramMap.pipe(map((paramMap) => paramMap.get('applicationId'))),
-  ]).pipe(
-    switchMap(([connection, applicationId]) => {
-      console.log(connection, applicationId);
+  readonly applicationAccount$ = this._route.paramMap.pipe(
+    switchMap((paramMap) => {
+      const applicationId = paramMap.get('applicationId');
 
-      if (!applicationId) {
-        return of(null);
-      }
-
-      return getApplication(connection, new PublicKey(applicationId));
+      return applicationId
+        ? this._demobaseService.getApplication(new PublicKey(applicationId))
+        : of(null);
     })
   );
 
   constructor(
     private readonly _route: ActivatedRoute,
-    private readonly _connectionStore: ConnectionStore
+    private readonly _demobaseService: DemobaseService
   ) {}
 }

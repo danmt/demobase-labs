@@ -1,11 +1,7 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ConnectionStore, WalletStore } from '@danmt/wallet-adapter-angular';
-import { DemobaseService, getApplications } from '@demobase-labs/demobase-sdk';
-import { combineLatest } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-
-import { isNotNullOrUndefined } from '../is-not-null-or-undefined.operator';
+import { DemobaseService } from '@demobase-labs/demobase-sdk';
+import { defer, from } from 'rxjs';
 
 @Component({
   selector: 'demobase-applications',
@@ -14,9 +10,8 @@ import { isNotNullOrUndefined } from '../is-not-null-or-undefined.operator';
       <h2>Applications</h2>
 
       <form
-        *ngIf="demobaseService$ | ngrxPush as demobaseService"
         [formGroup]="createApplicationGroup"
-        (ngSubmit)="onCreateApplication(demobaseService)"
+        (ngSubmit)="onCreateApplication()"
       >
         <label> Name: <input formControlName="name" type="text" /> </label>
 
@@ -40,34 +35,24 @@ import { isNotNullOrUndefined } from '../is-not-null-or-undefined.operator';
   `,
 })
 export class ApplicationsComponent {
-  createApplicationGroup = new FormGroup({
+  readonly createApplicationGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
   });
-  demobaseService$ = combineLatest([
-    this._connectionStore.connection$.pipe(isNotNullOrUndefined),
-    this._walletStore.anchorWallet$.pipe(isNotNullOrUndefined),
-  ]).pipe(
-    map(([connection, anchorWallet]) =>
-      DemobaseService.create(connection, anchorWallet)
-    )
-  );
-  applicationAccounts$ = this._connectionStore.connection$.pipe(
-    isNotNullOrUndefined,
-    switchMap((connection) => getApplications(connection))
+  readonly applicationAccounts$ = from(
+    defer(() => this._demobaseService.getApplications())
   );
 
   get applicationNameControl() {
     return this.createApplicationGroup.get('name') as FormControl;
   }
 
-  constructor(
-    private readonly _walletStore: WalletStore,
-    private readonly _connectionStore: ConnectionStore
-  ) {}
+  constructor(private readonly _demobaseService: DemobaseService) {}
 
-  onCreateApplication(demobaseService: DemobaseService) {
+  onCreateApplication() {
     if (this.createApplicationGroup.valid) {
-      demobaseService.createApplication(this.applicationNameControl.value);
+      this._demobaseService.createApplication(
+        this.applicationNameControl.value
+      );
     }
   }
 }
