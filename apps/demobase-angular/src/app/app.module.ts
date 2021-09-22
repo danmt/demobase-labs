@@ -1,19 +1,17 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { RouterModule } from '@angular/router';
 import { WALLET_CONFIG } from '@danmt/wallet-adapter-angular';
-import { ReactiveComponentModule } from '@ngrx/component';
 import {
   getPhantomWallet,
   getSolletWallet,
 } from '@solana/wallet-adapter-wallets';
-import { ReactiveFormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
-import { ObscureAddressPipe } from './obscure-address.pipe';
-import { RouterModule } from '@angular/router';
+import { NavigationModule } from './navigation/navigation.module';
 
 @NgModule({
-  declarations: [AppComponent, ObscureAddressPipe],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     RouterModule.forRoot([
@@ -41,8 +39,7 @@ import { RouterModule } from '@angular/router';
         redirectTo: 'applications',
       },
     ]),
-    ReactiveFormsModule,
-    ReactiveComponentModule,
+    NavigationModule,
   ],
   providers: [
     {

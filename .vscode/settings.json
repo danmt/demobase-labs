@@ -1,3 +1,20 @@
 {
-  "cSpell.words": ["demobase", "pubkey", "solana", "lamport", "lamports"]
+  "cSpell.words": ["demobase", "pubkey", "solana", "lamport", "lamports"],
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#ec5629",
+    "activityBar.activeBorder": "#15ea46",
+    "activityBar.background": "#ec5629",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#15ea46",
+    "activityBarBadge.foreground": "#15202b",
+    "statusBar.background": "#d03e12",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#ec5629",
+    "titleBar.activeBackground": "#d03e12",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#d03e1299",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#d03e12"
 }
