@@ -5,12 +5,14 @@ import {
   APPLICATION_ACCOUNT_NAME,
   COLLECTION_ACCOUNT_NAME,
   COLLECTION_ATTRIBUTE_ACCOUNT_NAME,
+  COLLECTION_INSTRUCTION_ACCOUNT_NAME,
 } from '.';
 import * as idl from '../idl.json';
 import {
   ApplicationAccount,
   CollectionAccount,
   CollectionAttributeAccount,
+  CollectionInstructionAccount,
 } from '../types';
 
 const accountCoder = new AccountsCoder(idl as Idl);
@@ -116,6 +118,42 @@ export const CollectionAttributeAccountParser = (
       ),
       authority: rawCollectionAttributeAccount.authority,
       collection: rawCollectionAttributeAccount.collection,
+    },
+    account,
+  };
+};
+
+interface RawCollectionInstructionAccount {
+  authority: PublicKey;
+  bump: number;
+  collection: PublicKey;
+  name: Uint8Array;
+  attributeType: Uint8Array;
+  size: number;
+}
+
+export const CollectionInstructionAccountParser = (
+  publicKey: PublicKey,
+  account: AccountInfo<Buffer>
+): CollectionInstructionAccount => {
+  const rawCollectionInstructionAccount = accountCoder.decode(
+    COLLECTION_INSTRUCTION_ACCOUNT_NAME,
+    account.data
+  ) as RawCollectionInstructionAccount;
+
+  return {
+    pubkey: publicKey,
+    info: {
+      bump: rawCollectionInstructionAccount.bump,
+      name: utils.bytes.utf8.decode(
+        new Uint8Array(
+          rawCollectionInstructionAccount.name.filter(
+            (segment) => segment !== 0
+          )
+        )
+      ),
+      authority: rawCollectionInstructionAccount.authority,
+      collection: rawCollectionInstructionAccount.collection,
     },
     account,
   };

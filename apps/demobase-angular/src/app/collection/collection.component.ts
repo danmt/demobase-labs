@@ -13,6 +13,8 @@ import { switchMap } from 'rxjs/operators';
       <h2>{{ collectionAccount.info.name }}</h2>
       <p>Visualize all the details about this application.</p>
 
+      <h3>Attributes</h3>
+
       <form
         [formGroup]="createCollectionAttributeGroup"
         (ngSubmit)="onCreateCollectionAttribute(collectionAccount.pubkey)"
@@ -52,6 +54,31 @@ import { switchMap } from 'rxjs/operators';
           <p>Size: {{ collectionAttributeAccount.info.size }}</p>
         </li>
       </ul>
+
+      <h3>Instructions</h3>
+
+      <form
+        [formGroup]="createCollectionInstructionGroup"
+        (ngSubmit)="onCreateCollectionInstruction(collectionAccount.pubkey)"
+      >
+        <label> Name: <input formControlName="name" type="text" /> </label>
+        <button>Submit</button>
+      </form>
+
+      <ul
+        *ngrxLet="
+          collectionInstructionAccounts$;
+          let collectionInstructionAccounts
+        "
+      >
+        <li
+          *ngFor="
+            let collectionInstructionAccount of collectionInstructionAccounts
+          "
+        >
+          <p>Name: {{ collectionInstructionAccount.info.name }}</p>
+        </li>
+      </ul>
     </section>
   `,
 })
@@ -62,7 +89,6 @@ export class CollectionComponent {
     isArray: new FormControl(0),
     length: new FormControl(1),
   });
-
   get collectionAttributeNameControl() {
     return this.createCollectionAttributeGroup.get('name') as FormControl;
   }
@@ -74,6 +100,13 @@ export class CollectionComponent {
   }
   get collectionAttributeLengthControl() {
     return this.createCollectionAttributeGroup.get('length') as FormControl;
+  }
+
+  readonly createCollectionInstructionGroup = new FormGroup({
+    name: new FormControl('', { validators: [Validators.required] }),
+  });
+  get collectionInstructionNameControl() {
+    return this.createCollectionInstructionGroup.get('name') as FormControl;
   }
 
   readonly collectionAccount$ = this._route.paramMap.pipe(
@@ -91,6 +124,17 @@ export class CollectionComponent {
 
       return collectionId
         ? this._demobaseService.getCollectionAttributes(
+            new PublicKey(collectionId)
+          )
+        : of(null);
+    })
+  );
+  readonly collectionInstructionAccounts$ = this._route.paramMap.pipe(
+    switchMap((paramMap) => {
+      const collectionId = paramMap.get('collectionId');
+
+      return collectionId
+        ? this._demobaseService.getCollectionInstructions(
             new PublicKey(collectionId)
           )
         : of(null);
@@ -118,6 +162,14 @@ export class CollectionComponent {
         type,
         size
       );
+    }
+  }
+
+  onCreateCollectionInstruction(collectionId: PublicKey) {
+    if (this.createCollectionInstructionGroup.valid) {
+      const name = this.collectionInstructionNameControl.value;
+
+      this._demobaseService.createCollectionInstruction(collectionId, name);
     }
   }
 }

@@ -36,6 +36,15 @@ pub mod demobase {
         Ok(())
     }
 
+    pub fn create_collection_instruction(ctx: Context<CreateCollectionInstruction>, name: String, bump: u8) -> ProgramResult {
+      msg!("Create collection instruction");
+      ctx.accounts.collection_instruction.name = parse_string(name);
+      ctx.accounts.collection_instruction.bump = bump;
+      ctx.accounts.collection_instruction.authority = ctx.accounts.authority.key();
+      ctx.accounts.collection_instruction.collection = ctx.accounts.collection.key();
+      Ok(())
+  }
+
     pub fn create_document(ctx: Context<CreateDocument>, id: String, content: String, bump: u8) -> ProgramResult {
         msg!("Create document");
         ctx.accounts.collection.count += 1;
@@ -112,7 +121,27 @@ pub struct CreateCollectionAttribute<'info> {
         bump = bump
     )]
     pub collection_attribute: Box<Account<'info, CollectionAttribute>>,
+    pub collection: Box<Account<'info, Collection>>,
     #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, bump: u8)]
+pub struct CreateCollectionInstruction<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + 32 + 1 + 32 + 32,
+        seeds = [
+            b"collection_instruction",
+            collection.key().as_ref(),
+            name.as_bytes()
+        ],
+        bump = bump
+    )]
+    pub collection_instruction: Box<Account<'info, CollectionInstruction>>,
     pub collection: Box<Account<'info, Collection>>,
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -196,6 +225,14 @@ pub struct CollectionAttribute {
     pub name: [u8; 32],
     pub attribute_type: [u8; 32],
     pub size: u8,
+}
+
+#[account]
+pub struct CollectionInstruction {
+    pub authority: Pubkey,
+    pub bump: u8,
+    pub collection: Pubkey,
+    pub name: [u8; 32],
 }
 
 pub fn parse_string(string: String) -> [u8; 32] {

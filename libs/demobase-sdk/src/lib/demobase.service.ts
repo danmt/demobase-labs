@@ -14,6 +14,7 @@ import {
   ApplicationAccount,
   CollectionAccount,
   CollectionAttributeAccount,
+  CollectionInstructionAccount,
   Wallet,
 } from './types';
 import {
@@ -30,6 +31,10 @@ import {
   findCollectionAddress,
   findCollectionAttributeAddress,
   getAccountDiscriminator,
+  findCollectionInstructionAddress,
+  CollectionInstructionAccountParser,
+  COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE,
+  COLLECTION_INSTRUCTION_ACCOUNT_NAME,
 } from './utils';
 
 export class DemobaseService {
@@ -320,6 +325,71 @@ export class DemobaseService {
 
     return programAccounts.map(({ account, pubkey }) =>
       CollectionAttributeAccountParser(pubkey, account)
+    );
+  }
+
+  async createCollectionInstruction(collectionId: PublicKey, name: string) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    const [collectionInstructionId, collectionInstructionBump] =
+      await findCollectionInstructionAddress(collectionId, name);
+
+    return this._program.rpc.createCollectionInstruction(
+      name,
+      collectionInstructionBump,
+      {
+        accounts: {
+          collectionInstruction: collectionInstructionId,
+          collection: collectionId,
+          authority: this.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
+  }
+
+  async getCollectionInstructions(
+    collectionId: PublicKey,
+    commitment?: Commitment
+  ): Promise<CollectionInstructionAccount[]> {
+    if (!this.connection) {
+      throw Error('Connection is not available');
+    }
+
+    const filters = [
+      { dataSize: COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE },
+      {
+        memcmp: {
+          bytes: encode(
+            getAccountDiscriminator(COLLECTION_INSTRUCTION_ACCOUNT_NAME)
+          ),
+          offset: 0,
+        },
+      },
+      {
+        memcmp: {
+          bytes: collectionId.toBase58(),
+          offset: 41,
+        },
+      },
+    ];
+
+    const programAccounts = await this.connection.getProgramAccounts(
+      DEMOBASE_PROGRAM_ID,
+      {
+        filters,
+        commitment,
+      }
+    );
+
+    return programAccounts.map(({ account, pubkey }) =>
+      CollectionInstructionAccountParser(pubkey, account)
     );
   }
 }

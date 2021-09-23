@@ -13,6 +13,7 @@ import {
   createDocumentAddress,
   findCollectionAddress,
   findCollectionAttributeAddress,
+  findCollectionInstructionAddress,
   findDocumentAddress,
 } from './utils';
 
@@ -20,9 +21,7 @@ describe('demobase', () => {
   // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
-  let collectionBump: number,
-    documentBump: number,
-    collectionAttribute1Bump: number;
+  let collectionBump: number, documentBump: number;
   const documentId = 'ABCD1234';
   const applicationName = 'myApp';
   const collectionName = 'things';
@@ -100,13 +99,12 @@ describe('demobase', () => {
       collectionId,
       name
     );
-    collectionAttribute1Bump = bump;
     // act
     await program.rpc.createCollectionAttribute(
       name,
       attributeType,
       size,
-      collectionAttribute1Bump,
+      bump,
       {
         accounts: {
           collectionAttribute: collectionAttributeId,
@@ -145,6 +143,47 @@ describe('demobase', () => {
       attributeType
     );
     assert.equal(collectionAttributeAccount.size, size);
+  });
+
+  it('should create collection instruction', async () => {
+    // arrange
+    const name = 'create_document';
+    const collectionId = await createCollectionAddress(
+      application.publicKey,
+      collectionName,
+      collectionBump
+    );
+    const [collectionInstructionId, bump] =
+      await findCollectionInstructionAddress(collectionId, name);
+    // act
+    await program.rpc.createCollectionInstruction(name, bump, {
+      accounts: {
+        collectionInstruction: collectionInstructionId,
+        collection: collectionId,
+        authority: program.provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    });
+    // assert
+    const collectionInstructionAccount =
+      await program.account.collectionInstruction.fetch(
+        collectionInstructionId
+      );
+    assert.ok(
+      collectionInstructionAccount.authority.equals(
+        program.provider.wallet.publicKey
+      )
+    );
+    assert.equal(
+      utils.bytes.utf8.decode(
+        new Uint8Array(
+          collectionInstructionAccount.name.filter(
+            (segment: number) => segment !== 0
+          )
+        )
+      ),
+      name
+    );
   });
 
   it('should create document', async () => {

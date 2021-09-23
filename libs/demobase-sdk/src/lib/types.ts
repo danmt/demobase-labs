@@ -51,3 +51,16 @@ export interface CollectionAttributeAccount {
   info: CollectionAttributeAccountInfo;
   account: AccountInfo<Buffer>;
 }
+
+export interface CollectionInstructionAccountInfo {
+  name: string;
+  authority: PublicKey;
+  collection: PublicKey;
+  bump: number;
+}
+
+export interface CollectionInstructionAccount {
+  pubkey: PublicKey;
+  info: CollectionInstructionAccountInfo;
+  account: AccountInfo<Buffer>;
+}

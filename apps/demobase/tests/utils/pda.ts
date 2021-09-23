@@ -97,3 +97,17 @@ export const findCollectionAttributeAddress = (
     DEMOBASE_PROGRAM_ID
   );
 };
+
+export const findCollectionInstructionAddress = (
+  collectionId: PublicKey,
+  name: string
+) => {
+  return PublicKey.findProgramAddress(
+    [
+      Buffer.from('collection_instruction', 'utf8'),
+      collectionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
