@@ -392,4 +392,22 @@ export class DemobaseService {
       CollectionInstructionAccountParser(pubkey, account)
     );
   }
+
+  async getCollectionInstruction(
+    instructionId: PublicKey,
+    commitment?: Commitment
+  ): Promise<CollectionInstructionAccount | null> {
+    if (!this.connection) {
+      throw Error('Connection is not available');
+    }
+
+    const account = await this.connection.getAccountInfo(
+      instructionId,
+      commitment
+    );
+
+    return (
+      account && CollectionInstructionAccountParser(instructionId, account)
+    );
+  }
 }
