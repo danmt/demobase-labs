@@ -77,6 +77,13 @@ import { switchMap } from 'rxjs/operators';
           "
         >
           <p>Name: {{ collectionInstructionAccount.info.name }}</p>
+          <a
+            [routerLink]="[
+              '/instructions',
+              collectionInstructionAccount.pubkey.toBase58()
+            ]"
+            >view</a
+          >
         </li>
       </ul>
     </section>
