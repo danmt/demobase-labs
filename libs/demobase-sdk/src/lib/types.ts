@@ -64,3 +64,17 @@ export interface CollectionInstructionAccount {
   info: CollectionInstructionAccountInfo;
   account: AccountInfo<Buffer>;
 }
+
+export interface CollectionInstructionArgumentAccountInfo {
+  name: string;
+  authority: PublicKey;
+  collection: PublicKey;
+  bump: number;
+  argumentType: string;
+}
+
+export interface CollectionInstructionArgumentAccount {
+  pubkey: PublicKey;
+  info: CollectionInstructionArgumentAccountInfo;
+  account: AccountInfo<Buffer>;
+}

@@ -6,6 +6,7 @@ import {
   COLLECTION_ACCOUNT_NAME,
   COLLECTION_ATTRIBUTE_ACCOUNT_NAME,
   COLLECTION_INSTRUCTION_ACCOUNT_NAME,
+  COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_NAME,
 } from '.';
 import * as idl from '../idl.json';
 import {
@@ -13,6 +14,7 @@ import {
   CollectionAccount,
   CollectionAttributeAccount,
   CollectionInstructionAccount,
+  CollectionInstructionArgumentAccount,
 } from '../types';
 
 const accountCoder = new AccountsCoder(idl as Idl);
@@ -154,6 +156,48 @@ export const CollectionInstructionAccountParser = (
       ),
       authority: rawCollectionInstructionAccount.authority,
       collection: rawCollectionInstructionAccount.collection,
+    },
+    account,
+  };
+};
+
+interface RawCollectionInstructionArgumentAccount {
+  authority: PublicKey;
+  bump: number;
+  collection: PublicKey;
+  name: Uint8Array;
+  argumentType: Uint8Array;
+}
+
+export const CollectionInstructionArgumentAccountParser = (
+  publicKey: PublicKey,
+  account: AccountInfo<Buffer>
+): CollectionInstructionArgumentAccount => {
+  const rawCollectionInstructionArgumentAccount = accountCoder.decode(
+    COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_NAME,
+    account.data
+  ) as RawCollectionInstructionArgumentAccount;
+
+  return {
+    pubkey: publicKey,
+    info: {
+      bump: rawCollectionInstructionArgumentAccount.bump,
+      name: utils.bytes.utf8.decode(
+        new Uint8Array(
+          rawCollectionInstructionArgumentAccount.name.filter(
+            (segment) => segment !== 0
+          )
+        )
+      ),
+      argumentType: utils.bytes.utf8.decode(
+        new Uint8Array(
+          rawCollectionInstructionArgumentAccount.argumentType.filter(
+            (segment) => segment !== 0
+          )
+        )
+      ),
+      authority: rawCollectionInstructionArgumentAccount.authority,
+      collection: rawCollectionInstructionArgumentAccount.collection,
     },
     account,
   };

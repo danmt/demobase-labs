@@ -110,3 +110,17 @@ export const findCollectionInstructionAddress = (
     DEMOBASE_PROGRAM_ID
   );
 };
+
+export const findCollectionInstructionArgumentAddress = (
+  collectionInstructionId: PublicKey,
+  name: string
+) => {
+  return PublicKey.findProgramAddress(
+    [
+      Buffer.from('collection_instruction_argument', 'utf8'),
+      collectionInstructionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};

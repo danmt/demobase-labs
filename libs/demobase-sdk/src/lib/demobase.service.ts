@@ -15,6 +15,7 @@ import {
   CollectionAccount,
   CollectionAttributeAccount,
   CollectionInstructionAccount,
+  CollectionInstructionArgumentAccount,
   Wallet,
 } from './types';
 import {
@@ -35,6 +36,10 @@ import {
   CollectionInstructionAccountParser,
   COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE,
   COLLECTION_INSTRUCTION_ACCOUNT_NAME,
+  findCollectionInstructionArgumentAddress,
+  CollectionInstructionArgumentAccountParser,
+  COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_DATA_SIZE,
+  COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_NAME,
 } from './utils';
 
 export class DemobaseService {
@@ -408,6 +413,78 @@ export class DemobaseService {
 
     return (
       account && CollectionInstructionAccountParser(instructionId, account)
+    );
+  }
+
+  async createCollectionInstructionArgument(
+    instructionId: PublicKey,
+    name: string,
+    type: string
+  ) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    const [collectionInstructionArgumentId, collectionInstructionArgumentBump] =
+      await findCollectionInstructionArgumentAddress(instructionId, name);
+
+    return this._program.rpc.createCollectionInstructionArgument(
+      name,
+      type,
+      collectionInstructionArgumentBump,
+      {
+        accounts: {
+          collectionInstructionArgument: collectionInstructionArgumentId,
+          collectionInstruction: instructionId,
+          authority: this.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
+  }
+
+  async getCollectionInstructionArguments(
+    instructionId: PublicKey,
+    commitment?: Commitment
+  ): Promise<CollectionInstructionArgumentAccount[]> {
+    if (!this.connection) {
+      throw Error('Connection is not available');
+    }
+
+    const filters = [
+      { dataSize: COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_DATA_SIZE },
+      {
+        memcmp: {
+          bytes: encode(
+            getAccountDiscriminator(
+              COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_NAME
+            )
+          ),
+          offset: 0,
+        },
+      },
+      {
+        memcmp: {
+          bytes: instructionId.toBase58(),
+          offset: 41,
+        },
+      },
+    ];
+
+    const programAccounts = await this.connection.getProgramAccounts(
+      DEMOBASE_PROGRAM_ID,
+      {
+        filters,
+        commitment,
+      }
+    );
+
+    return programAccounts.map(({ account, pubkey }) =>
+      CollectionInstructionArgumentAccountParser(pubkey, account)
     );
   }
 }

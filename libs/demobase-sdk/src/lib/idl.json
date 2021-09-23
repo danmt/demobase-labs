@@ -38,7 +38,7 @@
         },
         {
           "name": "application",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -142,21 +142,16 @@
       ]
     },
     {
-      "name": "createDocument",
+      "name": "createCollectionInstructionArgument",
       "accounts": [
         {
-          "name": "document",
+          "name": "collectionInstructionArgument",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "application",
+          "name": "collectionInstruction",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "collection",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -172,11 +167,11 @@
       ],
       "args": [
         {
-          "name": "id",
+          "name": "name",
           "type": "string"
         },
         {
-          "name": "content",
+          "name": "argumentType",
           "type": "string"
         },
         {
@@ -184,58 +179,6 @@
           "type": "u8"
         }
       ]
-    },
-    {
-      "name": "updateDocument",
-      "accounts": [
-        {
-          "name": "document",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "content",
-          "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "deleteDocument",
-      "accounts": [
-        {
-          "name": "document",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collection",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     }
   ],
   "accounts": [
@@ -247,10 +190,6 @@
           {
             "name": "authority",
             "type": "publicKey"
-          },
-          {
-            "name": "count",
-            "type": "u64"
           },
           {
             "name": "name",
@@ -279,47 +218,7 @@
             "type": "publicKey"
           },
           {
-            "name": "count",
-            "type": "u64"
-          },
-          {
             "name": "name",
-            "type": {
-              "array": ["u8", 32]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "Document",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "application",
-            "type": "publicKey"
-          },
-          {
-            "name": "collection",
-            "type": "publicKey"
-          },
-          {
-            "name": "content",
-            "type": {
-              "array": ["u8", 32]
-            }
-          },
-          {
-            "name": "id",
             "type": {
               "array": ["u8", 32]
             }
@@ -382,6 +281,38 @@
           },
           {
             "name": "name",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollectionInstructionArgument",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "collectionInstruction",
+            "type": "publicKey"
+          },
+          {
+            "name": "name",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "argumentType",
             "type": {
               "array": ["u8", 32]
             }

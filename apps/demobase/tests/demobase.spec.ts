@@ -1,30 +1,24 @@
-import {
-  BN,
-  Provider,
-  setProvider,
-  utils,
-  workspace,
-} from '@project-serum/anchor';
+import { Provider, setProvider, utils, workspace } from '@project-serum/anchor';
 import { Keypair, SystemProgram } from '@solana/web3.js';
 import { assert } from 'chai';
 
 import {
   createCollectionAddress,
-  createDocumentAddress,
+  createCollectionInstructionAddress,
   findCollectionAddress,
   findCollectionAttributeAddress,
   findCollectionInstructionAddress,
-  findDocumentAddress,
+  findCollectionInstructionArgumentAddress,
 } from './utils';
 
 describe('demobase', () => {
   // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
-  let collectionBump: number, documentBump: number;
-  const documentId = 'ABCD1234';
+  let collectionBump: number, collectionInstructionBump: number;
   const applicationName = 'myApp';
   const collectionName = 'things';
+  const collectionInstructionName = 'create_document';
   const application = Keypair.generate();
 
   it('should create application', async () => {
@@ -41,7 +35,6 @@ describe('demobase', () => {
     const applicationAccount = await program.account.application.fetch(
       application.publicKey
     );
-    assert.ok(applicationAccount.count.eq(new BN(0)));
     assert.ok(
       applicationAccount.authority.equals(program.provider.wallet.publicKey)
     );
@@ -72,14 +65,9 @@ describe('demobase', () => {
       },
     });
     // assert
-    const applicationAccount = await program.account.application.fetch(
-      application.publicKey
-    );
     const collectionAccount = await program.account.collection.fetch(
       collection
     );
-    assert.ok(applicationAccount.count.eq(new BN(1)));
-    assert.ok(collectionAccount.count.eq(new BN(0)));
     assert.ok(
       collectionAccount.authority.equals(program.provider.wallet.publicKey)
     );
@@ -147,23 +135,30 @@ describe('demobase', () => {
 
   it('should create collection instruction', async () => {
     // arrange
-    const name = 'create_document';
     const collectionId = await createCollectionAddress(
       application.publicKey,
       collectionName,
       collectionBump
     );
     const [collectionInstructionId, bump] =
-      await findCollectionInstructionAddress(collectionId, name);
+      await findCollectionInstructionAddress(
+        collectionId,
+        collectionInstructionName
+      );
+    collectionInstructionBump = bump;
     // act
-    await program.rpc.createCollectionInstruction(name, bump, {
-      accounts: {
-        collectionInstruction: collectionInstructionId,
-        collection: collectionId,
-        authority: program.provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
+    await program.rpc.createCollectionInstruction(
+      collectionInstructionName,
+      bump,
+      {
+        accounts: {
+          collectionInstruction: collectionInstructionId,
+          collection: collectionId,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
     // assert
     const collectionInstructionAccount =
       await program.account.collectionInstruction.fetch(
@@ -182,117 +177,72 @@ describe('demobase', () => {
           )
         )
       ),
-      name
+      collectionInstructionName
     );
   });
 
-  it('should create document', async () => {
+  it('should create collection instruction argument', async () => {
     // arrange
-    const collectionName = 'things';
+    const collectionInstructionArgumentName = 'name';
+    const collectionInstructionArgumentType = 'String';
     const collectionId = await createCollectionAddress(
       application.publicKey,
       collectionName,
       collectionBump
     );
-    const [document, bump] = await findDocumentAddress(
-      application.publicKey,
+    const collectionInstructionId = await createCollectionInstructionAddress(
       collectionId,
-      documentId
+      collectionInstructionName,
+      collectionInstructionBump
     );
-    const content = 'sample content';
-    documentBump = bump;
+    const [collectionInstructionArgumentId, bump] =
+      await findCollectionInstructionArgumentAddress(
+        collectionInstructionId,
+        collectionInstructionArgumentName
+      );
     // act
-    await program.rpc.createDocument(documentId, content, documentBump, {
-      accounts: {
-        document,
-        collection: collectionId,
-        application: application.publicKey,
-        authority: program.provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
-    // assert
-    const collectionAccount = await program.account.collection.fetch(
-      collectionId
+    await program.rpc.createCollectionInstructionArgument(
+      collectionInstructionArgumentName,
+      collectionInstructionArgumentType,
+      bump,
+      {
+        accounts: {
+          collectionInstructionArgument: collectionInstructionArgumentId,
+          collectionInstruction: collectionInstructionId,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
     );
-    const documentAccount = await program.account.document.fetch(document);
-    assert.ok(collectionAccount.count.eq(new BN(1)));
+    // assert
+    const collectionInstructionArgumentAccount =
+      await program.account.collectionInstructionArgument.fetch(
+        collectionInstructionArgumentId
+      );
     assert.ok(
-      documentAccount.authority.equals(program.provider.wallet.publicKey)
+      collectionInstructionArgumentAccount.authority.equals(
+        program.provider.wallet.publicKey
+      )
     );
     assert.equal(
       utils.bytes.utf8.decode(
         new Uint8Array(
-          documentAccount.content.filter((segment: number) => segment !== 0)
+          collectionInstructionArgumentAccount.name.filter(
+            (segment: number) => segment !== 0
+          )
         )
       ),
-      content
+      collectionInstructionArgumentName
     );
-  });
-
-  it('should update document', async () => {
-    // arrange
-    const collectionName = 'things';
-    const collectionId = await createCollectionAddress(
-      application.publicKey,
-      collectionName,
-      collectionBump
-    );
-    const document = await createDocumentAddress(
-      application.publicKey,
-      collectionId,
-      documentId,
-      documentBump
-    );
-    const content = 'updated sample content';
-    // act
-    await program.rpc.updateDocument(content, {
-      accounts: {
-        document,
-        collection: collectionId,
-        authority: program.provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
-    // assert
-    const documentAccount = await program.account.document.fetch(document);
     assert.equal(
       utils.bytes.utf8.decode(
         new Uint8Array(
-          documentAccount.content.filter((segment: number) => segment !== 0)
+          collectionInstructionArgumentAccount.argumentType.filter(
+            (segment: number) => segment !== 0
+          )
         )
       ),
-      content
+      collectionInstructionArgumentType
     );
-  });
-
-  it('should delete document', async () => {
-    // arrange
-    const collectionName = 'things';
-    const collectionId = await createCollectionAddress(
-      application.publicKey,
-      collectionName,
-      collectionBump
-    );
-    const document = await createDocumentAddress(
-      application.publicKey,
-      collectionId,
-      documentId,
-      documentBump
-    );
-    // act
-    await program.rpc.deleteDocument({
-      accounts: {
-        document,
-        collection: collectionId,
-        authority: program.provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
-    // assert
-    const collectionAccount = await program.account.collection.fetch(
-      collectionId
-    );
-    assert.ok(collectionAccount.count.eq(new BN(0)));
   });
 });

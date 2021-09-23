@@ -111,3 +111,33 @@ export const findCollectionInstructionAddress = (
     DEMOBASE_PROGRAM_ID
   );
 };
+
+export const createCollectionInstructionAddress = (
+  collectionId: PublicKey,
+  name: string,
+  bump: number
+) => {
+  return PublicKey.createProgramAddress(
+    [
+      Buffer.from('collection_instruction', 'utf8'),
+      collectionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+      Uint8Array.from([bump]),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const findCollectionInstructionArgumentAddress = (
+  collectionInstructionId: PublicKey,
+  name: string
+) => {
+  return PublicKey.findProgramAddress(
+    [
+      Buffer.from('collection_instruction_argument', 'utf8'),
+      collectionInstructionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
