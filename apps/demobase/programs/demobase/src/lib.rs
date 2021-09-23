@@ -25,6 +25,17 @@ pub mod demobase {
         Ok(())
     }
 
+    pub fn create_collection_attribute(ctx: Context<CreateCollectionAttribute>, name: String, attribute_type: String, size: u8, bump: u8) -> ProgramResult {
+        msg!("Create collection attribute");
+        ctx.accounts.collection_attribute.name = parse_string(name);
+        ctx.accounts.collection_attribute.bump = bump;
+        ctx.accounts.collection_attribute.attribute_type = parse_string(attribute_type);
+        ctx.accounts.collection_attribute.size = size;
+        ctx.accounts.collection_attribute.authority = ctx.accounts.authority.key();
+        ctx.accounts.collection_attribute.collection = ctx.accounts.collection.key();
+        Ok(())
+    }
+
     pub fn create_document(ctx: Context<CreateDocument>, id: String, content: String, bump: u8) -> ProgramResult {
         msg!("Create document");
         ctx.accounts.collection.count += 1;
@@ -81,6 +92,28 @@ pub struct CreateCollection<'info> {
     pub collection: Box<Account<'info, Collection>>,
     #[account(mut)]
     pub application: Box<Account<'info, Application>>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, attribute_type: String, size: u8, bump: u8)]
+pub struct CreateCollectionAttribute<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + 32 + 1 + 32 + 32 + 32 + 1,
+        seeds = [
+            b"collection_attribute",
+            collection.key().as_ref(),
+            name.as_bytes()
+        ],
+        bump = bump
+    )]
+    pub collection_attribute: Box<Account<'info, CollectionAttribute>>,
+    #[account(mut)]
+    pub collection: Box<Account<'info, Collection>>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -153,6 +186,16 @@ pub struct Document {
     pub collection: Pubkey,
     pub content: [u8; 32],
     pub id: [u8; 32],
+}
+
+#[account]
+pub struct CollectionAttribute {
+    pub authority: Pubkey,
+    pub bump: u8,
+    pub collection: Pubkey,
+    pub name: [u8; 32],
+    pub attribute_type: [u8; 32],
+    pub size: u8,
 }
 
 pub fn parse_string(string: String) -> [u8; 32] {

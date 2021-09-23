@@ -12,6 +12,7 @@ import {
   createCollectionAddress,
   createDocumentAddress,
   findCollectionAddress,
+  findCollectionAttributeAddress,
   findDocumentAddress,
 } from './utils';
 
@@ -19,9 +20,12 @@ describe('demobase', () => {
   // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
-  let collectionBump: number, documentBump: number;
+  let collectionBump: number,
+    documentBump: number,
+    collectionAttribute1Bump: number;
   const documentId = 'ABCD1234';
   const applicationName = 'myApp';
+  const collectionName = 'things';
   const application = Keypair.generate();
 
   it('should create application', async () => {
@@ -54,7 +58,6 @@ describe('demobase', () => {
 
   it('should create collection', async () => {
     // arrange
-    const collectionName = 'things';
     const [collection, bump] = await findCollectionAddress(
       application.publicKey,
       collectionName
@@ -81,6 +84,67 @@ describe('demobase', () => {
     assert.ok(
       collectionAccount.authority.equals(program.provider.wallet.publicKey)
     );
+  });
+
+  it('should create collection attribute', async () => {
+    // arrange
+    const name = 'attr1_name';
+    const attributeType = '[u8; 32]';
+    const size = 32;
+    const collectionId = await createCollectionAddress(
+      application.publicKey,
+      collectionName,
+      collectionBump
+    );
+    const [collectionAttributeId, bump] = await findCollectionAttributeAddress(
+      collectionId,
+      name
+    );
+    collectionAttribute1Bump = bump;
+    // act
+    await program.rpc.createCollectionAttribute(
+      name,
+      attributeType,
+      size,
+      collectionAttribute1Bump,
+      {
+        accounts: {
+          collectionAttribute: collectionAttributeId,
+          collection: collectionId,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
+    // assert
+    const collectionAttributeAccount =
+      await program.account.collectionAttribute.fetch(collectionAttributeId);
+    assert.ok(
+      collectionAttributeAccount.authority.equals(
+        program.provider.wallet.publicKey
+      )
+    );
+    assert.equal(
+      utils.bytes.utf8.decode(
+        new Uint8Array(
+          collectionAttributeAccount.name.filter(
+            (segment: number) => segment !== 0
+          )
+        )
+      ),
+      name
+    );
+    assert.equal(
+      utils.bytes.utf8.decode(
+        new Uint8Array(
+          collectionAttributeAccount.attributeType.filter(
+            (segment: number) => segment !== 0
+          )
+        )
+      ),
+      attributeType
+    );
+    assert.equal(collectionAttributeAccount.size, size);
   });
 
   it('should create document', async () => {

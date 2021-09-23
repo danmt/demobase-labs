@@ -10,17 +10,25 @@ import {
 import { encode } from 'bs58';
 
 import * as idl from './idl.json';
-import { ApplicationAccount, CollectionAccount, Wallet } from './types';
 import {
-  ApplicationAccountParser,
+  ApplicationAccount,
+  CollectionAccount,
+  CollectionAttributeAccount,
+  Wallet,
+} from './types';
+import {
   APPLICATION_ACCOUNT_DATA_SIZE,
   APPLICATION_ACCOUNT_NAME,
-  CollectionAccountParser,
+  ApplicationAccountParser,
   COLLECTION_ACCOUNT_DATA_SIZE,
   COLLECTION_ACCOUNT_NAME,
-  createCollectionAddress,
+  COLLECTION_ATTRIBUTE_ACCOUNT_DATA_SIZE,
+  COLLECTION_ATTRIBUTE_ACCOUNT_NAME,
+  CollectionAccountParser,
+  CollectionAttributeAccountParser,
   DEMOBASE_PROGRAM_ID,
   findCollectionAddress,
+  findCollectionAttributeAddress,
   getAccountDiscriminator,
 } from './utils';
 
@@ -228,20 +236,12 @@ export class DemobaseService {
   }
 
   async getCollection(
-    applicationId: PublicKey,
-    collectionName: string,
-    collectionBump: number,
+    collectionId: PublicKey,
     commitment?: Commitment
   ): Promise<CollectionAccount | null> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
-
-    const collectionId = await createCollectionAddress(
-      applicationId,
-      collectionName,
-      collectionBump
-    );
 
     const account = await this.connection.getAccountInfo(
       collectionId,
@@ -249,5 +249,77 @@ export class DemobaseService {
     );
 
     return account && CollectionAccountParser(collectionId, account);
+  }
+
+  async createCollectionAttribute(
+    collectionId: PublicKey,
+    name: string,
+    attributeType: string,
+    size: number
+  ) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    const [collectionAttributeId, collectionAttributeBump] =
+      await findCollectionAttributeAddress(collectionId, name);
+
+    return this._program.rpc.createCollectionAttribute(
+      name,
+      attributeType,
+      size,
+      collectionAttributeBump,
+      {
+        accounts: {
+          collectionAttribute: collectionAttributeId,
+          collection: collectionId,
+          authority: this.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
+  }
+
+  async getCollectionAttributes(
+    collectionId: PublicKey,
+    commitment?: Commitment
+  ): Promise<CollectionAttributeAccount[]> {
+    if (!this.connection) {
+      throw Error('Connection is not available');
+    }
+
+    const filters = [
+      { dataSize: COLLECTION_ATTRIBUTE_ACCOUNT_DATA_SIZE },
+      {
+        memcmp: {
+          bytes: encode(
+            getAccountDiscriminator(COLLECTION_ATTRIBUTE_ACCOUNT_NAME)
+          ),
+          offset: 0,
+        },
+      },
+      {
+        memcmp: {
+          bytes: collectionId.toBase58(),
+          offset: 41,
+        },
+      },
+    ];
+
+    const programAccounts = await this.connection.getProgramAccounts(
+      DEMOBASE_PROGRAM_ID,
+      {
+        filters,
+        commitment,
+      }
+    );
+
+    return programAccounts.map(({ account, pubkey }) =>
+      CollectionAttributeAccountParser(pubkey, account)
+    );
   }
 }

@@ -83,3 +83,17 @@ export const createDocumentAddress = (
     DEMOBASE_PROGRAM_ID
   );
 };
+
+export const findCollectionAttributeAddress = (
+  collectionId: PublicKey,
+  name: string
+) => {
+  return PublicKey.findProgramAddress(
+    [
+      Buffer.from('collection_attribute', 'utf8'),
+      collectionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};

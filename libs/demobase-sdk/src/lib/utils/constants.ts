@@ -6,3 +6,4 @@ export const DEMOBASE_PROGRAM_ID = new PublicKey(
 
 export const APPLICATION_ACCOUNT_NAME = 'Application';
 export const COLLECTION_ACCOUNT_NAME = 'Collection';
+export const COLLECTION_ATTRIBUTE_ACCOUNT_NAME = 'CollectionAttribute';

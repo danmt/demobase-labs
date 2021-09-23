@@ -1,9 +1,17 @@
 import { AccountsCoder, Idl, utils } from '@project-serum/anchor';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 
-import { APPLICATION_ACCOUNT_NAME, COLLECTION_ACCOUNT_NAME } from '.';
+import {
+  APPLICATION_ACCOUNT_NAME,
+  COLLECTION_ACCOUNT_NAME,
+  COLLECTION_ATTRIBUTE_ACCOUNT_NAME,
+} from '.';
 import * as idl from '../idl.json';
-import { ApplicationAccount, CollectionAccount } from '../types';
+import {
+  ApplicationAccount,
+  CollectionAccount,
+  CollectionAttributeAccount,
+} from '../types';
 
 const accountCoder = new AccountsCoder(idl as Idl);
 
@@ -66,6 +74,48 @@ export const CollectionAccountParser = (
       ),
       authority: rawCollectionAccount.authority,
       application: rawCollectionAccount.application,
+    },
+    account,
+  };
+};
+
+interface RawCollectionAttributeAccount {
+  authority: PublicKey;
+  bump: number;
+  collection: PublicKey;
+  name: Uint8Array;
+  attributeType: Uint8Array;
+  size: number;
+}
+
+export const CollectionAttributeAccountParser = (
+  publicKey: PublicKey,
+  account: AccountInfo<Buffer>
+): CollectionAttributeAccount => {
+  const rawCollectionAttributeAccount = accountCoder.decode(
+    COLLECTION_ATTRIBUTE_ACCOUNT_NAME,
+    account.data
+  ) as RawCollectionAttributeAccount;
+
+  return {
+    pubkey: publicKey,
+    info: {
+      bump: rawCollectionAttributeAccount.bump,
+      size: rawCollectionAttributeAccount.size,
+      attributeType: utils.bytes.utf8.decode(
+        new Uint8Array(
+          rawCollectionAttributeAccount.attributeType.filter(
+            (segment) => segment !== 0
+          )
+        )
+      ),
+      name: utils.bytes.utf8.decode(
+        new Uint8Array(
+          rawCollectionAttributeAccount.name.filter((segment) => segment !== 0)
+        )
+      ),
+      authority: rawCollectionAttributeAccount.authority,
+      collection: rawCollectionAttributeAccount.collection,
     },
     account,
   };

@@ -56,7 +56,7 @@ import { UnauthorizedComponent } from './core/components/unauthorized.component'
               ),
           },
           {
-            path: ':applicationId/:collectionName/:collectionBump',
+            path: ':collectionId',
             loadChildren: () =>
               import('./collection/collection.module').then(
                 (m) => m.CollectionModule

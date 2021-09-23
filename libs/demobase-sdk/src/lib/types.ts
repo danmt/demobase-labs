@@ -36,3 +36,18 @@ export interface CollectionAccount {
   info: CollectionAccountInfo;
   account: AccountInfo<Buffer>;
 }
+
+export interface CollectionAttributeAccountInfo {
+  name: string;
+  attributeType: string;
+  size: number;
+  authority: PublicKey;
+  collection: PublicKey;
+  bump: number;
+}
+
+export interface CollectionAttributeAccount {
+  pubkey: PublicKey;
+  info: CollectionAttributeAccountInfo;
+  account: AccountInfo<Buffer>;
+}

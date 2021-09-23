@@ -52,10 +52,7 @@ export class UnauthorizedComponent implements OnInit, OnDestroy {
         filter((connected) => connected),
         takeUntil(this._destroy)
       )
-      .subscribe(() => {
-        console.log('LA MEGA DEMENCIA PS');
-        this._router.navigate(['/']);
-      });
+      .subscribe(() => this._router.navigate(['/']));
   }
 
   ngOnDestroy() {
