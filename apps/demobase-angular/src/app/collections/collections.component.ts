@@ -37,7 +37,11 @@ import { defer, from } from 'rxjs';
           {{ collectionAccount.info.name }}
 
           <a
-            [routerLink]="['/collections', collectionAccount.pubkey.toBase58()]"
+            [routerLink]="[
+              '/collections',
+              collectionAccount.info.application.toBase58(),
+              collectionAccount.pubkey.toBase58()
+            ]"
             >view</a
           >
         </li>

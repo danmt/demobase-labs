@@ -33,8 +33,8 @@ describe('demobase', () => {
     // act
     await program.rpc.createApplication(applicationName, {
       accounts: {
-        application: application.publicKey,
         authority: program.provider.wallet.publicKey,
+        application: application.publicKey,
         systemProgram: SystemProgram.programId,
       },
       signers: [application],
@@ -106,10 +106,10 @@ describe('demobase', () => {
       bump,
       {
         accounts: {
-          attribute: attributeId,
-          collection: collectionId,
-          application: application.publicKey,
           authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          collection: collectionId,
+          attribute: attributeId,
           systemProgram: SystemProgram.programId,
         },
       }
@@ -153,10 +153,10 @@ describe('demobase', () => {
     // act
     await program.rpc.createCollectionInstruction(instructionName, bump, {
       accounts: {
-        instruction: instructionId,
-        collection: collectionId,
-        application: application.publicKey,
         authority: program.provider.wallet.publicKey,
+        application: application.publicKey,
+        collection: collectionId,
+        instruction: instructionId,
         systemProgram: SystemProgram.programId,
       },
     });
@@ -210,11 +210,11 @@ describe('demobase', () => {
       bump,
       {
         accounts: {
-          argument: argumentId,
-          instruction: instructionId,
-          collection: collectionId,
-          application: application.publicKey,
           authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          collection: collectionId,
+          instruction: instructionId,
+          argument: argumentId,
           systemProgram: SystemProgram.programId,
         },
       }
@@ -271,11 +271,11 @@ describe('demobase', () => {
       bump,
       {
         accounts: {
-          account: accountId,
-          instruction: instructionId,
-          collection: collectionId,
-          application: application.publicKey,
           authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          collection: collectionId,
+          instruction: instructionId,
+          account: accountId,
           systemProgram: SystemProgram.programId,
         },
       }
@@ -332,12 +332,12 @@ describe('demobase', () => {
     // act
     await program.rpc.createAccountBoolAttribute(attributeKind, bump, {
       accounts: {
-        attribute: attributeId,
-        account: accountId,
-        instruction: instructionId,
-        collection: collectionId,
-        application: application.publicKey,
         authority: program.provider.wallet.publicKey,
+        application: application.publicKey,
+        collection: collectionId,
+        instruction: instructionId,
+        account: accountId,
+        attribute: attributeId,
         systemProgram: SystemProgram.programId,
       },
     });
@@ -386,8 +386,8 @@ describe('demobase', () => {
     // act
     await program.rpc.updateAccountBoolAttribute(accountBoolAttributeKind, {
       accounts: {
-        attribute: accountBoolAttributeId,
         authority: program.provider.wallet.publicKey,
+        attribute: accountBoolAttributeId,
       },
     });
     // assert
@@ -427,8 +427,8 @@ describe('demobase', () => {
     // act
     await program.rpc.deleteAccountBoolAttribute({
       accounts: {
-        attribute: attributeId,
         authority: program.provider.wallet.publicKey,
+        attribute: attributeId,
       },
     });
     // assert

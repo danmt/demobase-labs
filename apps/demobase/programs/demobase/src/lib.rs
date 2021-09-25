@@ -380,19 +380,23 @@ impl AttributeKind {
 #[repr(u8)]
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum AttributeKindModifier {
-    None,
+    None {
+      size: u8
+    },
     Array {
       size: u8
     },
-    Vector
+    Vector {
+      size: u8
+    }
 }
 
 impl AttributeKindModifier {
     fn from(index: u8, size: u8) -> Result<Self> {
         match index {
-            0 => Ok(AttributeKindModifier::None),
+            0 => Ok(AttributeKindModifier::None { size: 1 }),
             1 => Ok(AttributeKindModifier::Array { size: size }),
-            2 => Ok(AttributeKindModifier::Vector),
+            2 => Ok(AttributeKindModifier::Vector { size: 1 }),
             _ => Err(ErrorCode::InvalidAttributeKindModifier.into()),
         }
     }
