@@ -56,7 +56,7 @@ import { UnauthorizedComponent } from './core/components/unauthorized.component'
               ),
           },
           {
-            path: ':collectionId',
+            path: ':applicationId/:collectionId',
             loadChildren: () =>
               import('./collection/collection.module').then(
                 (m) => m.CollectionModule
@@ -69,7 +69,7 @@ import { UnauthorizedComponent } from './core/components/unauthorized.component'
         canActivate: [AuthGuard],
         children: [
           {
-            path: ':applicationId/:instructionId',
+            path: ':applicationId/:collectionId/:instructionId',
             loadChildren: () =>
               import('./instruction/instruction.module').then(
                 (m) => m.InstructionModule

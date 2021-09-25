@@ -17,27 +17,32 @@ import { switchMap } from 'rxjs/operators';
 
       <form
         [formGroup]="createCollectionAttributeGroup"
-        (ngSubmit)="onCreateCollectionAttribute(collectionAccount.pubkey)"
+        (ngSubmit)="onCreateCollectionAttribute()"
       >
         <label> Name: <input formControlName="name" type="text" /> </label>
         <label>
-          Type:
-          <select formControlName="type">
-            <option [ngValue]="{ name: 'u8', size: 1 }">u8 | Size: 1</option>
-            <option [ngValue]="{ name: 'u16', size: 2 }">u16 | Size: 2</option>
-            <option [ngValue]="{ name: 'u32', size: 4 }">u32 | Size: 4</option>
-            <option [ngValue]="{ name: 'u64', size: 8 }">u64 | Size: 8</option>
-            <option [ngValue]="{ name: 'Pubkey', size: 32 }">
-              Pubkey | Size: 32
-            </option>
+          Kind:
+          <select formControlName="kind">
+            <option [ngValue]="0">u8</option>
+            <option [ngValue]="1">u16</option>
+            <option [ngValue]="2">u32</option>
+            <option [ngValue]="3">u64</option>
+            <option [ngValue]="4">u128</option>
+            <option [ngValue]="5">Pubkey</option>
           </select>
         </label>
 
         <label>
-          Is Array? <input formControlName="isArray" type="checkbox" />
+          Modifier:
+          <select formControlName="modifier">
+            <option [ngValue]="0">None</option>
+            <option [ngValue]="1">Array</option>
+            <option [ngValue]="2">Vector</option>
+          </select>
         </label>
-        <label *ngIf="collectionAttributeIsArrayControl.value">
-          Length: <input formControlName="length" type="number" />
+
+        <label *ngIf="collectionAttributeModifierControl.value === 1">
+          Size: <input formControlName="size" type="number" />
         </label>
 
         <button>Submit</button>
@@ -49,9 +54,26 @@ import { switchMap } from 'rxjs/operators';
         <li
           *ngFor="let collectionAttributeAccount of collectionAttributeAccounts"
         >
-          <p>Name: {{ collectionAttributeAccount.info.name }}</p>
-          <p>Type: {{ collectionAttributeAccount.info.attributeType }}</p>
-          <p>Size: {{ collectionAttributeAccount.info.size }}</p>
+          <p>Name: {{ collectionAttributeAccount.info.name }}.</p>
+          <p>
+            Kind: {{ collectionAttributeAccount.info.kind.name }} ({{
+              collectionAttributeAccount.info.kind.size
+            }}
+            bytes).
+          </p>
+          <p>
+            Modifier: {{ collectionAttributeAccount.info.modifier.name }} ({{
+              collectionAttributeAccount.info.modifier.size
+            }}).
+          </p>
+          <p>
+            Total size:
+            {{
+              collectionAttributeAccount.info.kind.size *
+                collectionAttributeAccount.info.modifier.size
+            }}
+            bytes.
+          </p>
         </li>
       </ul>
 
@@ -59,7 +81,7 @@ import { switchMap } from 'rxjs/operators';
 
       <form
         [formGroup]="createCollectionInstructionGroup"
-        (ngSubmit)="onCreateCollectionInstruction(collectionAccount.pubkey)"
+        (ngSubmit)="onCreateCollectionInstruction()"
       >
         <label> Name: <input formControlName="name" type="text" /> </label>
         <button>Submit</button>
@@ -81,6 +103,7 @@ import { switchMap } from 'rxjs/operators';
             [routerLink]="[
               '/instructions',
               collectionAccount.info.application.toBase58(),
+              collectionAccount.pubkey.toBase58(),
               collectionInstructionAccount.pubkey.toBase58()
             ]"
             >view</a
@@ -93,21 +116,21 @@ import { switchMap } from 'rxjs/operators';
 export class CollectionComponent {
   readonly createCollectionAttributeGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
-    type: new FormControl(null, { validators: [Validators.required] }),
-    isArray: new FormControl(0),
-    length: new FormControl(1),
+    kind: new FormControl(0, { validators: [Validators.required] }),
+    modifier: new FormControl(0, { validators: [Validators.required] }),
+    size: new FormControl(1),
   });
   get collectionAttributeNameControl() {
     return this.createCollectionAttributeGroup.get('name') as FormControl;
   }
-  get collectionAttributeTypeControl() {
-    return this.createCollectionAttributeGroup.get('type') as FormControl;
+  get collectionAttributeKindControl() {
+    return this.createCollectionAttributeGroup.get('kind') as FormControl;
   }
-  get collectionAttributeIsArrayControl() {
-    return this.createCollectionAttributeGroup.get('isArray') as FormControl;
+  get collectionAttributeModifierControl() {
+    return this.createCollectionAttributeGroup.get('modifier') as FormControl;
   }
-  get collectionAttributeLengthControl() {
-    return this.createCollectionAttributeGroup.get('length') as FormControl;
+  get collectionAttributeSizeControl() {
+    return this.createCollectionAttributeGroup.get('size') as FormControl;
   }
 
   readonly createCollectionInstructionGroup = new FormGroup({
@@ -128,9 +151,10 @@ export class CollectionComponent {
   );
   readonly collectionAttributeAccounts$ = this._route.paramMap.pipe(
     switchMap((paramMap) => {
+      const applicationId = paramMap.get('applicationId');
       const collectionId = paramMap.get('collectionId');
 
-      return collectionId
+      return applicationId && collectionId
         ? this._demobaseService.getCollectionAttributes(
             new PublicKey(collectionId)
           )
@@ -139,9 +163,10 @@ export class CollectionComponent {
   );
   readonly collectionInstructionAccounts$ = this._route.paramMap.pipe(
     switchMap((paramMap) => {
+      const applicationId = paramMap.get('applicationId');
       const collectionId = paramMap.get('collectionId');
 
-      return collectionId
+      return applicationId && collectionId
         ? this._demobaseService.getCollectionInstructions(
             new PublicKey(collectionId)
           )
@@ -154,30 +179,47 @@ export class CollectionComponent {
     private readonly _demobaseService: DemobaseService
   ) {}
 
-  onCreateCollectionAttribute(collectionId: PublicKey) {
-    if (this.createCollectionAttributeGroup.valid) {
+  onCreateCollectionAttribute() {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (
+      this.createCollectionAttributeGroup.valid &&
+      applicationId &&
+      collectionId
+    ) {
       const name = this.collectionAttributeNameControl.value;
-      const size =
-        this.collectionAttributeTypeControl.value.size *
-        this.collectionAttributeLengthControl.value;
-      const type = this.collectionAttributeIsArrayControl.value
-        ? `[${this.collectionAttributeTypeControl.value.name}; ${this.collectionAttributeLengthControl.value}]`
-        : this.collectionAttributeTypeControl.value.name;
+      const kind = this.collectionAttributeKindControl.value;
+      const modifier = this.collectionAttributeModifierControl.value;
+      const size = this.collectionAttributeSizeControl.value;
 
       this._demobaseService.createCollectionAttribute(
-        collectionId,
+        new PublicKey(applicationId),
+        new PublicKey(collectionId),
         name,
-        type,
+        kind,
+        modifier,
         size
       );
     }
   }
 
-  onCreateCollectionInstruction(collectionId: PublicKey) {
-    if (this.createCollectionInstructionGroup.valid) {
+  onCreateCollectionInstruction() {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (
+      this.createCollectionInstructionGroup.valid &&
+      applicationId &&
+      collectionId
+    ) {
       const name = this.collectionInstructionNameControl.value;
 
-      this._demobaseService.createCollectionInstruction(collectionId, name);
+      this._demobaseService.createCollectionInstruction(
+        new PublicKey(applicationId),
+        new PublicKey(collectionId),
+        name
+      );
     }
   }
 }

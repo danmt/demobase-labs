@@ -235,7 +235,7 @@ export class DemobaseService {
       {
         memcmp: {
           bytes: applicationId.toBase58(),
-          offset: 41,
+          offset: 40,
         },
       },
     ];
@@ -270,10 +270,12 @@ export class DemobaseService {
   }
 
   async createCollectionAttribute(
+    applicationId: PublicKey,
     collectionId: PublicKey,
-    name: string,
-    attributeType: string,
-    size: number
+    attributeName: string,
+    attributeKind: number,
+    attributeModifier: number,
+    attributeSize: number
   ) {
     if (!this._program) {
       throw Error('Program is not available');
@@ -283,18 +285,23 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [collectionAttributeId, collectionAttributeBump] =
-      await findCollectionAttributeAddress(collectionId, name);
+    const [attributeId, attributeBump] = await findCollectionAttributeAddress(
+      applicationId,
+      collectionId,
+      attributeName
+    );
 
     return this._program.rpc.createCollectionAttribute(
-      name,
-      attributeType,
-      size,
-      collectionAttributeBump,
+      attributeName,
+      attributeKind,
+      attributeModifier,
+      attributeSize,
+      attributeBump,
       {
         accounts: {
-          collectionAttribute: collectionAttributeId,
+          application: applicationId,
           collection: collectionId,
+          attribute: attributeId,
           authority: this.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
@@ -321,7 +328,7 @@ export class DemobaseService {
       {
         memcmp: {
           bytes: collectionId.toBase58(),
-          offset: 41,
+          offset: 72,
         },
       },
     ];
@@ -339,7 +346,11 @@ export class DemobaseService {
     );
   }
 
-  async createCollectionInstruction(collectionId: PublicKey, name: string) {
+  async createCollectionInstruction(
+    applicationId: PublicKey,
+    collectionId: PublicKey,
+    name: string
+  ) {
     if (!this._program) {
       throw Error('Program is not available');
     }
@@ -348,21 +359,21 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [collectionInstructionId, collectionInstructionBump] =
-      await findCollectionInstructionAddress(collectionId, name);
-
-    return this._program.rpc.createCollectionInstruction(
-      name,
-      collectionInstructionBump,
-      {
-        accounts: {
-          collectionInstruction: collectionInstructionId,
-          collection: collectionId,
-          authority: this.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
+    const [instructionId, bump] = await findCollectionInstructionAddress(
+      applicationId,
+      collectionId,
+      name
     );
+
+    return this._program.rpc.createCollectionInstruction(name, bump, {
+      accounts: {
+        application: applicationId,
+        collection: collectionId,
+        instruction: instructionId,
+        authority: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    });
   }
 
   async getCollectionInstructions(
@@ -384,7 +395,7 @@ export class DemobaseService {
       {
         memcmp: {
           bytes: collectionId.toBase58(),
-          offset: 41,
+          offset: 72,
         },
       },
     ];
@@ -419,9 +430,13 @@ export class DemobaseService {
   }
 
   async createCollectionInstructionArgument(
+    applicationId: PublicKey,
+    collectionId: PublicKey,
     instructionId: PublicKey,
-    name: string,
-    type: string
+    argumentName: string,
+    argumentKind: number,
+    argumentModifier: number,
+    argumentSize: number
   ) {
     if (!this._program) {
       throw Error('Program is not available');
@@ -431,18 +446,27 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [collectionInstructionArgumentId, collectionInstructionArgumentBump] =
-      await findCollectionInstructionArgumentAddress(instructionId, name);
+    const [argumentId, argumentBump] =
+      await findCollectionInstructionArgumentAddress(
+        applicationId,
+        collectionId,
+        instructionId,
+        argumentName
+      );
 
     return this._program.rpc.createCollectionInstructionArgument(
-      name,
-      type,
-      collectionInstructionArgumentBump,
+      argumentName,
+      argumentKind,
+      argumentModifier,
+      argumentSize,
+      argumentBump,
       {
         accounts: {
-          collectionInstructionArgument: collectionInstructionArgumentId,
-          collectionInstruction: instructionId,
-          authority: this.wallet.publicKey,
+          authority: this._program.provider.wallet.publicKey,
+          application: applicationId,
+          collection: collectionId,
+          instruction: instructionId,
+          argument: argumentId,
           systemProgram: SystemProgram.programId,
         },
       }
@@ -470,7 +494,7 @@ export class DemobaseService {
       {
         memcmp: {
           bytes: instructionId.toBase58(),
-          offset: 41,
+          offset: 104,
         },
       },
     ];
@@ -489,10 +513,11 @@ export class DemobaseService {
   }
 
   async createCollectionInstructionAccount(
+    applicationId: PublicKey,
+    collectionId: PublicKey,
     instructionId: PublicKey,
-    name: string,
-    kind: number,
-    collectionId: PublicKey
+    accountName: string,
+    accountKind: number
   ) {
     if (!this._program) {
       throw Error('Program is not available');
@@ -503,20 +528,23 @@ export class DemobaseService {
     }
 
     const [accountId, accountBump] = await findInstructionAccountAddress(
+      applicationId,
+      collectionId,
       instructionId,
-      name
+      accountName
     );
 
     return this._program.rpc.createCollectionInstructionAccount(
-      name,
-      kind,
+      accountName,
+      accountKind,
       accountBump,
       {
         accounts: {
-          account: accountId,
-          instruction: instructionId,
-          collection: collectionId,
           authority: this.wallet.publicKey,
+          application: applicationId,
+          collection: collectionId,
+          instruction: instructionId,
+          account: accountId,
           systemProgram: SystemProgram.programId,
         },
       }
@@ -544,7 +572,7 @@ export class DemobaseService {
       {
         memcmp: {
           bytes: instructionId.toBase58(),
-          offset: 73,
+          offset: 104,
         },
       },
     ];
@@ -563,8 +591,10 @@ export class DemobaseService {
   }
 
   async createCollectionInstructionAccountBoolAttribute(
-    accountId: PublicKey,
+    applicationId: PublicKey,
+    collectionId: PublicKey,
     instructionId: PublicKey,
+    accountId: PublicKey,
     kind: number
   ) {
     if (!this._program) {
@@ -576,15 +606,20 @@ export class DemobaseService {
     }
 
     const [attributeId, attributeBump] = await findAccountBoolAttributeAddress(
+      applicationId,
+      collectionId,
+      instructionId,
       accountId
     );
 
     return this._program.rpc.createAccountBoolAttribute(kind, attributeBump, {
       accounts: {
-        instruction: instructionId,
-        attribute: attributeId,
-        account: accountId,
         authority: this.wallet.publicKey,
+        application: applicationId,
+        collection: collectionId,
+        instruction: instructionId,
+        account: accountId,
+        attribute: attributeId,
         systemProgram: SystemProgram.programId,
       },
     });
@@ -604,8 +639,8 @@ export class DemobaseService {
 
     return this._program.rpc.updateAccountBoolAttribute(kind, {
       accounts: {
-        attribute: attributeId,
         authority: this.wallet.publicKey,
+        attribute: attributeId,
       },
     });
   }
@@ -623,8 +658,8 @@ export class DemobaseService {
 
     return this._program.rpc.deleteAccountBoolAttribute({
       accounts: {
-        attribute: attributeId,
         authority: this.wallet.publicKey,
+        attribute: attributeId,
       },
     });
   }
@@ -652,7 +687,7 @@ export class DemobaseService {
       {
         memcmp: {
           bytes: instructionId.toBase58(),
-          offset: 41,
+          offset: 104,
         },
       },
     ];

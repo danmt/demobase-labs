@@ -27,21 +27,28 @@ import { switchMap } from 'rxjs/operators';
         <label> Name: <input formControlName="name" type="text" /> </label>
         <label>
           Type:
-          <select formControlName="type">
-            <option value="u8">u8</option>
-            <option value="u16">u16</option>
-            <option value="u32">u32</option>
-            <option value="u64">u64</option>
-            <option value="Pubkey">Pubkey</option>
-            <option value="String">String</option>
+          <select formControlName="kind">
+            <option [ngValue]="0">u8</option>
+            <option [ngValue]="1">u16</option>
+            <option [ngValue]="2">u32</option>
+            <option [ngValue]="3">u64</option>
+            <option [ngValue]="4">u128</option>
+            <option [ngValue]="5">Pubkey</option>
+            <option [ngValue]="6">String</option>
           </select>
         </label>
 
         <label>
-          Is Array? <input formControlName="isArray" type="checkbox" />
+          Modifier:
+          <select formControlName="modifier">
+            <option [ngValue]="0">None</option>
+            <option [ngValue]="1">Array</option>
+            <option [ngValue]="2">Vector</option>
+          </select>
         </label>
-        <label *ngIf="instructionArgumentIsArrayControl.value">
-          Length: <input formControlName="length" type="number" />
+
+        <label *ngIf="instructionArgumentModifierControl.value === 1">
+          Size: <input formControlName="size" type="number" />
         </label>
 
         <button>Submit</button>
@@ -49,8 +56,13 @@ import { switchMap } from 'rxjs/operators';
 
       <ul>
         <li *ngFor="let argument of instruction.arguments">
-          <h4>Name: {{ argument.data.name }}</h4>
-          <p>Type: {{ argument.data.argumentType }}</p>
+          <h4>Name: {{ argument.data.name }}.</h4>
+          <p>Kind: {{ argument.data.kind }}.</p>
+          <p>
+            Modifier: {{ argument.data.modifier.name }} ({{
+              argument.data.modifier.size
+            }}).
+          </p>
         </li>
       </ul>
 
@@ -78,19 +90,14 @@ import { switchMap } from 'rxjs/operators';
           </select>
         </label>
 
-        <fieldset>
-          <legend>Kind:</legend>
-          <label>
-            Basic <input formControlName="kind" type="radio" value="0" />
-          </label>
-          <label>
-            Signer <input formControlName="kind" type="radio" value="1" />
-          </label>
-          <label>
-            Program
-            <input formControlName="kind" type="radio" value="2" />
-          </label>
-        </fieldset>
+        <label>
+          Kind:
+          <select formControlName="kind">
+            <option [ngValue]="0">Account</option>
+            <option [ngValue]="1">Signer</option>
+            <option [ngValue]="2">Program</option>
+          </select>
+        </label>
 
         <button>Submit</button>
       </form>
@@ -105,6 +112,7 @@ import { switchMap } from 'rxjs/operators';
             <a
               [routerLink]="[
                 '/collections',
+                account.data.application.toBase58(),
                 account.data.collection.toBase58()
               ]"
               >view</a
@@ -166,21 +174,21 @@ import { switchMap } from 'rxjs/operators';
 export class InstructionComponent {
   readonly createInstructionArgumentGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
-    type: new FormControl(null, { validators: [Validators.required] }),
-    isArray: new FormControl(0),
-    length: new FormControl(1),
+    kind: new FormControl(0, { validators: [Validators.required] }),
+    modifier: new FormControl(0, { validators: [Validators.required] }),
+    size: new FormControl(1),
   });
   get instructionArgumentNameControl() {
     return this.createInstructionArgumentGroup.get('name') as FormControl;
   }
-  get instructionArgumentTypeControl() {
-    return this.createInstructionArgumentGroup.get('type') as FormControl;
+  get instructionArgumentKindControl() {
+    return this.createInstructionArgumentGroup.get('kind') as FormControl;
   }
-  get instructionArgumentIsArrayControl() {
-    return this.createInstructionArgumentGroup.get('isArray') as FormControl;
+  get instructionArgumentModifierControl() {
+    return this.createInstructionArgumentGroup.get('modifier') as FormControl;
   }
-  get instructionArgumentLengthControl() {
-    return this.createInstructionArgumentGroup.get('length') as FormControl;
+  get instructionArgumentSizeControl() {
+    return this.createInstructionArgumentGroup.get('size') as FormControl;
   }
 
   readonly createInstructionAccountGroup = new FormGroup({
@@ -233,17 +241,11 @@ export class InstructionComponent {
       instructionAccounts,
       instructionAccountBoolAttributes,
     ] = await Promise.all([
-      this._demobaseService.getCollectionInstruction(
-        new PublicKey(instructionId)
-      ),
-      this._demobaseService.getCollectionInstructionArguments(
-        new PublicKey(instructionId)
-      ),
-      this._demobaseService.getCollectionInstructionAccounts(
-        new PublicKey(instructionId)
-      ),
+      this._demobaseService.getCollectionInstruction(instructionId),
+      this._demobaseService.getCollectionInstructionArguments(instructionId),
+      this._demobaseService.getCollectionInstructionAccounts(instructionId),
       this._demobaseService.getCollectionInstructionBoolAttributes(
-        new PublicKey(instructionId)
+        instructionId
       ),
     ]);
 
@@ -274,31 +276,50 @@ export class InstructionComponent {
   }
 
   onCreateInstructionArgument(instructionId: string) {
-    if (this.createInstructionArgumentGroup.valid) {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (
+      this.createInstructionArgumentGroup.valid &&
+      applicationId &&
+      collectionId
+    ) {
       const name = this.instructionArgumentNameControl.value;
-      const type = this.instructionArgumentIsArrayControl.value
-        ? `[${this.instructionArgumentTypeControl.value}; ${this.instructionArgumentLengthControl.value}]`
-        : this.instructionArgumentTypeControl.value;
+      const kind = this.instructionArgumentKindControl.value;
+      const modifier = this.instructionArgumentModifierControl.value;
+      const size = this.instructionArgumentSizeControl.value;
 
       this._demobaseService.createCollectionInstructionArgument(
+        new PublicKey(applicationId),
+        new PublicKey(collectionId),
         new PublicKey(instructionId),
         name,
-        type
+        kind,
+        modifier,
+        size
       );
     }
   }
 
   onCreateInstructionAccount(instructionId: string) {
-    if (this.createInstructionAccountGroup.valid) {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (
+      this.createInstructionAccountGroup.valid &&
+      applicationId &&
+      collectionId
+    ) {
       const name = this.instructionAccountNameControl.value;
       const collectionId = this.instructionAccountCollectionIdControl.value;
       const kind = this.instructionAccountKindControl.value;
 
       this._demobaseService.createCollectionInstructionAccount(
+        new PublicKey(applicationId),
+        new PublicKey(collectionId),
         new PublicKey(instructionId),
         name,
-        kind,
-        collectionId
+        kind
       );
     }
   }
@@ -312,24 +333,31 @@ export class InstructionComponent {
     instructionId: string,
     kind: AccountBoolAttributeKind | null
   ) {
-    if (account.boolAttribute === null) {
-      if (kind !== null) {
-        this._demobaseService.createCollectionInstructionAccountBoolAttribute(
-          new PublicKey(account.id),
-          new PublicKey(instructionId),
-          kind
-        );
-      }
-    } else {
-      if (kind === null) {
-        this._demobaseService.deleteCollectionInstructionAccountBoolAttribute(
-          new PublicKey(account.boolAttribute.id)
-        );
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (applicationId && collectionId) {
+      if (account.boolAttribute === null) {
+        if (kind !== null) {
+          this._demobaseService.createCollectionInstructionAccountBoolAttribute(
+            new PublicKey(applicationId),
+            new PublicKey(collectionId),
+            new PublicKey(instructionId),
+            new PublicKey(account.id),
+            kind
+          );
+        }
       } else {
-        this._demobaseService.updateCollectionInstructionAccountBoolAttribute(
-          new PublicKey(account.boolAttribute.id),
-          kind
-        );
+        if (kind === null) {
+          this._demobaseService.deleteCollectionInstructionAccountBoolAttribute(
+            new PublicKey(account.boolAttribute.id)
+          );
+        } else {
+          this._demobaseService.updateCollectionInstructionAccountBoolAttribute(
+            new PublicKey(account.boolAttribute.id),
+            kind
+          );
+        }
       }
     }
   }

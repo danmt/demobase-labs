@@ -24,8 +24,8 @@ import {
 const accountCoder = new AccountsCoder(idl as Idl);
 
 interface RawApplication {
-  name: Uint8Array;
   authority: PublicKey;
+  name: Uint8Array;
 }
 
 export const ApplicationParser = (
@@ -50,9 +50,9 @@ export const ApplicationParser = (
 };
 
 interface RawCollection {
-  name: Uint8Array;
   authority: PublicKey;
   application: PublicKey;
+  name: Uint8Array;
   bump: number;
 }
 
@@ -68,12 +68,12 @@ export const CollectionParser = (
   return {
     pubkey: publicKey,
     info: {
-      bump: rawCollection.bump,
+      application: rawCollection.application,
+      authority: rawCollection.authority,
       name: utils.bytes.utf8.decode(
         new Uint8Array(rawCollection.name.filter((segment) => segment !== 0))
       ),
-      authority: rawCollection.authority,
-      application: rawCollection.application,
+      bump: rawCollection.bump,
     },
     account,
   };
@@ -81,11 +81,12 @@ export const CollectionParser = (
 
 interface RawCollectionAttribute {
   authority: PublicKey;
-  bump: number;
+  application: PublicKey;
   collection: PublicKey;
   name: Uint8Array;
-  attributeType: Uint8Array;
-  size: number;
+  kind: { [key: string]: { size: number } };
+  modifier: { [key: string]: { size: number } };
+  bump: number;
 }
 
 export const CollectionAttributeParser = (
@@ -100,22 +101,23 @@ export const CollectionAttributeParser = (
   return {
     pubkey: publicKey,
     info: {
-      bump: rawCollectionAttribute.bump,
-      size: rawCollectionAttribute.size,
-      attributeType: utils.bytes.utf8.decode(
-        new Uint8Array(
-          rawCollectionAttribute.attributeType.filter(
-            (segment) => segment !== 0
-          )
-        )
-      ),
+      authority: rawCollectionAttribute.authority,
+      application: rawCollectionAttribute.application,
+      collection: rawCollectionAttribute.collection,
       name: utils.bytes.utf8.decode(
         new Uint8Array(
           rawCollectionAttribute.name.filter((segment) => segment !== 0)
         )
       ),
-      authority: rawCollectionAttribute.authority,
-      collection: rawCollectionAttribute.collection,
+      kind: {
+        name: Object.keys(rawCollectionAttribute.kind)[0],
+        size: Object.values(rawCollectionAttribute.kind)[0].size,
+      },
+      modifier: {
+        name: Object.keys(rawCollectionAttribute.modifier)[0],
+        size: Object.values(rawCollectionAttribute.modifier)[0].size,
+      },
+      bump: rawCollectionAttribute.bump,
     },
     account,
   };
@@ -123,11 +125,10 @@ export const CollectionAttributeParser = (
 
 interface RawCollectionInstruction {
   authority: PublicKey;
-  bump: number;
+  application: PublicKey;
   collection: PublicKey;
   name: Uint8Array;
-  attributeType: Uint8Array;
-  size: number;
+  bump: number;
 }
 
 export const CollectionInstructionParser = (
@@ -142,14 +143,15 @@ export const CollectionInstructionParser = (
   return {
     pubkey: publicKey,
     info: {
-      bump: rawCollectionInstruction.bump,
+      authority: rawCollectionInstruction.authority,
+      application: rawCollectionInstruction.application,
+      collection: rawCollectionInstruction.collection,
       name: utils.bytes.utf8.decode(
         new Uint8Array(
           rawCollectionInstruction.name.filter((segment) => segment !== 0)
         )
       ),
-      authority: rawCollectionInstruction.authority,
-      collection: rawCollectionInstruction.collection,
+      bump: rawCollectionInstruction.bump,
     },
     account,
   };
@@ -157,10 +159,13 @@ export const CollectionInstructionParser = (
 
 interface RawCollectionInstructionArgument {
   authority: PublicKey;
-  bump: number;
+  application: PublicKey;
   collection: PublicKey;
+  instruction: PublicKey;
   name: Uint8Array;
-  argumentType: Uint8Array;
+  kind: { [key: string]: unknown };
+  modifier: { [key: string]: { size: number } };
+  bump: number;
 }
 
 export const CollectionInstructionArgumentParser = (
@@ -175,7 +180,10 @@ export const CollectionInstructionArgumentParser = (
   return {
     pubkey: publicKey,
     info: {
-      bump: rawCollectionInstructionArgument.bump,
+      authority: rawCollectionInstructionArgument.authority,
+      application: rawCollectionInstructionArgument.application,
+      collection: rawCollectionInstructionArgument.collection,
+      instruction: rawCollectionInstructionArgument.instruction,
       name: utils.bytes.utf8.decode(
         new Uint8Array(
           rawCollectionInstructionArgument.name.filter(
@@ -183,15 +191,12 @@ export const CollectionInstructionArgumentParser = (
           )
         )
       ),
-      argumentType: utils.bytes.utf8.decode(
-        new Uint8Array(
-          rawCollectionInstructionArgument.argumentType.filter(
-            (segment) => segment !== 0
-          )
-        )
-      ),
-      authority: rawCollectionInstructionArgument.authority,
-      collection: rawCollectionInstructionArgument.collection,
+      kind: Object.keys(rawCollectionInstructionArgument.kind)[0],
+      modifier: {
+        name: Object.keys(rawCollectionInstructionArgument.modifier)[0],
+        size: Object.values(rawCollectionInstructionArgument.modifier)[0].size,
+      },
+      bump: rawCollectionInstructionArgument.bump,
     },
     account,
   };
@@ -199,11 +204,12 @@ export const CollectionInstructionArgumentParser = (
 
 interface RawInstructionAccount {
   authority: PublicKey;
-  bump: number;
-  instruction: PublicKey;
+  application: PublicKey;
   collection: PublicKey;
+  instruction: PublicKey;
   name: Uint8Array;
   kind: { [key: string]: unknown };
+  bump: number;
 }
 
 export const InstructionAccountParser = (
@@ -218,16 +224,17 @@ export const InstructionAccountParser = (
   return {
     pubkey: publicKey,
     info: {
+      authority: rawInstructionAccount.authority,
+      application: rawInstructionAccount.application,
       collection: rawInstructionAccount.collection,
-      bump: rawInstructionAccount.bump,
+      instruction: rawInstructionAccount.instruction,
       name: utils.bytes.utf8.decode(
         new Uint8Array(
           rawInstructionAccount.name.filter((segment) => segment !== 0)
         )
       ),
       kind: Object.keys(rawInstructionAccount.kind)[0],
-      authority: rawInstructionAccount.authority,
-      instruction: rawInstructionAccount.instruction,
+      bump: rawInstructionAccount.bump,
     },
     account,
   };
@@ -235,10 +242,12 @@ export const InstructionAccountParser = (
 
 interface RawAccountBoolAttribute {
   authority: PublicKey;
-  bump: number;
-  account: PublicKey;
+  application: PublicKey;
+  collection: PublicKey;
   instruction: PublicKey;
+  account: PublicKey;
   kind: Uint8Array;
+  bump: number;
 }
 
 export const AccountBoolAttributeParser = (
@@ -253,11 +262,13 @@ export const AccountBoolAttributeParser = (
   return {
     pubkey: publicKey,
     info: {
-      instruction: rawAccountBoolAttribute.instruction,
-      bump: rawAccountBoolAttribute.bump,
-      kind: Object.keys(rawAccountBoolAttribute.kind)[0],
       authority: rawAccountBoolAttribute.authority,
+      application: rawAccountBoolAttribute.application,
+      collection: rawAccountBoolAttribute.collection,
+      instruction: rawAccountBoolAttribute.instruction,
       account: rawAccountBoolAttribute.account,
+      kind: Object.keys(rawAccountBoolAttribute.kind)[0],
+      bump: rawAccountBoolAttribute.bump,
     },
     account,
   };

@@ -7,8 +7,8 @@ export interface Wallet {
 }
 
 export interface ApplicationInfo {
-  name: string;
   authority: PublicKey;
+  name: string;
 }
 
 export interface Application {
@@ -18,9 +18,9 @@ export interface Application {
 }
 
 export interface CollectionInfo {
-  name: string;
   authority: PublicKey;
   application: PublicKey;
+  name: string;
   bump: number;
 }
 
@@ -31,11 +31,18 @@ export interface Collection {
 }
 
 export interface CollectionAttributeInfo {
-  name: string;
-  attributeType: string;
-  size: number;
   authority: PublicKey;
+  application: PublicKey;
   collection: PublicKey;
+  name: string;
+  kind: {
+    name: string;
+    size: number;
+  };
+  modifier: {
+    name: string;
+    size: number;
+  };
   bump: number;
 }
 
@@ -46,9 +53,10 @@ export interface CollectionAttribute {
 }
 
 export interface CollectionInstructionInfo {
-  name: string;
   authority: PublicKey;
+  application: PublicKey;
   collection: PublicKey;
+  name: string;
   bump: number;
 }
 
@@ -59,11 +67,17 @@ export interface CollectionInstruction {
 }
 
 export interface CollectionInstructionArgumentInfo {
-  name: string;
   authority: PublicKey;
+  application: PublicKey;
   collection: PublicKey;
+  instruction: PublicKey;
+  name: string;
+  kind: string;
+  modifier: {
+    name: string;
+    size: number;
+  };
   bump: number;
-  argumentType: string;
 }
 
 export interface CollectionInstructionArgument {
@@ -73,12 +87,13 @@ export interface CollectionInstructionArgument {
 }
 
 export interface InstructionAccountInfo {
-  name: string;
   authority: PublicKey;
-  instruction: PublicKey;
+  application: PublicKey;
   collection: PublicKey;
-  bump: number;
+  instruction: PublicKey;
+  name: string;
   kind: string;
+  bump: number;
 }
 
 export interface InstructionAccount {
@@ -89,10 +104,12 @@ export interface InstructionAccount {
 
 export interface AccountBoolAttributeInfo {
   authority: PublicKey;
-  account: PublicKey;
+  application: PublicKey;
+  collection: PublicKey;
   instruction: PublicKey;
-  bump: number;
+  account: PublicKey;
   kind: string;
+  bump: number;
 }
 
 export interface AccountBoolAttribute {

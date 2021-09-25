@@ -27,7 +27,11 @@ import { switchMap } from 'rxjs/operators';
           {{ collectionAccount.info.name }}
 
           <a
-            [routerLink]="['/collections', collectionAccount.pubkey.toBase58()]"
+            [routerLink]="[
+              '/collections',
+              applicationAccount.pubkey.toBase58(),
+              collectionAccount.pubkey.toBase58()
+            ]"
             >view</a
           >
         </li>
