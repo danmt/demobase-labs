@@ -141,3 +141,54 @@ export const findCollectionInstructionArgumentAddress = (
     DEMOBASE_PROGRAM_ID
   );
 };
+
+export const findInstructionAccountAddress = (
+  instructionId: PublicKey,
+  name: string
+) => {
+  return PublicKey.findProgramAddress(
+    [
+      Buffer.from('instruction_account', 'utf8'),
+      instructionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const createInstructionAccountAddress = (
+  instructionId: PublicKey,
+  name: string,
+  bump: number
+) => {
+  return PublicKey.createProgramAddress(
+    [
+      Buffer.from('instruction_account', 'utf8'),
+      instructionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+      Uint8Array.from([bump]),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const findAccountBoolAttributeAddress = (accountId: PublicKey) => {
+  return PublicKey.findProgramAddress(
+    [Buffer.from('account_bool_attribute', 'utf8'), accountId.toBuffer()],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const createAccountBoolAttributeAddress = (
+  account_id: PublicKey,
+  bump: number
+) => {
+  return PublicKey.createProgramAddress(
+    [
+      Buffer.from('account_bool_attribute', 'utf8'),
+      account_id.toBuffer(),
+      Uint8Array.from([bump]),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};

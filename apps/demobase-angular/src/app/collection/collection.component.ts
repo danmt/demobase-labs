@@ -80,6 +80,7 @@ import { switchMap } from 'rxjs/operators';
           <a
             [routerLink]="[
               '/instructions',
+              collectionAccount.info.application.toBase58(),
               collectionInstructionAccount.pubkey.toBase58()
             ]"
             >view</a

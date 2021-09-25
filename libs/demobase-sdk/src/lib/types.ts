@@ -6,38 +6,31 @@ export interface Wallet {
   publicKey: PublicKey;
 }
 
-export interface Application {
+export interface ApplicationInfo {
   name: string;
-  count: number;
-}
-
-export interface ApplicationAccountInfo {
-  name: string;
-  count: number;
   authority: PublicKey;
 }
 
-export interface ApplicationAccount {
+export interface Application {
   pubkey: PublicKey;
-  info: ApplicationAccountInfo;
+  info: ApplicationInfo;
   account: AccountInfo<Buffer>;
 }
 
-export interface CollectionAccountInfo {
+export interface CollectionInfo {
   name: string;
-  count: number;
   authority: PublicKey;
   application: PublicKey;
   bump: number;
 }
 
-export interface CollectionAccount {
+export interface Collection {
   pubkey: PublicKey;
-  info: CollectionAccountInfo;
+  info: CollectionInfo;
   account: AccountInfo<Buffer>;
 }
 
-export interface CollectionAttributeAccountInfo {
+export interface CollectionAttributeInfo {
   name: string;
   attributeType: string;
   size: number;
@@ -46,26 +39,26 @@ export interface CollectionAttributeAccountInfo {
   bump: number;
 }
 
-export interface CollectionAttributeAccount {
+export interface CollectionAttribute {
   pubkey: PublicKey;
-  info: CollectionAttributeAccountInfo;
+  info: CollectionAttributeInfo;
   account: AccountInfo<Buffer>;
 }
 
-export interface CollectionInstructionAccountInfo {
+export interface CollectionInstructionInfo {
   name: string;
   authority: PublicKey;
   collection: PublicKey;
   bump: number;
 }
 
-export interface CollectionInstructionAccount {
+export interface CollectionInstruction {
   pubkey: PublicKey;
-  info: CollectionInstructionAccountInfo;
+  info: CollectionInstructionInfo;
   account: AccountInfo<Buffer>;
 }
 
-export interface CollectionInstructionArgumentAccountInfo {
+export interface CollectionInstructionArgumentInfo {
   name: string;
   authority: PublicKey;
   collection: PublicKey;
@@ -73,8 +66,39 @@ export interface CollectionInstructionArgumentAccountInfo {
   argumentType: string;
 }
 
-export interface CollectionInstructionArgumentAccount {
+export interface CollectionInstructionArgument {
   pubkey: PublicKey;
-  info: CollectionInstructionArgumentAccountInfo;
+  info: CollectionInstructionArgumentInfo;
   account: AccountInfo<Buffer>;
 }
+
+export interface InstructionAccountInfo {
+  name: string;
+  authority: PublicKey;
+  instruction: PublicKey;
+  collection: PublicKey;
+  bump: number;
+  kind: string;
+}
+
+export interface InstructionAccount {
+  pubkey: PublicKey;
+  info: InstructionAccountInfo;
+  account: AccountInfo<Buffer>;
+}
+
+export interface AccountBoolAttributeInfo {
+  authority: PublicKey;
+  account: PublicKey;
+  instruction: PublicKey;
+  bump: number;
+  kind: string;
+}
+
+export interface AccountBoolAttribute {
+  pubkey: PublicKey;
+  info: AccountBoolAttributeInfo;
+  account: AccountInfo<Buffer>;
+}
+
+export type AccountBoolAttributeKind = 0 | 1 | 2;

@@ -11,35 +11,45 @@ import { encode } from 'bs58';
 
 import * as idl from './idl.json';
 import {
-  ApplicationAccount,
-  CollectionAccount,
-  CollectionAttributeAccount,
-  CollectionInstructionAccount,
-  CollectionInstructionArgumentAccount,
+  AccountBoolAttribute,
+  Application,
+  Collection,
+  CollectionAttribute,
+  CollectionInstruction,
+  CollectionInstructionArgument,
+  InstructionAccount,
   Wallet,
 } from './types';
 import {
-  APPLICATION_ACCOUNT_DATA_SIZE,
-  APPLICATION_ACCOUNT_NAME,
-  ApplicationAccountParser,
-  COLLECTION_ACCOUNT_DATA_SIZE,
-  COLLECTION_ACCOUNT_NAME,
-  COLLECTION_ATTRIBUTE_ACCOUNT_DATA_SIZE,
-  COLLECTION_ATTRIBUTE_ACCOUNT_NAME,
-  CollectionAccountParser,
-  CollectionAttributeAccountParser,
-  DEMOBASE_PROGRAM_ID,
-  findCollectionAddress,
-  findCollectionAttributeAddress,
-  getAccountDiscriminator,
-  findCollectionInstructionAddress,
-  CollectionInstructionAccountParser,
+  AccountBoolAttributeParser,
+  APPLICATION_DATA_SIZE,
+  APPLICATION_NAME,
+  ApplicationParser,
+  COLLECTION_ATTRIBUTE_DATA_SIZE,
+  COLLECTION_ATTRIBUTE_NAME,
+  COLLECTION_DATA_SIZE,
+  COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_DATA_SIZE,
+  COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_NAME,
   COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE,
   COLLECTION_INSTRUCTION_ACCOUNT_NAME,
+  COLLECTION_INSTRUCTION_ARGUMENT_DATA_SIZE,
+  COLLECTION_INSTRUCTION_ARGUMENT_NAME,
+  COLLECTION_INSTRUCTION_DATA_SIZE,
+  COLLECTION_INSTRUCTION_NAME,
+  COLLECTION_NAME,
+  CollectionAttributeParser,
+  CollectionInstructionArgumentParser,
+  CollectionInstructionParser,
+  CollectionParser,
+  DEMOBASE_PROGRAM_ID,
+  findAccountBoolAttributeAddress,
+  findCollectionAddress,
+  findCollectionAttributeAddress,
+  findCollectionInstructionAddress,
   findCollectionInstructionArgumentAddress,
-  CollectionInstructionArgumentAccountParser,
-  COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_DATA_SIZE,
-  COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_NAME,
+  findInstructionAccountAddress,
+  getAccountDiscriminator,
+  InstructionAccountParser,
 } from './utils';
 
 export class DemobaseService {
@@ -110,18 +120,16 @@ export class DemobaseService {
     });
   }
 
-  async getApplications(
-    commitment?: Commitment
-  ): Promise<ApplicationAccount[]> {
+  async getApplications(commitment?: Commitment): Promise<Application[]> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
 
     const filters = [
-      { dataSize: APPLICATION_ACCOUNT_DATA_SIZE },
+      { dataSize: APPLICATION_DATA_SIZE },
       {
         memcmp: {
-          bytes: encode(getAccountDiscriminator(APPLICATION_ACCOUNT_NAME)),
+          bytes: encode(getAccountDiscriminator(APPLICATION_NAME)),
           offset: 0,
         },
       },
@@ -136,14 +144,14 @@ export class DemobaseService {
     );
 
     return programAccounts.map(({ account, pubkey }) =>
-      ApplicationAccountParser(pubkey, account)
+      ApplicationParser(pubkey, account)
     );
   }
 
   async getApplication(
     applicationId: PublicKey,
     commitment?: Commitment
-  ): Promise<ApplicationAccount | null> {
+  ): Promise<Application | null> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
@@ -153,7 +161,7 @@ export class DemobaseService {
       commitment
     );
 
-    return account && ApplicationAccountParser(applicationId, account);
+    return account && ApplicationParser(applicationId, account);
   }
 
   async createCollection(applicationId: PublicKey, collectionName: string) {
@@ -180,16 +188,16 @@ export class DemobaseService {
     });
   }
 
-  async getCollections(commitment?: Commitment): Promise<CollectionAccount[]> {
+  async getCollections(commitment?: Commitment): Promise<Collection[]> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
 
     const filters = [
-      { dataSize: COLLECTION_ACCOUNT_DATA_SIZE },
+      { dataSize: COLLECTION_DATA_SIZE },
       {
         memcmp: {
-          bytes: encode(getAccountDiscriminator(COLLECTION_ACCOUNT_NAME)),
+          bytes: encode(getAccountDiscriminator(COLLECTION_NAME)),
           offset: 0,
         },
       },
@@ -204,23 +212,23 @@ export class DemobaseService {
     );
 
     return programAccounts.map(({ account, pubkey }) =>
-      CollectionAccountParser(pubkey, account)
+      CollectionParser(pubkey, account)
     );
   }
 
   async getCollectionsByApplication(
     applicationId: PublicKey,
     commitment?: Commitment
-  ): Promise<CollectionAccount[]> {
+  ): Promise<Collection[]> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
 
     const filters = [
-      { dataSize: COLLECTION_ACCOUNT_DATA_SIZE },
+      { dataSize: COLLECTION_DATA_SIZE },
       {
         memcmp: {
-          bytes: encode(getAccountDiscriminator(COLLECTION_ACCOUNT_NAME)),
+          bytes: encode(getAccountDiscriminator(COLLECTION_NAME)),
           offset: 0,
         },
       },
@@ -241,14 +249,14 @@ export class DemobaseService {
     );
 
     return programAccounts.map(({ account, pubkey }) =>
-      CollectionAccountParser(pubkey, account)
+      CollectionParser(pubkey, account)
     );
   }
 
   async getCollection(
     collectionId: PublicKey,
     commitment?: Commitment
-  ): Promise<CollectionAccount | null> {
+  ): Promise<Collection | null> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
@@ -258,7 +266,7 @@ export class DemobaseService {
       commitment
     );
 
-    return account && CollectionAccountParser(collectionId, account);
+    return account && CollectionParser(collectionId, account);
   }
 
   async createCollectionAttribute(
@@ -297,18 +305,16 @@ export class DemobaseService {
   async getCollectionAttributes(
     collectionId: PublicKey,
     commitment?: Commitment
-  ): Promise<CollectionAttributeAccount[]> {
+  ): Promise<CollectionAttribute[]> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
 
     const filters = [
-      { dataSize: COLLECTION_ATTRIBUTE_ACCOUNT_DATA_SIZE },
+      { dataSize: COLLECTION_ATTRIBUTE_DATA_SIZE },
       {
         memcmp: {
-          bytes: encode(
-            getAccountDiscriminator(COLLECTION_ATTRIBUTE_ACCOUNT_NAME)
-          ),
+          bytes: encode(getAccountDiscriminator(COLLECTION_ATTRIBUTE_NAME)),
           offset: 0,
         },
       },
@@ -329,7 +335,7 @@ export class DemobaseService {
     );
 
     return programAccounts.map(({ account, pubkey }) =>
-      CollectionAttributeAccountParser(pubkey, account)
+      CollectionAttributeParser(pubkey, account)
     );
   }
 
@@ -362,18 +368,16 @@ export class DemobaseService {
   async getCollectionInstructions(
     collectionId: PublicKey,
     commitment?: Commitment
-  ): Promise<CollectionInstructionAccount[]> {
+  ): Promise<CollectionInstruction[]> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
 
     const filters = [
-      { dataSize: COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE },
+      { dataSize: COLLECTION_INSTRUCTION_DATA_SIZE },
       {
         memcmp: {
-          bytes: encode(
-            getAccountDiscriminator(COLLECTION_INSTRUCTION_ACCOUNT_NAME)
-          ),
+          bytes: encode(getAccountDiscriminator(COLLECTION_INSTRUCTION_NAME)),
           offset: 0,
         },
       },
@@ -394,14 +398,14 @@ export class DemobaseService {
     );
 
     return programAccounts.map(({ account, pubkey }) =>
-      CollectionInstructionAccountParser(pubkey, account)
+      CollectionInstructionParser(pubkey, account)
     );
   }
 
   async getCollectionInstruction(
     instructionId: PublicKey,
     commitment?: Commitment
-  ): Promise<CollectionInstructionAccount | null> {
+  ): Promise<CollectionInstruction | null> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
@@ -411,9 +415,7 @@ export class DemobaseService {
       commitment
     );
 
-    return (
-      account && CollectionInstructionAccountParser(instructionId, account)
-    );
+    return account && CollectionInstructionParser(instructionId, account);
   }
 
   async createCollectionInstructionArgument(
@@ -450,18 +452,198 @@ export class DemobaseService {
   async getCollectionInstructionArguments(
     instructionId: PublicKey,
     commitment?: Commitment
-  ): Promise<CollectionInstructionArgumentAccount[]> {
+  ): Promise<CollectionInstructionArgument[]> {
     if (!this.connection) {
       throw Error('Connection is not available');
     }
 
     const filters = [
-      { dataSize: COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_DATA_SIZE },
+      { dataSize: COLLECTION_INSTRUCTION_ARGUMENT_DATA_SIZE },
+      {
+        memcmp: {
+          bytes: encode(
+            getAccountDiscriminator(COLLECTION_INSTRUCTION_ARGUMENT_NAME)
+          ),
+          offset: 0,
+        },
+      },
+      {
+        memcmp: {
+          bytes: instructionId.toBase58(),
+          offset: 41,
+        },
+      },
+    ];
+
+    const programAccounts = await this.connection.getProgramAccounts(
+      DEMOBASE_PROGRAM_ID,
+      {
+        filters,
+        commitment,
+      }
+    );
+
+    return programAccounts.map(({ account, pubkey }) =>
+      CollectionInstructionArgumentParser(pubkey, account)
+    );
+  }
+
+  async createCollectionInstructionAccount(
+    instructionId: PublicKey,
+    name: string,
+    kind: number,
+    collectionId: PublicKey
+  ) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    const [accountId, accountBump] = await findInstructionAccountAddress(
+      instructionId,
+      name
+    );
+
+    return this._program.rpc.createCollectionInstructionAccount(
+      name,
+      kind,
+      accountBump,
+      {
+        accounts: {
+          account: accountId,
+          instruction: instructionId,
+          collection: collectionId,
+          authority: this.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
+  }
+
+  async getCollectionInstructionAccounts(
+    instructionId: PublicKey,
+    commitment?: Commitment
+  ): Promise<InstructionAccount[]> {
+    if (!this.connection) {
+      throw Error('Connection is not available');
+    }
+
+    const filters = [
+      { dataSize: COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE },
+      {
+        memcmp: {
+          bytes: encode(
+            getAccountDiscriminator(COLLECTION_INSTRUCTION_ACCOUNT_NAME)
+          ),
+          offset: 0,
+        },
+      },
+      {
+        memcmp: {
+          bytes: instructionId.toBase58(),
+          offset: 73,
+        },
+      },
+    ];
+
+    const programAccounts = await this.connection.getProgramAccounts(
+      DEMOBASE_PROGRAM_ID,
+      {
+        filters,
+        commitment,
+      }
+    );
+
+    return programAccounts.map(({ account, pubkey }) =>
+      InstructionAccountParser(pubkey, account)
+    );
+  }
+
+  async createCollectionInstructionAccountBoolAttribute(
+    accountId: PublicKey,
+    instructionId: PublicKey,
+    kind: number
+  ) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    const [attributeId, attributeBump] = await findAccountBoolAttributeAddress(
+      accountId
+    );
+
+    return this._program.rpc.createAccountBoolAttribute(kind, attributeBump, {
+      accounts: {
+        instruction: instructionId,
+        attribute: attributeId,
+        account: accountId,
+        authority: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    });
+  }
+
+  async updateCollectionInstructionAccountBoolAttribute(
+    attributeId: PublicKey,
+    kind: number
+  ) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this._program.rpc.updateAccountBoolAttribute(kind, {
+      accounts: {
+        attribute: attributeId,
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
+  async deleteCollectionInstructionAccountBoolAttribute(
+    attributeId: PublicKey
+  ) {
+    if (!this._program) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this._program.rpc.deleteAccountBoolAttribute({
+      accounts: {
+        attribute: attributeId,
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
+  async getCollectionInstructionBoolAttributes(
+    instructionId: PublicKey,
+    commitment?: Commitment
+  ): Promise<AccountBoolAttribute[]> {
+    if (!this.connection) {
+      throw Error('Connection is not available');
+    }
+
+    const filters = [
+      { dataSize: COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_DATA_SIZE },
       {
         memcmp: {
           bytes: encode(
             getAccountDiscriminator(
-              COLLECTION_INSTRUCTION_ARGUMENT_ACCOUNT_NAME
+              COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_NAME
             )
           ),
           offset: 0,
@@ -484,7 +666,7 @@ export class DemobaseService {
     );
 
     return programAccounts.map(({ account, pubkey }) =>
-      CollectionInstructionArgumentAccountParser(pubkey, account)
+      AccountBoolAttributeParser(pubkey, account)
     );
   }
 }

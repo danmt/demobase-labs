@@ -1,4 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
+
 import { DEMOBASE_PROGRAM_ID } from './constants';
 
 export const findApplicationAddress = (name: string) => {
@@ -111,6 +112,22 @@ export const findCollectionInstructionAddress = (
   );
 };
 
+export const createCollectionInstructionAddress = (
+  collectionId: PublicKey,
+  name: string,
+  bump: number
+) => {
+  return PublicKey.createProgramAddress(
+    [
+      Buffer.from('collection_instruction', 'utf8'),
+      collectionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+      Uint8Array.from([bump]),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
 export const findCollectionInstructionArgumentAddress = (
   collectionInstructionId: PublicKey,
   name: string
@@ -120,6 +137,57 @@ export const findCollectionInstructionArgumentAddress = (
       Buffer.from('collection_instruction_argument', 'utf8'),
       collectionInstructionId.toBuffer(),
       Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const findInstructionAccountAddress = (
+  instructionId: PublicKey,
+  name: string
+) => {
+  return PublicKey.findProgramAddress(
+    [
+      Buffer.from('instruction_account', 'utf8'),
+      instructionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const createInstructionAccountAddress = (
+  instructionId: PublicKey,
+  name: string,
+  bump: number
+) => {
+  return PublicKey.createProgramAddress(
+    [
+      Buffer.from('instruction_account', 'utf8'),
+      instructionId.toBuffer(),
+      Buffer.from(name, 'utf-8'),
+      Uint8Array.from([bump]),
+    ],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const findAccountBoolAttributeAddress = (accountId: PublicKey) => {
+  return PublicKey.findProgramAddress(
+    [Buffer.from('account_bool_attribute', 'utf8'), accountId.toBuffer()],
+    DEMOBASE_PROGRAM_ID
+  );
+};
+
+export const createAccountBoolAttributeAddress = (
+  account_id: PublicKey,
+  bump: number
+) => {
+  return PublicKey.createProgramAddress(
+    [
+      Buffer.from('account_bool_attribute', 'utf8'),
+      account_id.toBuffer(),
+      Uint8Array.from([bump]),
     ],
     DEMOBASE_PROGRAM_ID
   );

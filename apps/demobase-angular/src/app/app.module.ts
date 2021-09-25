@@ -69,7 +69,7 @@ import { UnauthorizedComponent } from './core/components/unauthorized.component'
         canActivate: [AuthGuard],
         children: [
           {
-            path: ':instructionId',
+            path: ':applicationId/:instructionId',
             loadChildren: () =>
               import('./instruction/instruction.module').then(
                 (m) => m.InstructionModule
