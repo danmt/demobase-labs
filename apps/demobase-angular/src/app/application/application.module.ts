@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
+import { SharedModule } from '../shared/shared.module';
 
 import { ApplicationComponent } from './application.component';
 
@@ -18,6 +19,7 @@ import { ApplicationComponent } from './application.component';
     ]),
     ReactiveFormsModule,
     ReactiveComponentModule,
+    SharedModule,
   ],
   declarations: [ApplicationComponent],
 })

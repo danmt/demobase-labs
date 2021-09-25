@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DemobaseService } from '@demobase-labs/demobase-sdk';
@@ -9,37 +9,42 @@ import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'demobase-application',
   template: `
-    <section *ngIf="applicationAccount$ | ngrxPush as applicationAccount">
-      <h2>{{ applicationAccount.info.name }}</h2>
-      <p>Visualize all the details about this application.</p>
+    <ng-container *ngIf="applicationAccount$ | ngrxPush as applicationAccount">
+      <header demobasePageHeader>
+        <h1>{{ applicationAccount.info.name }}</h1>
+        <p>Visualize all the details about this application.</p>
+      </header>
 
-      <form
-        [formGroup]="createCollectionGroup"
-        (ngSubmit)="onCreateCollection(applicationAccount.pubkey)"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
+      <main>
+        <form
+          [formGroup]="createCollectionGroup"
+          (ngSubmit)="onCreateCollection(applicationAccount.pubkey)"
+        >
+          <label> Name: <input formControlName="name" type="text" /> </label>
 
-        <button>Submit</button>
-      </form>
+          <button>Submit</button>
+        </form>
 
-      <ul *ngrxLet="collectionAccounts$; let collectionAccounts">
-        <li *ngFor="let collectionAccount of collectionAccounts">
-          {{ collectionAccount.info.name }}
+        <ul *ngrxLet="collectionAccounts$; let collectionAccounts">
+          <li *ngFor="let collectionAccount of collectionAccounts">
+            {{ collectionAccount.info.name }}
 
-          <a
-            [routerLink]="[
-              '/collections',
-              applicationAccount.pubkey.toBase58(),
-              collectionAccount.pubkey.toBase58()
-            ]"
-            >view</a
-          >
-        </li>
-      </ul>
-    </section>
+            <a
+              [routerLink]="[
+                '/collections',
+                applicationAccount.pubkey.toBase58(),
+                collectionAccount.pubkey.toBase58()
+              ]"
+              >view</a
+            >
+          </li>
+        </ul>
+      </main>
+    </ng-container>
   `,
 })
 export class ApplicationComponent {
+  @HostBinding('class') class = 'block p-4';
   readonly createCollectionGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
   });

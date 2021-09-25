@@ -7,11 +7,9 @@ import { isNotNullOrUndefined } from './shared/operators/is-not-null-or-undefine
 @Component({
   selector: 'demobase-root',
   template: `
-    <demobase-navigation></demobase-navigation>
-
-    <main>
+    <demobase-navigation>
       <router-outlet></router-outlet>
-    </main>
+    </demobase-navigation>
   `,
   styles: [],
   providers: [],

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -14,153 +14,157 @@ import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'demobase-instruction',
   template: `
-    <section *ngIf="instruction$ | ngrxPush as instruction">
-      <h2>{{ instruction.data.name }}</h2>
-      <p>Visualize all the details about this application.</p>
+    <ng-container *ngIf="instruction$ | ngrxPush as instruction">
+      <header demobasePageHeader>
+        <h1>{{ instruction.data.name }}</h1>
+        <p>Visualize all the details about this instruction.</p>
+      </header>
 
-      <h3>Arguments</h3>
+      <main>
+        <h3>Arguments</h3>
 
-      <form
-        [formGroup]="createInstructionArgumentGroup"
-        (ngSubmit)="onCreateInstructionArgument(instruction.id)"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
-        <label>
-          Type:
-          <select formControlName="kind">
-            <option [ngValue]="0">u8</option>
-            <option [ngValue]="1">u16</option>
-            <option [ngValue]="2">u32</option>
-            <option [ngValue]="3">u64</option>
-            <option [ngValue]="4">u128</option>
-            <option [ngValue]="5">Pubkey</option>
-            <option [ngValue]="6">String</option>
-          </select>
-        </label>
+        <form
+          [formGroup]="createInstructionArgumentGroup"
+          (ngSubmit)="onCreateInstructionArgument(instruction.id)"
+        >
+          <label> Name: <input formControlName="name" type="text" /> </label>
+          <label>
+            Type:
+            <select formControlName="kind">
+              <option [ngValue]="0">u8</option>
+              <option [ngValue]="1">u16</option>
+              <option [ngValue]="2">u32</option>
+              <option [ngValue]="3">u64</option>
+              <option [ngValue]="4">u128</option>
+              <option [ngValue]="5">Pubkey</option>
+              <option [ngValue]="6">String</option>
+            </select>
+          </label>
 
-        <label>
-          Modifier:
-          <select formControlName="modifier">
-            <option [ngValue]="0">None</option>
-            <option [ngValue]="1">Array</option>
-            <option [ngValue]="2">Vector</option>
-          </select>
-        </label>
+          <label>
+            Modifier:
+            <select formControlName="modifier">
+              <option [ngValue]="0">None</option>
+              <option [ngValue]="1">Array</option>
+              <option [ngValue]="2">Vector</option>
+            </select>
+          </label>
 
-        <label *ngIf="instructionArgumentModifierControl.value === 1">
-          Size: <input formControlName="size" type="number" />
-        </label>
+          <label *ngIf="instructionArgumentModifierControl.value === 1">
+            Size: <input formControlName="size" type="number" />
+          </label>
 
-        <button>Submit</button>
-      </form>
+          <button>Submit</button>
+        </form>
 
-      <ul>
-        <li *ngFor="let argument of instruction.arguments">
-          <h4>Name: {{ argument.data.name }}.</h4>
-          <p>Kind: {{ argument.data.kind }}.</p>
-          <p>
-            Modifier: {{ argument.data.modifier.name }} ({{
-              argument.data.modifier.size
-            }}).
-          </p>
-        </li>
-      </ul>
+        <ul>
+          <li *ngFor="let argument of instruction.arguments">
+            <h4>Name: {{ argument.data.name }}.</h4>
+            <p>Kind: {{ argument.data.kind }}.</p>
+            <p>
+              Modifier: {{ argument.data.modifier.name }} ({{
+                argument.data.modifier.size
+              }}).
+            </p>
+          </li>
+        </ul>
 
-      <h3>Accounts</h3>
+        <h3>Accounts</h3>
 
-      <form
-        [formGroup]="createInstructionAccountGroup"
-        (ngSubmit)="onCreateInstructionAccount(instruction.id)"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
+        <form
+          [formGroup]="createInstructionAccountGroup"
+          (ngSubmit)="onCreateInstructionAccount(instruction.id)"
+        >
+          <label> Name: <input formControlName="name" type="text" /> </label>
 
-        <label>
-          Collection:
-          <select
-            *ngrxLet="collections$; let collections"
-            formControlName="collectionId"
-          >
-            <option
-              *ngFor="let collection of collections"
-              [ngValue]="collection.pubkey"
-            >
-              {{ collection.info.name }} |
-              {{ collection.pubkey.toBase58() | obscureAddress }}
-            </option>
-          </select>
-        </label>
-
-        <label>
-          Kind:
-          <select formControlName="kind">
-            <option [ngValue]="0">Account</option>
-            <option [ngValue]="1">Signer</option>
-            <option [ngValue]="2">Program</option>
-          </select>
-        </label>
-
-        <button>Submit</button>
-      </form>
-
-      <ul>
-        <li *ngFor="let account of instruction.accounts">
-          <h4>Name: {{ account.data.name }}</h4>
-          <p>Kind: {{ account.data.kind }}</p>
-          <p>
+          <label>
             Collection:
-            {{ account.data.collection.toBase58() | obscureAddress }}
-            <a
-              [routerLink]="[
-                '/collections',
-                account.data.application.toBase58(),
-                account.data.collection.toBase58()
-              ]"
-              >view</a
+            <select
+              *ngrxLet="collections$; let collections"
+              formControlName="collectionId"
             >
-          </p>
+              <option
+                *ngFor="let collection of collections"
+                [ngValue]="collection.pubkey"
+              >
+                {{ collection.info.name }} |
+                {{ collection.pubkey.toBase58() | obscureAddress }}
+              </option>
+            </select>
+          </label>
 
-          <div>
-            Bool Attribute:
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, null)"
-              [ngClass]="{ selected: account.boolAttribute === null }"
-            >
-              None
-            </button>
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, 0)"
-              [ngClass]="{
-                selected:
-                  account.boolAttribute &&
-                  account.boolAttribute.data.kind === 'init'
-              }"
-            >
-              Init
-            </button>
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, 1)"
-              [ngClass]="{
-                selected:
-                  account.boolAttribute &&
-                  account.boolAttribute.data.kind === 'mut'
-              }"
-            >
-              Mut
-            </button>
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, 2)"
-              [ngClass]="{
-                selected:
-                  account.boolAttribute &&
-                  account.boolAttribute.data.kind === 'zero'
-              }"
-            >
-              Zero
-            </button>
-          </div>
-        </li>
-      </ul>
-    </section>
+          <label>
+            Kind:
+            <select formControlName="kind">
+              <option [ngValue]="0">Account</option>
+              <option [ngValue]="1">Signer</option>
+              <option [ngValue]="2">Program</option>
+            </select>
+          </label>
+
+          <button>Submit</button>
+        </form>
+
+        <ul>
+          <li *ngFor="let account of instruction.accounts">
+            <h4>Name: {{ account.data.name }}</h4>
+            <p>Kind: {{ account.data.kind }}</p>
+            <p>
+              Collection:
+              {{ account.data.collection.toBase58() | obscureAddress }}
+              <a
+                [routerLink]="[
+                  '/collections',
+                  account.data.application.toBase58(),
+                  account.data.collection.toBase58()
+                ]"
+                >view</a
+              >
+            </p>
+
+            <div>
+              Bool Attribute:
+              <button
+                (click)="onSetBoolAttribute(account, instruction.id, null)"
+                [ngClass]="{ selected: account.boolAttribute === null }"
+              >
+                None
+              </button>
+              <button
+                (click)="onSetBoolAttribute(account, instruction.id, 0)"
+                [ngClass]="{
+                  selected:
+                    account.boolAttribute &&
+                    account.boolAttribute.data.kind === 'init'
+                }"
+              >
+                Init
+              </button>
+              <button
+                (click)="onSetBoolAttribute(account, instruction.id, 1)"
+                [ngClass]="{
+                  selected:
+                    account.boolAttribute &&
+                    account.boolAttribute.data.kind === 'mut'
+                }"
+              >
+                Mut
+              </button>
+              <button
+                (click)="onSetBoolAttribute(account, instruction.id, 2)"
+                [ngClass]="{
+                  selected:
+                    account.boolAttribute &&
+                    account.boolAttribute.data.kind === 'zero'
+                }"
+              >
+                Zero
+              </button>
+            </div>
+          </li>
+        </ul>
+      </main>
+    </ng-container>
   `,
   styles: [
     `
@@ -172,6 +176,7 @@ import { switchMap } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InstructionComponent {
+  @HostBinding('class') class = 'block p-4';
   readonly createInstructionArgumentGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
     kind: new FormControl(0, { validators: [Validators.required] }),

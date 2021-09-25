@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DemobaseService } from '@demobase-labs/demobase-sdk';
@@ -9,111 +9,121 @@ import { switchMap } from 'rxjs/operators';
 @Component({
   selector: 'demobase-collection',
   template: `
-    <section *ngIf="collectionAccount$ | ngrxPush as collectionAccount">
-      <h2>{{ collectionAccount.info.name }}</h2>
-      <p>Visualize all the details about this application.</p>
+    <ng-container *ngIf="collectionAccount$ | ngrxPush as collectionAccount">
+      <header demobasePageHeader>
+        <h1>{{ collectionAccount.info.name }}</h1>
+        <p>Visualize all the details about this collection.</p>
+      </header>
 
-      <h3>Attributes</h3>
+      <main>
+        <h3>Attributes</h3>
 
-      <form
-        [formGroup]="createCollectionAttributeGroup"
-        (ngSubmit)="onCreateCollectionAttribute()"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
-        <label>
-          Kind:
-          <select formControlName="kind">
-            <option [ngValue]="0">u8</option>
-            <option [ngValue]="1">u16</option>
-            <option [ngValue]="2">u32</option>
-            <option [ngValue]="3">u64</option>
-            <option [ngValue]="4">u128</option>
-            <option [ngValue]="5">Pubkey</option>
-          </select>
-        </label>
-
-        <label>
-          Modifier:
-          <select formControlName="modifier">
-            <option [ngValue]="0">None</option>
-            <option [ngValue]="1">Array</option>
-            <option [ngValue]="2">Vector</option>
-          </select>
-        </label>
-
-        <label *ngIf="collectionAttributeModifierControl.value === 1">
-          Size: <input formControlName="size" type="number" />
-        </label>
-
-        <button>Submit</button>
-      </form>
-
-      <ul
-        *ngrxLet="collectionAttributeAccounts$; let collectionAttributeAccounts"
-      >
-        <li
-          *ngFor="let collectionAttributeAccount of collectionAttributeAccounts"
+        <form
+          [formGroup]="createCollectionAttributeGroup"
+          (ngSubmit)="onCreateCollectionAttribute()"
         >
-          <p>Name: {{ collectionAttributeAccount.info.name }}.</p>
-          <p>
-            Kind: {{ collectionAttributeAccount.info.kind.name }} ({{
-              collectionAttributeAccount.info.kind.size
-            }}
-            bytes).
-          </p>
-          <p>
-            Modifier: {{ collectionAttributeAccount.info.modifier.name }} ({{
-              collectionAttributeAccount.info.modifier.size
-            }}).
-          </p>
-          <p>
-            Total size:
-            {{
-              collectionAttributeAccount.info.kind.size *
-                collectionAttributeAccount.info.modifier.size
-            }}
-            bytes.
-          </p>
-        </li>
-      </ul>
+          <label> Name: <input formControlName="name" type="text" /> </label>
+          <label>
+            Kind:
+            <select formControlName="kind">
+              <option [ngValue]="0">u8</option>
+              <option [ngValue]="1">u16</option>
+              <option [ngValue]="2">u32</option>
+              <option [ngValue]="3">u64</option>
+              <option [ngValue]="4">u128</option>
+              <option [ngValue]="5">Pubkey</option>
+            </select>
+          </label>
 
-      <h3>Instructions</h3>
+          <label>
+            Modifier:
+            <select formControlName="modifier">
+              <option [ngValue]="0">None</option>
+              <option [ngValue]="1">Array</option>
+              <option [ngValue]="2">Vector</option>
+            </select>
+          </label>
 
-      <form
-        [formGroup]="createCollectionInstructionGroup"
-        (ngSubmit)="onCreateCollectionInstruction()"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
-        <button>Submit</button>
-      </form>
+          <label *ngIf="collectionAttributeModifierControl.value === 1">
+            Size: <input formControlName="size" type="number" />
+          </label>
 
-      <ul
-        *ngrxLet="
-          collectionInstructionAccounts$;
-          let collectionInstructionAccounts
-        "
-      >
-        <li
-          *ngFor="
-            let collectionInstructionAccount of collectionInstructionAccounts
+          <button>Submit</button>
+        </form>
+
+        <ul
+          *ngrxLet="
+            collectionAttributeAccounts$;
+            let collectionAttributeAccounts
           "
         >
-          <p>Name: {{ collectionInstructionAccount.info.name }}</p>
-          <a
-            [routerLink]="[
-              '/instructions',
-              collectionAccount.info.application.toBase58(),
-              collectionAccount.pubkey.toBase58(),
-              collectionInstructionAccount.pubkey.toBase58()
-            ]"
-            >view</a
+          <li
+            *ngFor="
+              let collectionAttributeAccount of collectionAttributeAccounts
+            "
           >
-        </li>
-      </ul>
-    </section>
+            <p>Name: {{ collectionAttributeAccount.info.name }}.</p>
+            <p>
+              Kind: {{ collectionAttributeAccount.info.kind.name }} ({{
+                collectionAttributeAccount.info.kind.size
+              }}
+              bytes).
+            </p>
+            <p>
+              Modifier: {{ collectionAttributeAccount.info.modifier.name }} ({{
+                collectionAttributeAccount.info.modifier.size
+              }}).
+            </p>
+            <p>
+              Total size:
+              {{
+                collectionAttributeAccount.info.kind.size *
+                  collectionAttributeAccount.info.modifier.size
+              }}
+              bytes.
+            </p>
+          </li>
+        </ul>
+
+        <h3>Instructions</h3>
+
+        <form
+          [formGroup]="createCollectionInstructionGroup"
+          (ngSubmit)="onCreateCollectionInstruction()"
+        >
+          <label> Name: <input formControlName="name" type="text" /> </label>
+          <button>Submit</button>
+        </form>
+
+        <ul
+          *ngrxLet="
+            collectionInstructionAccounts$;
+            let collectionInstructionAccounts
+          "
+        >
+          <li
+            *ngFor="
+              let collectionInstructionAccount of collectionInstructionAccounts
+            "
+          >
+            <p>Name: {{ collectionInstructionAccount.info.name }}</p>
+            <a
+              [routerLink]="[
+                '/instructions',
+                collectionAccount.info.application.toBase58(),
+                collectionAccount.pubkey.toBase58(),
+                collectionInstructionAccount.pubkey.toBase58()
+              ]"
+              >view</a
+            >
+          </li>
+        </ul>
+      </main>
+    </ng-container>
   `,
 })
 export class CollectionComponent {
+  @HostBinding('class') class = 'block p-4';
   readonly createCollectionAttributeGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
     kind: new FormControl(0, { validators: [Validators.required] }),

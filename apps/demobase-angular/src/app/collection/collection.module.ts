@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
+import { SharedModule } from '../shared/shared.module';
 
 import { CollectionComponent } from './collection.component';
 
@@ -18,6 +19,7 @@ import { CollectionComponent } from './collection.component';
     ]),
     ReactiveFormsModule,
     ReactiveComponentModule,
+    SharedModule,
   ],
   exports: [],
   declarations: [CollectionComponent],

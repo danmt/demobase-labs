@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DemobaseService } from '@demobase-labs/demobase-sdk';
 import { PublicKey } from '@solana/web3.js';
@@ -7,9 +7,12 @@ import { defer, from } from 'rxjs';
 @Component({
   selector: 'demobase-collections',
   template: `
-    <section>
-      <h2>Collections</h2>
+    <header demobasePageHeader>
+      <h1>Collections</h1>
+      <p>Visualize all collections.</p>
+    </header>
 
+    <main>
       <form
         [formGroup]="createCollectionGroup"
         (ngSubmit)="onCreateCollection()"
@@ -46,10 +49,11 @@ import { defer, from } from 'rxjs';
           >
         </li>
       </ul>
-    </section>
+    </main>
   `,
 })
 export class CollectionsComponent {
+  @HostBinding('class') class = 'block p-4';
   readonly createCollectionGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
     applicationId: new FormControl('', { validators: [Validators.required] }),
