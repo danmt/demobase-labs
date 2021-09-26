@@ -20,7 +20,6 @@ export interface CollectionInfo {
   authority: string;
   application: string;
   name: string;
-  bump: number;
 }
 
 export interface Collection {
@@ -41,7 +40,6 @@ export interface CollectionAttributeInfo {
     name: string;
     size: number;
   };
-  bump: number;
 }
 
 export interface CollectionAttribute {
@@ -54,7 +52,6 @@ export interface CollectionInstructionInfo {
   application: string;
   collection: string;
   name: string;
-  bump: number;
 }
 
 export interface CollectionInstruction {
@@ -73,7 +70,6 @@ export interface InstructionArgumentInfo {
     name: string;
     size: number;
   };
-  bump: number;
 }
 
 export interface InstructionArgument {
@@ -88,27 +84,12 @@ export interface InstructionAccountInfo {
   instruction: string;
   name: string;
   kind: string;
-  bump: number;
+  markAttribute: string;
 }
 
 export interface InstructionAccount {
   id: string;
   data: InstructionAccountInfo;
-}
-
-export interface AccountBoolAttributeInfo {
-  authority: string;
-  application: string;
-  collection: string;
-  instruction: string;
-  account: string;
-  kind: string;
-  bump: number;
-}
-
-export interface AccountBoolAttribute {
-  id: string;
-  data: AccountBoolAttributeInfo;
 }
 
 export type AccountBoolAttributeKind = 0 | 1 | 2;

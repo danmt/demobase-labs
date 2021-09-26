@@ -2,7 +2,6 @@ import { utils } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
 
 import {
-  AccountBoolAttribute,
   Application,
   Collection,
   CollectionAttribute,
@@ -50,7 +49,6 @@ export const CollectionParser = (
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      bump: account.bump,
     },
   };
 };
@@ -86,7 +84,6 @@ export const CollectionAttributeParser = (
         name: Object.keys(account.modifier)[0],
         size: Object.values(account.modifier)[0].size,
       },
-      bump: account.bump,
     },
   };
 };
@@ -112,7 +109,6 @@ export const CollectionInstructionParser = (
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      bump: account.bump,
     },
   };
 };
@@ -147,7 +143,6 @@ export const InstructionArgumentParser = (
         name: Object.keys(account.modifier)[0],
         size: Object.values(account.modifier)[0].size,
       },
-      bump: account.bump,
     },
   };
 };
@@ -159,6 +154,7 @@ interface RawInstructionAccount {
   instruction: PublicKey;
   name: Uint8Array;
   kind: { [key: string]: unknown };
+  markAttribute: { [key: string]: unknown };
   bump: number;
 }
 
@@ -177,35 +173,7 @@ export const InstructionAccountParser = (
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
       kind: Object.keys(account.kind)[0],
-      bump: account.bump,
-    },
-  };
-};
-
-interface RawAccountBoolAttribute {
-  authority: PublicKey;
-  application: PublicKey;
-  collection: PublicKey;
-  instruction: PublicKey;
-  account: PublicKey;
-  kind: Uint8Array;
-  bump: number;
-}
-
-export const AccountBoolAttributeParser = (
-  publicKey: PublicKey,
-  account: RawAccountBoolAttribute
-): AccountBoolAttribute => {
-  return {
-    id: publicKey.toBase58(),
-    data: {
-      authority: account.authority.toBase58(),
-      application: account.application.toBase58(),
-      collection: account.collection.toBase58(),
-      instruction: account.instruction.toBase58(),
-      account: account.account.toBase58(),
-      kind: Object.keys(account.kind)[0],
-      bump: account.bump,
+      markAttribute: Object.keys(account.markAttribute)[0],
     },
   };
 };
