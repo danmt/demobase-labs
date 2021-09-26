@@ -13,7 +13,9 @@ import {
   DemobaseService,
 } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
+import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 import { CreateCollectionComponent } from './create-collection.component';
 
 @Component({
@@ -36,15 +38,37 @@ import { CreateCollectionComponent } from './create-collection.component';
       </header>
 
       <main>
-        <ul *ngrxLet="collections$; let collections">
-          <li *ngFor="let collection of collections">
-            {{ collection.data.name }}
-
-            <a [routerLink]="['/collections', application.id, collection.id]"
-              >view</a
+        <section *ngrxLet="collections$; let collections">
+          <mat-grid-list
+            *ngIf="collections.length > 0; else emptyList"
+            [cols]="gridCols$ | ngrxPush"
+            rowHeight="10rem"
+            gutterSize="16"
+          >
+            <mat-grid-tile
+              *ngFor="let collection of collections"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
             >
-          </li>
-        </ul>
+              <mat-card class="w-full h-full">
+                <h2>{{ collection.data.name }}</h2>
+
+                <a
+                  [routerLink]="['/collections', application.id, collection.id]"
+                >
+                  view
+                </a>
+              </mat-card>
+            </mat-grid-tile>
+          </mat-grid-list>
+
+          <ng-template #emptyList>
+            <p class="text-center text-xl">
+              This application doesn't have collections yet.
+            </p>
+          </ng-template>
+        </section>
 
         <button
           *ngIf="connected$ | ngrxPush"
@@ -68,12 +92,28 @@ export class ApplicationComponent implements OnInit {
   readonly application$ = this._application.asObservable();
   private readonly _collections = new BehaviorSubject<Collection[]>([]);
   readonly collections$ = this._collections.asObservable();
+  readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
+    map((activeBreakpoint) => {
+      switch (activeBreakpoint) {
+        case 'xs':
+          return 1;
+        case 'sm':
+          return 2;
+        case 'md':
+        case 'lg':
+          return 3;
+        default:
+          return 4;
+      }
+    })
+  );
 
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _demobaseService: DemobaseService,
     private readonly _walletStore: WalletStore,
-    private readonly _matDialog: MatDialog
+    private readonly _matDialog: MatDialog,
+    private readonly _activeBreakpointService: ActiveBreakpointService
   ) {}
 
   ngOnInit() {

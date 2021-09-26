@@ -14,6 +14,8 @@ import {
   DemobaseService,
 } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 
 import { CreateAttributeComponent } from './create-attribute.component';
 import { CreateInstructionComponent } from './create-instruction.component';
@@ -38,49 +40,83 @@ import { CreateInstructionComponent } from './create-instruction.component';
       </header>
 
       <main>
-        <section>
+        <section *ngrxLet="attributes$; let attributes">
           <h2>Attributes</h2>
 
-          <ul *ngrxLet="attributes$; let attributes">
-            <li *ngFor="let attribute of attributes">
-              <p>Name: {{ attribute.data.name }}.</p>
-              <p>
-                Kind: {{ attribute.data.kind.name }} ({{
-                  attribute.data.kind.size
-                }}
-                bytes).
-              </p>
-              <p>
-                Modifier: {{ attribute.data.modifier.name }} ({{
-                  attribute.data.modifier.size
-                }}).
-              </p>
-              <p>
-                Total size:
-                {{ attribute.data.kind.size * attribute.data.modifier.size }}
-                bytes.
-              </p>
-            </li>
-          </ul>
+          <mat-grid-list
+            *ngIf="attributes.length > 0; else emptyList"
+            [cols]="gridCols$ | ngrxPush"
+            rowHeight="10rem"
+            gutterSize="16"
+          >
+            <mat-grid-tile
+              *ngFor="let attribute of attributes"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
+            >
+              <mat-card class="w-full h-full">
+                <h3>Name: {{ attribute.data.name }}.</h3>
+                <p>
+                  Kind: {{ attribute.data.kind.name }} ({{
+                    attribute.data.kind.size
+                  }}
+                  bytes).
+                </p>
+                <p>
+                  Modifier: {{ attribute.data.modifier.name }} ({{
+                    attribute.data.modifier.size
+                  }}).
+                </p>
+                <p>
+                  Total size:
+                  {{ attribute.data.kind.size * attribute.data.modifier.size }}
+                  bytes.
+                </p>
+              </mat-card>
+            </mat-grid-tile>
+          </mat-grid-list>
+
+          <ng-template #emptyList>
+            <p class="text-center text-xl">There's no attributes yet.</p>
+          </ng-template>
         </section>
 
         <section>
           <h2>Instructions</h2>
 
-          <ul *ngrxLet="instructions$; let instructions">
-            <li *ngFor="let instruction of instructions">
-              <p>Name: {{ instruction.data.name }}</p>
-              <a
-                [routerLink]="[
-                  '/instructions',
-                  collection.data.application,
-                  collection.id,
-                  instruction.id
-                ]"
-                >view</a
+          <ng-container *ngrxLet="instructions$; let instructions">
+            <mat-grid-list
+              *ngIf="instructions.length > 0; else emptyList"
+              [cols]="gridCols$ | ngrxPush"
+              rowHeight="10rem"
+              gutterSize="16"
+            >
+              <mat-grid-tile
+                *ngFor="let instruction of instructions"
+                [colspan]="1"
+                [rowspan]="1"
+                class="overflow-visible"
               >
-            </li>
-          </ul>
+                <mat-card class="w-full h-full">
+                  <h3>Name: {{ instruction.data.name }}</h3>
+                  <a
+                    [routerLink]="[
+                      '/instructions',
+                      collection.data.application,
+                      collection.id,
+                      instruction.id
+                    ]"
+                    >view</a
+                  >
+                </mat-card>
+              </mat-grid-tile>
+            </mat-grid-list>
+          </ng-container>
+
+          <ng-template #emptyList>
+            <p class="text-center text-xl">There's no instructions yet.</p>
+          </ng-template>
         </section>
 
         <button
@@ -111,20 +147,34 @@ export class CollectionComponent implements OnInit {
   readonly connected$ = this._walletStore.connected$;
   private readonly _collection = new BehaviorSubject<Collection | null>(null);
   readonly collection$ = this._collection.asObservable();
-  private readonly _attributes = new BehaviorSubject<
-    CollectionAttribute[] | null
-  >(null);
+  private readonly _attributes = new BehaviorSubject<CollectionAttribute[]>([]);
   readonly attributes$ = this._attributes.asObservable();
-  private readonly _instructions = new BehaviorSubject<
-    CollectionInstruction[] | null
-  >(null);
+  private readonly _instructions = new BehaviorSubject<CollectionInstruction[]>(
+    []
+  );
   readonly instructions$ = this._instructions.asObservable();
+  readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
+    map((activeBreakpoint) => {
+      switch (activeBreakpoint) {
+        case 'xs':
+          return 1;
+        case 'sm':
+          return 2;
+        case 'md':
+        case 'lg':
+          return 3;
+        default:
+          return 4;
+      }
+    })
+  );
 
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _walletStore: WalletStore,
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialog: MatDialog
+    private readonly _matDialog: MatDialog,
+    private readonly _activeBreakpointService: ActiveBreakpointService
   ) {}
 
   ngOnInit() {

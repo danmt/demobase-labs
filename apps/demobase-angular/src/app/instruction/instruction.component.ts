@@ -16,6 +16,8 @@ import {
   InstructionArgument,
 } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 
 import { CreateAccountComponent } from './create-account.component';
 import { CreateArgumentComponent } from './create-argument.component';
@@ -40,107 +42,144 @@ import { CreateArgumentComponent } from './create-argument.component';
       </header>
 
       <main>
-        <section>
+        <section *ngrxLet="arguments$; let arguments">
           <h2>Arguments</h2>
 
-          <ul *ngrxLet="arguments$; let arguments">
-            <li *ngFor="let argument of arguments">
-              <h4>Name: {{ argument.data.name }}.</h4>
-              <p>Kind: {{ argument.data.kind }}.</p>
-              <p>
-                Modifier: {{ argument.data.modifier.name }} ({{
-                  argument.data.modifier.size
-                }}).
-              </p>
-            </li>
-          </ul>
+          <mat-grid-list
+            *ngIf="arguments.length > 0; else emptyList"
+            [cols]="gridCols$ | ngrxPush"
+            rowHeight="10rem"
+            gutterSize="16"
+          >
+            <mat-grid-tile
+              *ngFor="let argument of arguments"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
+            >
+              <mat-card class="w-full h-full">
+                <h3>Name: {{ argument.data.name }}.</h3>
+                <p>Kind: {{ argument.data.kind }}.</p>
+                <p>
+                  Modifier: {{ argument.data.modifier.name }} ({{
+                    argument.data.modifier.size
+                  }}).
+                </p>
+              </mat-card>
+            </mat-grid-tile>
+          </mat-grid-list>
+
+          <ng-template #emptyList>
+            <p class="text-center text-xl">There's no arguments yet.</p>
+          </ng-template>
         </section>
 
-        <section>
-          <h2>Accounts</h2>
+        <section *ngrxLet="accounts$; let accounts">
+          <ng-container *ngrxLet="boolAttributes$; let boolAttributes">
+            <h2>Accounts</h2>
 
-          <ng-container *ngrxLet="accounts$; let accounts">
-            <ul *ngrxLet="boolAttributes$; let boolAttributes">
-              <li *ngFor="let account of accounts">
-                <h4>Name: {{ account.data.name }}</h4>
-                <p>Kind: {{ account.data.kind }}</p>
-                <p>
-                  Collection:
-                  {{ account.data.collection | obscureAddress }}
-                  <a
-                    [routerLink]="[
-                      '/collections',
-                      account.data.application,
-                      account.data.collection
-                    ]"
-                    >view</a
-                  >
-                </p>
+            <mat-grid-list
+              *ngIf="accounts.length > 0; else emptyList"
+              [cols]="gridCols$ | ngrxPush"
+              rowHeight="10rem"
+              gutterSize="16"
+            >
+              <mat-grid-tile
+                *ngFor="let account of accounts"
+                [colspan]="1"
+                [rowspan]="1"
+                class="overflow-visible"
+              >
+                <mat-card class="w-full h-full">
+                  <h3>Name: {{ account.data.name }}</h3>
+                  <p>Kind: {{ account.data.kind }}</p>
+                  <p>
+                    Collection:
+                    {{ account.data.collection | obscureAddress }}
+                    <a
+                      [routerLink]="[
+                        '/collections',
+                        account.data.application,
+                        account.data.collection
+                      ]"
+                      >view</a
+                    >
+                  </p>
 
-                <div>
-                  Bool Attribute:
-                  <button
-                    (click)="
-                      onSetBoolAttribute(instruction.id, account.id, null, null)
-                    "
-                    [ngClass]="{
-                      selected: !boolAttributes.has(account.id)
-                    }"
-                  >
-                    None
-                  </button>
-                  <button
-                    (click)="
-                      onSetBoolAttribute(
-                        instruction.id,
-                        account.id,
-                        boolAttributes.get(account.id)?.id || null,
-                        0
-                      )
-                    "
-                    [ngClass]="{
-                      selected:
-                        boolAttributes.get(account.id)?.data?.kind === 'init'
-                    }"
-                  >
-                    Init
-                  </button>
-                  <button
-                    (click)="
-                      onSetBoolAttribute(
-                        instruction.id,
-                        account.id,
-                        boolAttributes.get(account.id)?.id || null,
-                        1
-                      )
-                    "
-                    [ngClass]="{
-                      selected:
-                        boolAttributes.get(account.id)?.data?.kind === 'mut'
-                    }"
-                  >
-                    Mut
-                  </button>
-                  <button
-                    (click)="
-                      onSetBoolAttribute(
-                        instruction.id,
-                        account.id,
-                        boolAttributes.get(account.id)?.id || null,
-                        2
-                      )
-                    "
-                    [ngClass]="{
-                      selected:
-                        boolAttributes.get(account.id)?.data?.kind === 'zero'
-                    }"
-                  >
-                    Zero
-                  </button>
-                </div>
-              </li>
-            </ul>
+                  <div>
+                    Bool Attribute:
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          null
+                        )
+                      "
+                      [ngClass]="{
+                        selected: !boolAttributes.has(account.id)
+                      }"
+                    >
+                      None
+                    </button>
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          0
+                        )
+                      "
+                      [ngClass]="{
+                        selected:
+                          boolAttributes.get(account.id)?.data?.kind === 'init'
+                      }"
+                    >
+                      Init
+                    </button>
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          1
+                        )
+                      "
+                      [ngClass]="{
+                        selected:
+                          boolAttributes.get(account.id)?.data?.kind === 'mut'
+                      }"
+                    >
+                      Mut
+                    </button>
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          2
+                        )
+                      "
+                      [ngClass]="{
+                        selected:
+                          boolAttributes.get(account.id)?.data?.kind === 'zero'
+                      }"
+                    >
+                      Zero
+                    </button>
+                  </div>
+                </mat-card>
+              </mat-grid-tile>
+            </mat-grid-list>
           </ng-container>
+
+          <ng-template #emptyList>
+            <p class="text-center text-xl">There's no accounts yet.</p>
+          </ng-template>
         </section>
 
         <button
@@ -187,12 +226,28 @@ export class InstructionComponent implements OnInit {
     Map<string, AccountBoolAttribute>
   >(new Map<string, AccountBoolAttribute>());
   readonly boolAttributes$ = this._boolAttributes.asObservable();
+  readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
+    map((activeBreakpoint) => {
+      switch (activeBreakpoint) {
+        case 'xs':
+          return 1;
+        case 'sm':
+          return 2;
+        case 'md':
+        case 'lg':
+          return 3;
+        default:
+          return 4;
+      }
+    })
+  );
 
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _walletStore: WalletStore,
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialog: MatDialog
+    private readonly _matDialog: MatDialog,
+    private readonly _activeBreakpointService: ActiveBreakpointService
   ) {}
 
   ngOnInit() {
@@ -257,10 +312,11 @@ export class InstructionComponent implements OnInit {
           await this._demobaseService.getCollectionInstructionBoolAttributes(
             instructionId
           );
+
         this._boolAttributes.next(
           new Map(
             boolAttributes.map((boolAttribute) => [
-              boolAttribute.id,
+              boolAttribute.data.account,
               boolAttribute,
             ])
           )

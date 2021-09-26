@@ -8,7 +8,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import { Application, DemobaseService } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
+import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 import { CreateApplicationComponent } from './create-application.component';
 
 @Component({
@@ -30,13 +32,31 @@ import { CreateApplicationComponent } from './create-application.component';
     </header>
 
     <main>
-      <ul *ngrxLet="applications$; let applications">
-        <li *ngFor="let application of applications">
-          {{ application.data.name }}
+      <section *ngrxLet="applications$; let applications">
+        <mat-grid-list
+          *ngIf="applications.length > 0; else emptyList"
+          [cols]="gridCols$ | ngrxPush"
+          rowHeight="10rem"
+          gutterSize="16"
+        >
+          <mat-grid-tile
+            *ngFor="let application of applications"
+            [colspan]="1"
+            [rowspan]="1"
+            class="overflow-visible"
+          >
+            <mat-card class="w-full h-full">
+              <h2>{{ application.data.name }}</h2>
 
-          <a [routerLink]="['/applications', application.id]">view</a>
-        </li>
-      </ul>
+              <a [routerLink]="['/applications', application.id]">view</a>
+            </mat-card>
+          </mat-grid-tile>
+        </mat-grid-list>
+
+        <ng-template #emptyList>
+          <p class="text-center text-xl">There's no applications yet.</p>
+        </ng-template>
+      </section>
 
       <button
         *ngIf="connected$ | ngrxPush"
@@ -57,11 +77,27 @@ export class ApplicationsComponent implements OnInit {
   readonly connected$ = this._walletStore.connected$;
   private readonly _applications = new BehaviorSubject<Application[]>([]);
   readonly applications$ = this._applications.asObservable();
+  readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
+    map((activeBreakpoint) => {
+      switch (activeBreakpoint) {
+        case 'xs':
+          return 1;
+        case 'sm':
+          return 2;
+        case 'md':
+        case 'lg':
+          return 3;
+        default:
+          return 4;
+      }
+    })
+  );
 
   constructor(
     private readonly _walletStore: WalletStore,
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialog: MatDialog
+    private readonly _matDialog: MatDialog,
+    private readonly _activeBreakpointService: ActiveBreakpointService
   ) {}
 
   ngOnInit() {

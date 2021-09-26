@@ -546,16 +546,14 @@ export class DemobaseService {
       throw Error('Program is not available');
     }
 
-    const programAccounts = await this.reader.account.collectionInstruction.all(
-      [
-        {
-          memcmp: {
-            bytes: instructionId,
-            offset: 104,
-          },
+    const programAccounts = await this.reader.account.accountBoolAttribute.all([
+      {
+        memcmp: {
+          bytes: instructionId,
+          offset: 104,
         },
-      ]
-    );
+      },
+    ]);
 
     return programAccounts.map(({ account, publicKey }) =>
       AccountBoolAttributeParser(publicKey, account)
