@@ -7,11 +7,9 @@ import { isNotNullOrUndefined } from './shared/operators/is-not-null-or-undefine
 @Component({
   selector: 'demobase-root',
   template: `
-    <demobase-navigation></demobase-navigation>
-
-    <main>
+    <demobase-navigation>
       <router-outlet></router-outlet>
-    </main>
+    </demobase-navigation>
   `,
   styles: [],
   providers: [],
@@ -28,9 +26,10 @@ export class AppComponent implements OnInit {
 
     combineLatest([
       this._connectionStore.connection$.pipe(isNotNullOrUndefined),
-      this._walletStore.anchorWallet$.pipe(isNotNullOrUndefined),
-    ]).subscribe(([connection, wallet]) =>
-      this._demobaseService.setProgramFromConfig(connection, wallet)
-    );
+      this._walletStore.anchorWallet$,
+    ]).subscribe(([connection, wallet]) => {
+      this._demobaseService.setConnection(connection);
+      this._demobaseService.setWallet(wallet || null);
+    });
   }
 }

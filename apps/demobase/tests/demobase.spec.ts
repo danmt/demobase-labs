@@ -275,6 +275,7 @@ describe('demobase', () => {
           application: application.publicKey,
           collection: collectionId,
           instruction: instructionId,
+          accountCollection: collectionId,
           account: accountId,
           systemProgram: SystemProgram.programId,
         },

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import {
   ConnectionStore,
@@ -15,77 +16,72 @@ import {
 } from '@solana/wallet-adapter-wallets';
 
 import { AppComponent } from './app.component';
-import { AuthGuard } from './core/guards/auth.guard';
 import { CoreModule } from './core/core.module';
-import { UnauthorizedComponent } from './core/components/unauthorized.component';
 
 @NgModule({
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    RouterModule.forRoot([
-      {
-        path: 'applications',
-        canActivate: [AuthGuard],
-        children: [
-          {
-            path: '',
-            loadChildren: () =>
-              import('./applications/applications.module').then(
-                (m) => m.ApplicationsModule
-              ),
-          },
-          {
-            path: ':applicationId',
-            loadChildren: () =>
-              import('./application/application.module').then(
-                (m) => m.ApplicationModule
-              ),
-          },
-        ],
-      },
-      {
-        path: 'collections',
-        canActivate: [AuthGuard],
-        children: [
-          {
-            path: '',
-            loadChildren: () =>
-              import('./collections/collections.module').then(
-                (m) => m.CollectionsModule
-              ),
-          },
-          {
-            path: ':applicationId/:collectionId',
-            loadChildren: () =>
-              import('./collection/collection.module').then(
-                (m) => m.CollectionModule
-              ),
-          },
-        ],
-      },
-      {
-        path: 'instructions',
-        canActivate: [AuthGuard],
-        children: [
-          {
-            path: ':applicationId/:collectionId/:instructionId',
-            loadChildren: () =>
-              import('./instruction/instruction.module').then(
-                (m) => m.InstructionModule
-              ),
-          },
-        ],
-      },
-      {
-        path: 'unauthorized',
-        component: UnauthorizedComponent,
-      },
-      {
-        path: '**',
-        redirectTo: 'applications',
-      },
-    ]),
+    BrowserAnimationsModule,
+    RouterModule.forRoot(
+      [
+        {
+          path: 'applications',
+          children: [
+            {
+              path: '',
+              loadChildren: () =>
+                import('./applications/applications.module').then(
+                  (m) => m.ApplicationsModule
+                ),
+            },
+            {
+              path: ':applicationId',
+              loadChildren: () =>
+                import('./application/application.module').then(
+                  (m) => m.ApplicationModule
+                ),
+            },
+          ],
+        },
+        {
+          path: 'collections',
+          children: [
+            {
+              path: '',
+              loadChildren: () =>
+                import('./collections/collections.module').then(
+                  (m) => m.CollectionsModule
+                ),
+            },
+            {
+              path: ':applicationId/:collectionId',
+              loadChildren: () =>
+                import('./collection/collection.module').then(
+                  (m) => m.CollectionModule
+                ),
+            },
+          ],
+        },
+        {
+          path: 'instructions',
+          children: [
+            {
+              path: ':applicationId/:collectionId/:instructionId',
+              loadChildren: () =>
+                import('./instruction/instruction.module').then(
+                  (m) => m.InstructionModule
+                ),
+            },
+          ],
+        },
+        {
+          path: '**',
+          redirectTo: 'applications',
+        },
+      ],
+      { initialNavigation: 'enabledBlocking' }
+    ),
     ReactiveFormsModule,
     ReactiveComponentModule,
     CoreModule,
@@ -102,7 +98,6 @@ import { UnauthorizedComponent } from './core/components/unauthorized.component'
       provide: DemobaseService,
       useClass: DemobaseService,
     },
-    AuthGuard,
     ConnectionStore,
     WalletStore,
   ],

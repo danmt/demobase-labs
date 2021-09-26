@@ -1,27 +1,15 @@
-import { AccountsCoder, Idl, utils } from '@project-serum/anchor';
-import { AccountInfo, PublicKey } from '@solana/web3.js';
+import { utils } from '@project-serum/anchor';
+import { PublicKey } from '@solana/web3.js';
 
-import {
-  APPLICATION_NAME,
-  COLLECTION_NAME,
-  COLLECTION_ATTRIBUTE_NAME,
-  COLLECTION_INSTRUCTION_NAME,
-  COLLECTION_INSTRUCTION_ARGUMENT_NAME,
-  COLLECTION_INSTRUCTION_ACCOUNT_NAME,
-  COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_NAME,
-} from '.';
-import * as idl from '../idl.json';
 import {
   AccountBoolAttribute,
   Application,
   Collection,
   CollectionAttribute,
   CollectionInstruction,
-  CollectionInstructionArgument,
   InstructionAccount,
+  InstructionArgument,
 } from '../types';
-
-const accountCoder = new AccountsCoder(idl as Idl);
 
 interface RawApplication {
   authority: PublicKey;
@@ -30,22 +18,16 @@ interface RawApplication {
 
 export const ApplicationParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
+  account: RawApplication
 ): Application => {
-  const rawApplication = accountCoder.decode(
-    APPLICATION_NAME,
-    account.data
-  ) as RawApplication;
-
   return {
-    pubkey: publicKey,
-    info: {
+    id: publicKey.toBase58(),
+    data: {
       name: utils.bytes.utf8.decode(
-        new Uint8Array(rawApplication.name.filter((segment) => segment !== 0))
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      authority: rawApplication.authority,
+      authority: account.authority.toBase58(),
     },
-    account,
   };
 };
 
@@ -58,24 +40,18 @@ interface RawCollection {
 
 export const CollectionParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
+  account: RawCollection
 ): Collection => {
-  const rawCollection = accountCoder.decode(
-    COLLECTION_NAME,
-    account.data
-  ) as RawCollection;
-
   return {
-    pubkey: publicKey,
-    info: {
-      application: rawCollection.application,
-      authority: rawCollection.authority,
+    id: publicKey.toBase58(),
+    data: {
+      application: account.application.toBase58(),
+      authority: account.authority.toBase58(),
       name: utils.bytes.utf8.decode(
-        new Uint8Array(rawCollection.name.filter((segment) => segment !== 0))
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      bump: rawCollection.bump,
+      bump: account.bump,
     },
-    account,
   };
 };
 
@@ -91,35 +67,27 @@ interface RawCollectionAttribute {
 
 export const CollectionAttributeParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
+  account: RawCollectionAttribute
 ): CollectionAttribute => {
-  const rawCollectionAttribute = accountCoder.decode(
-    COLLECTION_ATTRIBUTE_NAME,
-    account.data
-  ) as RawCollectionAttribute;
-
   return {
-    pubkey: publicKey,
-    info: {
-      authority: rawCollectionAttribute.authority,
-      application: rawCollectionAttribute.application,
-      collection: rawCollectionAttribute.collection,
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      collection: account.collection.toBase58(),
       name: utils.bytes.utf8.decode(
-        new Uint8Array(
-          rawCollectionAttribute.name.filter((segment) => segment !== 0)
-        )
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
       kind: {
-        name: Object.keys(rawCollectionAttribute.kind)[0],
-        size: Object.values(rawCollectionAttribute.kind)[0].size,
+        name: Object.keys(account.kind)[0],
+        size: Object.values(account.kind)[0].size,
       },
       modifier: {
-        name: Object.keys(rawCollectionAttribute.modifier)[0],
-        size: Object.values(rawCollectionAttribute.modifier)[0].size,
+        name: Object.keys(account.modifier)[0],
+        size: Object.values(account.modifier)[0].size,
       },
-      bump: rawCollectionAttribute.bump,
+      bump: account.bump,
     },
-    account,
   };
 };
 
@@ -133,31 +101,23 @@ interface RawCollectionInstruction {
 
 export const CollectionInstructionParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
+  account: RawCollectionInstruction
 ): CollectionInstruction => {
-  const rawCollectionInstruction = accountCoder.decode(
-    COLLECTION_INSTRUCTION_NAME,
-    account.data
-  ) as RawCollectionInstruction;
-
   return {
-    pubkey: publicKey,
-    info: {
-      authority: rawCollectionInstruction.authority,
-      application: rawCollectionInstruction.application,
-      collection: rawCollectionInstruction.collection,
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      collection: account.collection.toBase58(),
       name: utils.bytes.utf8.decode(
-        new Uint8Array(
-          rawCollectionInstruction.name.filter((segment) => segment !== 0)
-        )
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      bump: rawCollectionInstruction.bump,
+      bump: account.bump,
     },
-    account,
   };
 };
 
-interface RawCollectionInstructionArgument {
+interface RawInstructionArgument {
   authority: PublicKey;
   application: PublicKey;
   collection: PublicKey;
@@ -168,37 +128,27 @@ interface RawCollectionInstructionArgument {
   bump: number;
 }
 
-export const CollectionInstructionArgumentParser = (
+export const InstructionArgumentParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
-): CollectionInstructionArgument => {
-  const rawCollectionInstructionArgument = accountCoder.decode(
-    COLLECTION_INSTRUCTION_ARGUMENT_NAME,
-    account.data
-  ) as RawCollectionInstructionArgument;
-
+  account: RawInstructionArgument
+): InstructionArgument => {
   return {
-    pubkey: publicKey,
-    info: {
-      authority: rawCollectionInstructionArgument.authority,
-      application: rawCollectionInstructionArgument.application,
-      collection: rawCollectionInstructionArgument.collection,
-      instruction: rawCollectionInstructionArgument.instruction,
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      collection: account.collection.toBase58(),
+      instruction: account.instruction.toBase58(),
       name: utils.bytes.utf8.decode(
-        new Uint8Array(
-          rawCollectionInstructionArgument.name.filter(
-            (segment) => segment !== 0
-          )
-        )
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      kind: Object.keys(rawCollectionInstructionArgument.kind)[0],
+      kind: Object.keys(account.kind)[0],
       modifier: {
-        name: Object.keys(rawCollectionInstructionArgument.modifier)[0],
-        size: Object.values(rawCollectionInstructionArgument.modifier)[0].size,
+        name: Object.keys(account.modifier)[0],
+        size: Object.values(account.modifier)[0].size,
       },
-      bump: rawCollectionInstructionArgument.bump,
+      bump: account.bump,
     },
-    account,
   };
 };
 
@@ -214,29 +164,21 @@ interface RawInstructionAccount {
 
 export const InstructionAccountParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
+  account: RawInstructionAccount
 ): InstructionAccount => {
-  const rawInstructionAccount = accountCoder.decode(
-    COLLECTION_INSTRUCTION_ACCOUNT_NAME,
-    account.data
-  ) as RawInstructionAccount;
-
   return {
-    pubkey: publicKey,
-    info: {
-      authority: rawInstructionAccount.authority,
-      application: rawInstructionAccount.application,
-      collection: rawInstructionAccount.collection,
-      instruction: rawInstructionAccount.instruction,
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      collection: account.collection.toBase58(),
+      instruction: account.instruction.toBase58(),
       name: utils.bytes.utf8.decode(
-        new Uint8Array(
-          rawInstructionAccount.name.filter((segment) => segment !== 0)
-        )
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      kind: Object.keys(rawInstructionAccount.kind)[0],
-      bump: rawInstructionAccount.bump,
+      kind: Object.keys(account.kind)[0],
+      bump: account.bump,
     },
-    account,
   };
 };
 
@@ -252,24 +194,18 @@ interface RawAccountBoolAttribute {
 
 export const AccountBoolAttributeParser = (
   publicKey: PublicKey,
-  account: AccountInfo<Buffer>
+  account: RawAccountBoolAttribute
 ): AccountBoolAttribute => {
-  const rawAccountBoolAttribute = accountCoder.decode(
-    COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_NAME,
-    account.data
-  ) as RawAccountBoolAttribute;
-
   return {
-    pubkey: publicKey,
-    info: {
-      authority: rawAccountBoolAttribute.authority,
-      application: rawAccountBoolAttribute.application,
-      collection: rawAccountBoolAttribute.collection,
-      instruction: rawAccountBoolAttribute.instruction,
-      account: rawAccountBoolAttribute.account,
-      kind: Object.keys(rawAccountBoolAttribute.kind)[0],
-      bump: rawAccountBoolAttribute.bump,
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      collection: account.collection.toBase58(),
+      instruction: account.instruction.toBase58(),
+      account: account.account.toBase58(),
+      kind: Object.keys(account.kind)[0],
+      bump: account.bump,
     },
-    account,
   };
 };

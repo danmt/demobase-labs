@@ -1,166 +1,207 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import {
-  AccountBoolAttributeInfo,
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  OnInit,
+} from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
+import { WalletStore } from '@danmt/wallet-adapter-angular';
+import {
+  AccountBoolAttribute,
   AccountBoolAttributeKind,
+  CollectionInstruction,
   DemobaseService,
-  InstructionAccountInfo,
+  InstructionAccount,
+  InstructionArgument,
 } from '@demobase-labs/demobase-sdk';
-import { PublicKey } from '@solana/web3.js';
-import { of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
+
+import { CreateAccountComponent } from './create-account.component';
+import { CreateArgumentComponent } from './create-argument.component';
 
 @Component({
   selector: 'demobase-instruction',
   template: `
-    <section *ngIf="instruction$ | ngrxPush as instruction">
-      <h2>{{ instruction.data.name }}</h2>
-      <p>Visualize all the details about this application.</p>
-
-      <h3>Arguments</h3>
-
-      <form
-        [formGroup]="createInstructionArgumentGroup"
-        (ngSubmit)="onCreateInstructionArgument(instruction.id)"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
-        <label>
-          Type:
-          <select formControlName="kind">
-            <option [ngValue]="0">u8</option>
-            <option [ngValue]="1">u16</option>
-            <option [ngValue]="2">u32</option>
-            <option [ngValue]="3">u64</option>
-            <option [ngValue]="4">u128</option>
-            <option [ngValue]="5">Pubkey</option>
-            <option [ngValue]="6">String</option>
-          </select>
-        </label>
-
-        <label>
-          Modifier:
-          <select formControlName="modifier">
-            <option [ngValue]="0">None</option>
-            <option [ngValue]="1">Array</option>
-            <option [ngValue]="2">Vector</option>
-          </select>
-        </label>
-
-        <label *ngIf="instructionArgumentModifierControl.value === 1">
-          Size: <input formControlName="size" type="number" />
-        </label>
-
-        <button>Submit</button>
-      </form>
-
-      <ul>
-        <li *ngFor="let argument of instruction.arguments">
-          <h4>Name: {{ argument.data.name }}.</h4>
-          <p>Kind: {{ argument.data.kind }}.</p>
-          <p>
-            Modifier: {{ argument.data.modifier.name }} ({{
-              argument.data.modifier.size
-            }}).
-          </p>
-        </li>
-      </ul>
-
-      <h3>Accounts</h3>
-
-      <form
-        [formGroup]="createInstructionAccountGroup"
-        (ngSubmit)="onCreateInstructionAccount(instruction.id)"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
-
-        <label>
-          Collection:
-          <select
-            *ngrxLet="collections$; let collections"
-            formControlName="collectionId"
+    <ng-container *ngIf="instruction$ | ngrxPush as instruction">
+      <header demobasePageHeader>
+        <h1>
+          {{ instruction.data.name }}
+          <button
+            mat-icon-button
+            color="primary"
+            aria-label="Reload collection"
+            (click)="onReload()"
           >
-            <option
-              *ngFor="let collection of collections"
-              [ngValue]="collection.pubkey"
-            >
-              {{ collection.info.name }} |
-              {{ collection.pubkey.toBase58() | obscureAddress }}
-            </option>
-          </select>
-        </label>
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </h1>
+        <p>Visualize all the details about this instruction.</p>
+      </header>
 
-        <label>
-          Kind:
-          <select formControlName="kind">
-            <option [ngValue]="0">Account</option>
-            <option [ngValue]="1">Signer</option>
-            <option [ngValue]="2">Program</option>
-          </select>
-        </label>
+      <main>
+        <section *ngrxLet="arguments$; let arguments">
+          <h2>Arguments</h2>
 
-        <button>Submit</button>
-      </form>
+          <mat-grid-list
+            *ngIf="arguments.length > 0; else emptyList"
+            [cols]="gridCols$ | ngrxPush"
+            rowHeight="10rem"
+            gutterSize="16"
+          >
+            <mat-grid-tile
+              *ngFor="let argument of arguments"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
+            >
+              <mat-card class="w-full h-full">
+                <h3>Name: {{ argument.data.name }}.</h3>
+                <p>Kind: {{ argument.data.kind }}.</p>
+                <p>
+                  Modifier: {{ argument.data.modifier.name }} ({{
+                    argument.data.modifier.size
+                  }}).
+                </p>
+              </mat-card>
+            </mat-grid-tile>
+          </mat-grid-list>
 
-      <ul>
-        <li *ngFor="let account of instruction.accounts">
-          <h4>Name: {{ account.data.name }}</h4>
-          <p>Kind: {{ account.data.kind }}</p>
-          <p>
-            Collection:
-            {{ account.data.collection.toBase58() | obscureAddress }}
-            <a
-              [routerLink]="[
-                '/collections',
-                account.data.application.toBase58(),
-                account.data.collection.toBase58()
-              ]"
-              >view</a
-            >
-          </p>
+          <ng-template #emptyList>
+            <p class="text-center text-xl">There's no arguments yet.</p>
+          </ng-template>
+        </section>
 
-          <div>
-            Bool Attribute:
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, null)"
-              [ngClass]="{ selected: account.boolAttribute === null }"
+        <section *ngrxLet="accounts$; let accounts">
+          <ng-container *ngrxLet="boolAttributes$; let boolAttributes">
+            <h2>Accounts</h2>
+
+            <mat-grid-list
+              *ngIf="accounts.length > 0; else emptyList"
+              [cols]="gridCols$ | ngrxPush"
+              rowHeight="10rem"
+              gutterSize="16"
             >
-              None
-            </button>
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, 0)"
-              [ngClass]="{
-                selected:
-                  account.boolAttribute &&
-                  account.boolAttribute.data.kind === 'init'
-              }"
-            >
-              Init
-            </button>
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, 1)"
-              [ngClass]="{
-                selected:
-                  account.boolAttribute &&
-                  account.boolAttribute.data.kind === 'mut'
-              }"
-            >
-              Mut
-            </button>
-            <button
-              (click)="onSetBoolAttribute(account, instruction.id, 2)"
-              [ngClass]="{
-                selected:
-                  account.boolAttribute &&
-                  account.boolAttribute.data.kind === 'zero'
-              }"
-            >
-              Zero
-            </button>
-          </div>
-        </li>
-      </ul>
-    </section>
+              <mat-grid-tile
+                *ngFor="let account of accounts"
+                [colspan]="1"
+                [rowspan]="1"
+                class="overflow-visible"
+              >
+                <mat-card class="w-full h-full">
+                  <h3>Name: {{ account.data.name }}</h3>
+                  <p>Kind: {{ account.data.kind }}</p>
+                  <p>
+                    Collection:
+                    {{ account.data.collection | obscureAddress }}
+                    <a
+                      [routerLink]="[
+                        '/collections',
+                        account.data.application,
+                        account.data.collection
+                      ]"
+                      >view</a
+                    >
+                  </p>
+
+                  <div>
+                    Bool Attribute:
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          null
+                        )
+                      "
+                      [ngClass]="{
+                        selected: !boolAttributes.has(account.id)
+                      }"
+                    >
+                      None
+                    </button>
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          0
+                        )
+                      "
+                      [ngClass]="{
+                        selected:
+                          boolAttributes.get(account.id)?.data?.kind === 'init'
+                      }"
+                    >
+                      Init
+                    </button>
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          1
+                        )
+                      "
+                      [ngClass]="{
+                        selected:
+                          boolAttributes.get(account.id)?.data?.kind === 'mut'
+                      }"
+                    >
+                      Mut
+                    </button>
+                    <button
+                      (click)="
+                        onSetBoolAttribute(
+                          instruction.id,
+                          account.id,
+                          boolAttributes.get(account.id)?.id || null,
+                          2
+                        )
+                      "
+                      [ngClass]="{
+                        selected:
+                          boolAttributes.get(account.id)?.data?.kind === 'zero'
+                      }"
+                    >
+                      Zero
+                    </button>
+                  </div>
+                </mat-card>
+              </mat-grid-tile>
+            </mat-grid-list>
+          </ng-container>
+
+          <ng-template #emptyList>
+            <p class="text-center text-xl">There's no accounts yet.</p>
+          </ng-template>
+        </section>
+
+        <button
+          *ngIf="connected$ | ngrxPush"
+          class="block fixed right-4 bottom-4"
+          mat-fab
+          color="primary"
+          aria-label="Create options"
+          [matMenuTriggerFor]="createMenu"
+        >
+          <mat-icon>add</mat-icon>
+        </button>
+        <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
+          <button mat-menu-item (click)="onCreateInstructionAccount()">
+            Create account
+          </button>
+          <button mat-menu-item (click)="onCreateInstructionArgument()">
+            Create argument
+          </button>
+        </mat-menu>
+      </main>
+    </ng-container>
   `,
   styles: [
     `
@@ -171,190 +212,180 @@ import { switchMap } from 'rxjs/operators';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InstructionComponent {
-  readonly createInstructionArgumentGroup = new FormGroup({
-    name: new FormControl('', { validators: [Validators.required] }),
-    kind: new FormControl(0, { validators: [Validators.required] }),
-    modifier: new FormControl(0, { validators: [Validators.required] }),
-    size: new FormControl(1),
-  });
-  get instructionArgumentNameControl() {
-    return this.createInstructionArgumentGroup.get('name') as FormControl;
-  }
-  get instructionArgumentKindControl() {
-    return this.createInstructionArgumentGroup.get('kind') as FormControl;
-  }
-  get instructionArgumentModifierControl() {
-    return this.createInstructionArgumentGroup.get('modifier') as FormControl;
-  }
-  get instructionArgumentSizeControl() {
-    return this.createInstructionArgumentGroup.get('size') as FormControl;
-  }
-
-  readonly createInstructionAccountGroup = new FormGroup({
-    name: new FormControl('', { validators: [Validators.required] }),
-    collectionId: new FormControl(null, { validators: [Validators.required] }),
-    kind: new FormControl(0, { validators: [Validators.required] }),
-  });
-  get instructionAccountNameControl() {
-    return this.createInstructionAccountGroup.get('name') as FormControl;
-  }
-  get instructionAccountCollectionIdControl() {
-    return this.createInstructionAccountGroup.get(
-      'collectionId'
-    ) as FormControl;
-  }
-  get instructionAccountKindControl() {
-    return this.createInstructionAccountGroup.get('kind') as FormControl;
-  }
-
-  readonly instruction$ = this._route.paramMap.pipe(
-    switchMap((paramMap) => {
-      const instructionId = paramMap.get('instructionId');
-
-      return instructionId
-        ? this.getInstruction(new PublicKey(instructionId))
-        : of(null);
-    })
-  );
-  readonly collections$ = this._route.paramMap.pipe(
-    switchMap((paramMap) => {
-      const applicationId = paramMap.get('applicationId');
-
-      return applicationId
-        ? this._demobaseService.getCollectionsByApplication(
-            new PublicKey(applicationId)
-          )
-        : of(null);
+export class InstructionComponent implements OnInit {
+  @HostBinding('class') class = 'block p-4';
+  readonly connected$ = this._walletStore.connected$;
+  private readonly _instruction =
+    new BehaviorSubject<CollectionInstruction | null>(null);
+  readonly instruction$ = this._instruction.asObservable();
+  private readonly _arguments = new BehaviorSubject<InstructionArgument[]>([]);
+  readonly arguments$ = this._arguments.asObservable();
+  private readonly _accounts = new BehaviorSubject<InstructionAccount[]>([]);
+  readonly accounts$ = this._accounts.asObservable();
+  private readonly _boolAttributes = new BehaviorSubject<
+    Map<string, AccountBoolAttribute>
+  >(new Map<string, AccountBoolAttribute>());
+  readonly boolAttributes$ = this._boolAttributes.asObservable();
+  readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
+    map((activeBreakpoint) => {
+      switch (activeBreakpoint) {
+        case 'xs':
+          return 1;
+        case 'sm':
+          return 2;
+        case 'md':
+        case 'lg':
+          return 3;
+        default:
+          return 4;
+      }
     })
   );
 
   constructor(
     private readonly _route: ActivatedRoute,
-    private readonly _demobaseService: DemobaseService
+    private readonly _walletStore: WalletStore,
+    private readonly _demobaseService: DemobaseService,
+    private readonly _matDialog: MatDialog,
+    private readonly _activeBreakpointService: ActiveBreakpointService
   ) {}
 
-  private async getInstruction(instructionId: PublicKey) {
-    const [
-      instruction,
-      instructionArguments,
-      instructionAccounts,
-      instructionAccountBoolAttributes,
-    ] = await Promise.all([
-      this._demobaseService.getCollectionInstruction(instructionId),
-      this._demobaseService.getCollectionInstructionArguments(instructionId),
-      this._demobaseService.getCollectionInstructionAccounts(instructionId),
-      this._demobaseService.getCollectionInstructionBoolAttributes(
-        instructionId
-      ),
-    ]);
-
-    return {
-      id: instruction?.pubkey.toBase58(),
-      data: instruction?.info,
-      arguments: instructionArguments.map(({ pubkey, info }) => ({
-        id: pubkey.toBase58(),
-        data: info,
-      })),
-      accounts: instructionAccounts.map(({ pubkey, info }) => ({
-        id: pubkey.toBase58(),
-        data: info,
-        boolAttribute: instructionAccountBoolAttributes
-          .filter(({ info }) => info.account.equals(pubkey))
-          .reduce(
-            (
-              _: { id: string; data: AccountBoolAttributeInfo } | null,
-              attribute
-            ) => ({
-              id: attribute.pubkey.toBase58(),
-              data: attribute.info,
-            }),
-            null
-          ),
-      })),
-    };
+  ngOnInit() {
+    this._getInstruction();
+    this._getArguments();
+    this._getAccounts();
+    this._getBoolAttributes();
   }
 
-  onCreateInstructionArgument(instructionId: string) {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+  private async _getInstruction() {
+    const instructionId = this._route.snapshot.paramMap.get('instructionId');
 
-    if (
-      this.createInstructionArgumentGroup.valid &&
-      applicationId &&
-      collectionId
-    ) {
-      const name = this.instructionArgumentNameControl.value;
-      const kind = this.instructionArgumentKindControl.value;
-      const modifier = this.instructionArgumentModifierControl.value;
-      const size = this.instructionArgumentSizeControl.value;
-
-      this._demobaseService.createCollectionInstructionArgument(
-        new PublicKey(applicationId),
-        new PublicKey(collectionId),
-        new PublicKey(instructionId),
-        name,
-        kind,
-        modifier,
-        size
-      );
+    if (instructionId) {
+      try {
+        const instruction =
+          await this._demobaseService.getCollectionInstruction(instructionId);
+        this._instruction.next(instruction);
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 
-  onCreateInstructionAccount(instructionId: string) {
+  private async _getArguments() {
+    const instructionId = this._route.snapshot.paramMap.get('instructionId');
+
+    if (instructionId) {
+      try {
+        const instructionArguments =
+          await this._demobaseService.getCollectionInstructionArguments(
+            instructionId
+          );
+        this._arguments.next(instructionArguments);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  private async _getAccounts() {
+    const instructionId = this._route.snapshot.paramMap.get('instructionId');
+
+    if (instructionId) {
+      try {
+        const accounts =
+          await this._demobaseService.getCollectionInstructionAccounts(
+            instructionId
+          );
+        this._accounts.next(accounts);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  private async _getBoolAttributes() {
+    const instructionId = this._route.snapshot.paramMap.get('instructionId');
+
+    if (instructionId) {
+      try {
+        const boolAttributes =
+          await this._demobaseService.getCollectionInstructionBoolAttributes(
+            instructionId
+          );
+
+        this._boolAttributes.next(
+          new Map(
+            boolAttributes.map((boolAttribute) => [
+              boolAttribute.data.account,
+              boolAttribute,
+            ])
+          )
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  onReload() {
+    this._getInstruction();
+    this._getArguments();
+    this._getAccounts();
+    this._getBoolAttributes();
+  }
+
+  onCreateInstructionArgument() {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
+    const instructionId = this._route.snapshot.paramMap.get('instructionId');
 
-    if (
-      this.createInstructionAccountGroup.valid &&
-      applicationId &&
-      collectionId
-    ) {
-      const name = this.instructionAccountNameControl.value;
-      const collectionId = this.instructionAccountCollectionIdControl.value;
-      const kind = this.instructionAccountKindControl.value;
+    if (applicationId && collectionId && instructionId) {
+      this._matDialog.open(CreateArgumentComponent, {
+        data: { applicationId, collectionId, instructionId },
+      });
+    }
+  }
 
-      this._demobaseService.createCollectionInstructionAccount(
-        new PublicKey(applicationId),
-        new PublicKey(collectionId),
-        new PublicKey(instructionId),
-        name,
-        kind
-      );
+  onCreateInstructionAccount() {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+    const instructionId = this._route.snapshot.paramMap.get('instructionId');
+
+    if (applicationId && collectionId && instructionId) {
+      this._matDialog.open(CreateAccountComponent, {
+        data: { applicationId, collectionId, instructionId },
+      });
     }
   }
 
   onSetBoolAttribute(
-    account: {
-      id: string;
-      data: InstructionAccountInfo;
-      boolAttribute: { id: string; data: AccountBoolAttributeInfo } | null;
-    },
     instructionId: string,
+    accountId: string,
+    boolAttributeId: string | null,
     kind: AccountBoolAttributeKind | null
   ) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
 
     if (applicationId && collectionId) {
-      if (account.boolAttribute === null) {
+      if (boolAttributeId === null) {
         if (kind !== null) {
           this._demobaseService.createCollectionInstructionAccountBoolAttribute(
-            new PublicKey(applicationId),
-            new PublicKey(collectionId),
-            new PublicKey(instructionId),
-            new PublicKey(account.id),
+            applicationId,
+            collectionId,
+            instructionId,
+            accountId,
             kind
           );
         }
       } else {
         if (kind === null) {
           this._demobaseService.deleteCollectionInstructionAccountBoolAttribute(
-            new PublicKey(account.boolAttribute.id)
+            boolAttributeId
           );
         } else {
           this._demobaseService.updateCollectionInstructionAccountBoolAttribute(
-            new PublicKey(account.boolAttribute.id),
+            boolAttributeId,
             kind
           );
         }

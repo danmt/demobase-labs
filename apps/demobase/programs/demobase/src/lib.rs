@@ -63,6 +63,7 @@ pub mod demobase {
         ctx.accounts.account.kind = AccountKind::from(kind)?;
         ctx.accounts.account.bump = bump;
         ctx.accounts.account.authority = ctx.accounts.authority.key();
+        ctx.accounts.account.account_collection = ctx.accounts.account_collection.key();
         ctx.accounts.account.instruction = ctx.accounts.instruction.key();
         ctx.accounts.account.collection = ctx.accounts.collection.key();
         ctx.accounts.account.application = ctx.accounts.application.key();
@@ -205,7 +206,7 @@ pub struct CreateInstructionAccount<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 1,
+        space = 8 + 32 + 32 + 32 + 32 + 32 + 32 + 2 + 1,
         seeds = [
             b"instruction_account",
             application.key().as_ref(),
@@ -219,6 +220,7 @@ pub struct CreateInstructionAccount<'info> {
     pub application: Box<Account<'info, Application>>,
     pub collection: Box<Account<'info, Collection>>,
     pub instruction: Box<Account<'info, CollectionInstruction>>,
+    pub account_collection: Box<Account<'info, Collection>>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -319,6 +321,7 @@ pub struct InstructionAccount {
     pub collection: Pubkey,
     pub instruction: Pubkey,
     pub name: [u8; 32],
+    pub account_collection: Pubkey,
     pub kind: AccountKind,
     pub bump: u8,
 }
