@@ -13,12 +13,22 @@ pub mod demobase {
         Ok(())
     }
 
-    pub fn create_collection(ctx: Context<CreateCollection>, name: String, bump: u8) -> ProgramResult {
+    pub fn create_collection(ctx: Context<CreateCollection>, name: String) -> ProgramResult {
         msg!("Create collection");
         ctx.accounts.collection.name = parse_string(name);
-        ctx.accounts.collection.bump = bump;
         ctx.accounts.collection.authority = ctx.accounts.authority.key();
         ctx.accounts.collection.application = ctx.accounts.application.key();
+        Ok(())
+    }
+
+    pub fn update_collection(ctx: Context<UpdateCollection>, name: String) -> ProgramResult {
+        msg!("Update collection");
+        ctx.accounts.collection.name = parse_string(name);
+        Ok(())
+    }
+
+    pub fn delete_collection(_ctx: Context<DeleteCollection>) -> ProgramResult {
+        msg!("Delete collection");
         Ok(())
     }
 
@@ -134,24 +144,33 @@ pub struct CreateApplication<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, bump: u8)]
+#[instruction(name: String)]
 pub struct CreateCollection<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 1,
-        seeds = [
-            b"collection",
-            application.key().as_ref(),
-            name.as_bytes()
-        ],
-        bump = bump
+        space = 8 + 32 + 32 + 32
     )]
     pub collection: Box<Account<'info, Collection>>,
     pub application: Box<Account<'info, Application>>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String)]
+pub struct UpdateCollection<'info> {
+    #[account(mut, has_one = authority)]
+    pub collection: Box<Account<'info, Collection>>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteCollection<'info> {
+    #[account(mut, has_one = authority, close = authority)]
+    pub collection: Account<'info, Collection>,
+    pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -191,7 +210,7 @@ pub struct CreateCollectionInstruction<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 1
+        space = 8 + 32 + 32 + 32 + 32
     )]
     pub instruction: Box<Account<'info, CollectionInstruction>>,
     pub application: Box<Account<'info, Application>>,
@@ -293,7 +312,6 @@ pub struct Collection {
     pub authority: Pubkey,
     pub application: Pubkey,
     pub name: [u8; 32],
-    pub bump: u8,
 }
 
 #[account]

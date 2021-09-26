@@ -1,20 +1,12 @@
 import { Provider, setProvider, utils, workspace } from '@project-serum/anchor';
-import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
+import { Keypair, SystemProgram } from '@solana/web3.js';
 import { assert } from 'chai';
-
-import {
-  createCollectionAddress,
-  findCollectionAddress,
-  findCollectionAttributeAddress,
-} from './utils';
 
 describe('demobase', () => {
   // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
-  let collectionBump: number;
   const applicationName = 'myApp';
-  const collectionName = 'things';
   const application = Keypair.generate();
 
   it('should create application', async () => {
@@ -44,37 +36,92 @@ describe('demobase', () => {
     );
   });
 
-  it('should create collection', async () => {
-    // arrange
-    const [collection, bump] = await findCollectionAddress(
-      application.publicKey,
-      collectionName
-    );
-    collectionBump = bump;
-    // act
-    await program.rpc.createCollection(collectionName, bump, {
-      accounts: {
-        collection,
-        application: application.publicKey,
-        authority: program.provider.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
+  describe('collection', () => {
+    const collection = Keypair.generate();
+
+    it('should create account', async () => {
+      // arrange
+      const collectionName = 'things';
+      // act
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: collection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [collection],
+      });
+      // assert
+      const account = await program.account.collection.fetch(
+        collection.publicKey
+      );
+      assert.ok(account.authority.equals(program.provider.wallet.publicKey));
+      assert.equal(
+        utils.bytes.utf8.decode(
+          new Uint8Array(
+            account.name.filter((segment: number) => segment !== 0)
+          )
+        ),
+        collectionName
+      );
     });
-    // assert
-    const account = await program.account.collection.fetch(collection);
-    assert.ok(account.authority.equals(program.provider.wallet.publicKey));
+
+    it('should update account', async () => {
+      // arrange
+      const collectionName = 'things2';
+      // act
+      await program.rpc.updateCollection(collectionName, {
+        accounts: {
+          collection: collection.publicKey,
+          authority: program.provider.wallet.publicKey,
+        },
+      });
+      // assert
+      const account = await program.account.collection.fetch(
+        collection.publicKey
+      );
+      assert.equal(
+        utils.bytes.utf8.decode(
+          new Uint8Array(
+            account.name.filter((segment: number) => segment !== 0)
+          )
+        ),
+        collectionName
+      );
+    });
+
+    it('should delete account', async () => {
+      // act
+      await program.rpc.deleteCollection({
+        accounts: {
+          collection: collection.publicKey,
+          authority: program.provider.wallet.publicKey,
+        },
+      });
+      // assert
+      const account = await program.account.collection.fetchNullable(
+        collection.publicKey
+      );
+      assert.equal(account, null);
+    });
   });
 
   describe('collection attribute', () => {
     const attribute = Keypair.generate();
-    let collectionId: PublicKey;
+    const collection = Keypair.generate();
+    const collectionName = 'things';
 
     before(async () => {
-      collectionId = await createCollectionAddress(
-        application.publicKey,
-        collectionName,
-        collectionBump
-      );
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: collection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [collection],
+      });
     });
 
     it('should create account', async () => {
@@ -93,7 +140,7 @@ describe('demobase', () => {
           accounts: {
             authority: program.provider.wallet.publicKey,
             application: application.publicKey,
-            collection: collectionId,
+            collection: collection.publicKey,
             attribute: attribute.publicKey,
             systemProgram: SystemProgram.programId,
           },
@@ -117,7 +164,7 @@ describe('demobase', () => {
       assert.equal(account.kind.u8.size, 1);
       assert.ok('array' in account.modifier);
       assert.equal(account.modifier.array.size, attributeSize);
-      assert.ok(account.collection.equals(collectionId));
+      assert.ok(account.collection.equals(collection.publicKey));
       assert.ok(account.application.equals(application.publicKey));
     });
 
@@ -137,7 +184,7 @@ describe('demobase', () => {
           accounts: {
             authority: program.provider.wallet.publicKey,
             application: application.publicKey,
-            collection: collectionId,
+            collection: collection.publicKey,
             attribute: attribute.publicKey,
             systemProgram: SystemProgram.programId,
           },
@@ -180,14 +227,19 @@ describe('demobase', () => {
   describe('collection instruction', () => {
     const instruction = Keypair.generate();
     const instructionName = 'create_document';
-    let collectionId: PublicKey;
+    const collection = Keypair.generate();
+    const collectionName = 'things';
 
     before(async () => {
-      collectionId = await createCollectionAddress(
-        application.publicKey,
-        collectionName,
-        collectionBump
-      );
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: collection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [collection],
+      });
     });
 
     it('should create account', async () => {
@@ -196,7 +248,7 @@ describe('demobase', () => {
         accounts: {
           authority: program.provider.wallet.publicKey,
           application: application.publicKey,
-          collection: collectionId,
+          collection: collection.publicKey,
           instruction: instruction.publicKey,
           systemProgram: SystemProgram.programId,
         },
@@ -215,7 +267,7 @@ describe('demobase', () => {
         ),
         instructionName
       );
-      assert.ok(account.collection.equals(collectionId));
+      assert.ok(account.collection.equals(collection.publicKey));
       assert.ok(account.application.equals(application.publicKey));
     });
 
@@ -263,20 +315,25 @@ describe('demobase', () => {
     const instruction = Keypair.generate();
     const instructionArgument = Keypair.generate();
     const instructionName = 'create_document';
-    let collectionId: PublicKey;
+    const collection = Keypair.generate();
+    const collectionName = 'things';
 
     before(async () => {
-      collectionId = await createCollectionAddress(
-        application.publicKey,
-        collectionName,
-        collectionBump
-      );
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: collection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [collection],
+      });
 
       await program.rpc.createCollectionInstruction(instructionName, {
         accounts: {
           authority: program.provider.wallet.publicKey,
           application: application.publicKey,
-          collection: collectionId,
+          collection: collection.publicKey,
           instruction: instruction.publicKey,
           systemProgram: SystemProgram.programId,
         },
@@ -300,7 +357,7 @@ describe('demobase', () => {
           accounts: {
             authority: program.provider.wallet.publicKey,
             application: application.publicKey,
-            collection: collectionId,
+            collection: collection.publicKey,
             instruction: instruction.publicKey,
             argument: instructionArgument.publicKey,
             systemProgram: SystemProgram.programId,
@@ -326,7 +383,7 @@ describe('demobase', () => {
       assert.ok('array' in account.modifier);
       assert.equal(account.modifier.array.size, argumentSize);
       assert.ok(account.instruction.equals(instruction.publicKey));
-      assert.ok(account.collection.equals(collectionId));
+      assert.ok(account.collection.equals(collection.publicKey));
       assert.ok(account.application.equals(application.publicKey));
     });
 
@@ -388,20 +445,25 @@ describe('demobase', () => {
     const instruction = Keypair.generate();
     const instructionAccount = Keypair.generate();
     const instructionName = 'create_document';
-    let collectionId: PublicKey;
+    const collection = Keypair.generate();
+    const collectionName = 'things';
 
     before(async () => {
-      collectionId = await createCollectionAddress(
-        application.publicKey,
-        collectionName,
-        collectionBump
-      );
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: collection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [collection],
+      });
 
       await program.rpc.createCollectionInstruction(instructionName, {
         accounts: {
           authority: program.provider.wallet.publicKey,
           application: application.publicKey,
-          collection: collectionId,
+          collection: collection.publicKey,
           instruction: instruction.publicKey,
           systemProgram: SystemProgram.programId,
         },
@@ -414,11 +476,6 @@ describe('demobase', () => {
       const instructionAccountName = 'data';
       const instructionAccountKind = 0;
       const instructionAccountMarkAttribute = 0;
-      const collectionId = await createCollectionAddress(
-        application.publicKey,
-        collectionName,
-        collectionBump
-      );
       // act
       await program.rpc.createCollectionInstructionAccount(
         instructionAccountName,
@@ -428,9 +485,9 @@ describe('demobase', () => {
           accounts: {
             authority: program.provider.wallet.publicKey,
             application: application.publicKey,
-            collection: collectionId,
+            collection: collection.publicKey,
             instruction: instruction.publicKey,
-            accountCollection: collectionId,
+            accountCollection: collection.publicKey,
             account: instructionAccount.publicKey,
             systemProgram: SystemProgram.programId,
           },
@@ -453,7 +510,7 @@ describe('demobase', () => {
       assert.ok('account' in account.kind);
       assert.ok('none' in account.markAttribute);
       assert.ok(account.instruction.equals(instruction.publicKey));
-      assert.ok(account.collection.equals(collectionId));
+      assert.ok(account.collection.equals(collection.publicKey));
       assert.ok(account.application.equals(application.publicKey));
     });
 
@@ -462,12 +519,17 @@ describe('demobase', () => {
       const instructionAccountName = 'data-2';
       const instructionAccountKind = 1;
       const instructionAccountMarkAttribute = 1;
-      const collectionId = await createCollectionAddress(
-        application.publicKey,
-        collectionName,
-        collectionBump
-      );
+      const anotherCollection = Keypair.generate();
       // act
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: anotherCollection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [anotherCollection],
+      });
       await program.rpc.updateCollectionInstructionAccount(
         instructionAccountName,
         instructionAccountKind,
@@ -476,7 +538,7 @@ describe('demobase', () => {
           accounts: {
             authority: program.provider.wallet.publicKey,
             account: instructionAccount.publicKey,
-            accountCollection: collectionId,
+            accountCollection: anotherCollection.publicKey,
           },
         }
       );
@@ -494,6 +556,7 @@ describe('demobase', () => {
       );
       assert.ok('signer' in account.kind);
       assert.ok('init' in account.markAttribute);
+      assert.ok(account.accountCollection.equals(anotherCollection.publicKey));
     });
 
     it('should delete account', async () => {
