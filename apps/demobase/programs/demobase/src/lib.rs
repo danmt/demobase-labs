@@ -22,15 +22,27 @@ pub mod demobase {
         Ok(())
     }
 
-    pub fn create_collection_attribute(ctx: Context<CreateCollectionAttribute>, name: String, kind: u8, modifier: u8, size: u8, bump: u8) -> ProgramResult {
+    pub fn create_collection_attribute(ctx: Context<CreateCollectionAttribute>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
         msg!("Create collection attribute");
         ctx.accounts.attribute.name = parse_string(name);
-        ctx.accounts.attribute.bump = bump;
         ctx.accounts.attribute.kind = AttributeKind::from(kind)?;
         ctx.accounts.attribute.modifier = AttributeKindModifier::from(modifier, size)?;
         ctx.accounts.attribute.authority = ctx.accounts.authority.key();
         ctx.accounts.attribute.collection = ctx.accounts.collection.key();
         ctx.accounts.attribute.application = ctx.accounts.application.key();
+        Ok(())
+    }
+
+    pub fn update_collection_attribute(ctx: Context<UpdateCollectionAttribute>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
+        msg!("Update collection attribute");
+        ctx.accounts.attribute.name = parse_string(name);
+        ctx.accounts.attribute.kind = AttributeKind::from(kind)?;
+        ctx.accounts.attribute.modifier = AttributeKindModifier::from(modifier, size)?;
+        Ok(())
+    }
+
+    pub fn delete_collection_attribute(_ctx: Context<DeleteCollectionAttribute>) -> ProgramResult {
+        msg!("Delete collection attribute");
         Ok(())
     }
 
@@ -143,19 +155,12 @@ pub struct CreateCollection<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, kind: u8, modifier: u8, size: u8, bump: u8)]
+#[instruction(name: String, kind: u8, modifier: u8, size: u8)]
 pub struct CreateCollectionAttribute<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 2 + 2 + 1,
-        seeds = [
-            b"collection_attribute",
-            application.key().as_ref(),
-            collection.key().as_ref(),
-            name.as_bytes()
-        ],
-        bump = bump
+        space = 8 + 32 + 32 + 32 + 32 + 2 + 2
     )]
     pub attribute: Box<Account<'info, CollectionAttribute>>,
     pub application: Box<Account<'info, Application>>,
@@ -163,6 +168,21 @@ pub struct CreateCollectionAttribute<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, kind: u8, modifier: u8, size: u8)]
+pub struct UpdateCollectionAttribute<'info> {
+    #[account(mut, has_one = authority)]
+    pub attribute: Account<'info, CollectionAttribute>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteCollectionAttribute<'info> {
+    #[account(mut, has_one = authority, close = authority)]
+    pub attribute: Account<'info, CollectionAttribute>,
+    pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -184,14 +204,14 @@ pub struct CreateCollectionInstruction<'info> {
 #[derive(Accounts)]
 #[instruction(name: String)]
 pub struct UpdateCollectionInstruction<'info> {
-    #[account(mut)]
+    #[account(mut, has_one = authority)]
     pub instruction: Box<Account<'info, CollectionInstruction>>,
     pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct DeleteCollectionInstruction<'info> {
-    #[account(mut, close = authority, has_one = authority)]
+    #[account(mut, has_one = authority, close = authority)]
     pub instruction: Account<'info, CollectionInstruction>,
     pub authority: Signer<'info>,
 }
@@ -202,7 +222,7 @@ pub struct CreateInstructionArgument<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 2 + 100,
+        space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 2,
     )]
     pub argument: Box<Account<'info, InstructionArgument>>,
     pub application: Box<Account<'info, Application>>,
@@ -223,7 +243,7 @@ pub struct UpdateInstructionArgument<'info> {
 
 #[derive(Accounts)]
 pub struct DeleteInstructionArgument<'info> {
-    #[account(mut, close = authority, has_one = authority)]
+    #[account(mut, has_one = authority, close = authority)]
     pub argument: Account<'info, InstructionArgument>,
     pub authority: Signer<'info>,
 }
@@ -284,7 +304,6 @@ pub struct CollectionAttribute {
     pub name: [u8; 32],
     pub kind: AttributeKind,
     pub modifier: AttributeKindModifier,
-    pub bump: u8,
 }
 
 #[account]
@@ -293,7 +312,6 @@ pub struct CollectionInstruction {
     pub application: Pubkey,
     pub collection: Pubkey,
     pub name: [u8; 32],
-    pub bump: u8,
 }
 
 #[account]
@@ -382,7 +400,7 @@ impl AttributeKindModifier {
             0 => Ok(AttributeKindModifier::None { size: 1 }),
             1 => Ok(AttributeKindModifier::Array { size: size }),
             2 => Ok(AttributeKindModifier::Vector { size: 1 }),
-            _ => Err(ErrorCode::InvalidAttributeKindModifier.into()),
+            _ => Err(ErrorCode::InvalidAttributeModifier.into()),
         }
     }
 }
@@ -431,10 +449,10 @@ impl MarkAttribute {
 pub enum ErrorCode {
     #[msg("Invalid attribute kind")]
     InvalidAttributeKind,
-    #[msg("Invalid attribute kind modifier")]
-    InvalidAttributeKindModifier,
+    #[msg("Invalid attribute modifier")]
+    InvalidAttributeModifier,
     #[msg("Invalid account kind")]
     InvalidAccountKind,
-    #[msg("Invalid account mark attribute kind")]
+    #[msg("Invalid mark attribute")]
     InvalidMarkAttribute,
 }
