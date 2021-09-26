@@ -3,7 +3,6 @@ import { Keypair, SystemProgram } from '@solana/web3.js';
 import { assert } from 'chai';
 
 describe('demobase', () => {
-  // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
 
@@ -533,6 +532,8 @@ describe('demobase', () => {
     const collectionName = 'things';
     const application = Keypair.generate();
     const applicationName = 'my-app';
+    const anotherCollection = Keypair.generate();
+    const anotherCollectionName = 'another-things';
 
     before(async () => {
       await program.rpc.createApplication(applicationName, {
@@ -551,6 +552,15 @@ describe('demobase', () => {
           systemProgram: SystemProgram.programId,
         },
         signers: [collection],
+      });
+      await program.rpc.createCollection(collectionName, {
+        accounts: {
+          collection: anotherCollection.publicKey,
+          application: application.publicKey,
+          authority: program.provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [anotherCollection],
       });
       await program.rpc.createCollectionInstruction(instructionName, {
         accounts: {
@@ -612,17 +622,7 @@ describe('demobase', () => {
       const instructionAccountName = 'data-2';
       const instructionAccountKind = 1;
       const instructionAccountMarkAttribute = 1;
-      const anotherCollection = Keypair.generate();
       // act
-      await program.rpc.createCollection(collectionName, {
-        accounts: {
-          collection: anotherCollection.publicKey,
-          application: application.publicKey,
-          authority: program.provider.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-        signers: [anotherCollection],
-      });
       await program.rpc.updateCollectionInstructionAccount(
         instructionAccountName,
         instructionAccountKind,
