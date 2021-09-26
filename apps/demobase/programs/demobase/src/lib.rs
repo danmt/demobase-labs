@@ -44,16 +44,28 @@ pub mod demobase {
         Ok(())
     }
 
-    pub fn create_collection_instruction_argument(ctx: Context<CreateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8, bump: u8) -> ProgramResult {
+    pub fn create_collection_instruction_argument(ctx: Context<CreateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
         msg!("Create collection instruction argument");
         ctx.accounts.argument.name = parse_string(name);
         ctx.accounts.argument.kind = AttributeKind::from(kind)?;
         ctx.accounts.argument.modifier = AttributeKindModifier::from(modifier, size)?;
-        ctx.accounts.argument.bump = bump;
         ctx.accounts.argument.authority = ctx.accounts.authority.key();
         ctx.accounts.argument.instruction = ctx.accounts.instruction.key();
         ctx.accounts.argument.collection = ctx.accounts.collection.key();
         ctx.accounts.argument.application = ctx.accounts.application.key();
+        Ok(())
+    }
+
+    pub fn update_collection_instruction_argument(ctx: Context<UpdateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
+        msg!("Update collection instruction argument");
+        ctx.accounts.argument.name = parse_string(name);
+        ctx.accounts.argument.kind = AttributeKind::from(kind)?;
+        ctx.accounts.argument.modifier = AttributeKindModifier::from(modifier, size)?;
+        Ok(())
+    }
+
+    pub fn delete_collection_instruction_argument(_ctx: Context<DeleteInstructionArgument>) -> ProgramResult {
+        msg!("Delete collection instruction argument");
         Ok(())
     }
 
@@ -176,20 +188,12 @@ pub struct CreateCollectionInstruction<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, kind: u8, modifier: u8, array_size: u8, bump: u8)]
+#[instruction(name: String, kind: u8, modifier: u8, array_size: u8)]
 pub struct CreateInstructionArgument<'info> {
     #[account(
         init,
         payer = authority,
         space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 2 + 1,
-        seeds = [
-            b"instruction_argument",
-            application.key().as_ref(),
-            collection.key().as_ref(),
-            instruction.key().as_ref(),
-            name.as_bytes()
-        ],
-        bump = bump
     )]
     pub argument: Box<Account<'info, InstructionArgument>>,
     pub application: Box<Account<'info, Application>>,
@@ -198,6 +202,21 @@ pub struct CreateInstructionArgument<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, kind: u8, modifier: u8, array_size: u8)]
+pub struct UpdateInstructionArgument<'info> {
+    #[account(mut, has_one = authority)]
+    pub argument: Box<Account<'info, InstructionArgument>>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteInstructionArgument<'info> {
+    #[account(mut, close = authority, has_one = authority)]
+    pub argument: Account<'info, InstructionArgument>,
+    pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -311,7 +330,6 @@ pub struct InstructionArgument {
     pub name: [u8; 32],
     pub kind: AttributeKind,
     pub modifier: AttributeKindModifier,
-    pub bump: u8,
 }
 
 #[account]

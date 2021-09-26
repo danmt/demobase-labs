@@ -28,6 +28,7 @@ describe('demobase', () => {
   const instructionName = 'create_document';
   const accountName = 'data';
   const application = Keypair.generate();
+  const argument = Keypair.generate();
 
   it('should create application', async () => {
     // act
@@ -195,33 +196,27 @@ describe('demobase', () => {
       instructionName,
       instructionBump
     );
-    const [argumentId, bump] = await findCollectionInstructionArgumentAddress(
-      application.publicKey,
-      collectionId,
-      instructionId,
-      argumentName
-    );
     // act
     await program.rpc.createCollectionInstructionArgument(
       argumentName,
       argumentKind,
       argumentModifier,
       argumentSize,
-      bump,
       {
         accounts: {
           authority: program.provider.wallet.publicKey,
           application: application.publicKey,
           collection: collectionId,
           instruction: instructionId,
-          argument: argumentId,
+          argument: argument.publicKey,
           systemProgram: SystemProgram.programId,
         },
+        signers: [argument],
       }
     );
     // assert
     const argumentAccount = await program.account.instructionArgument.fetch(
-      argumentId
+      argument.publicKey
     );
     assert.ok(
       argumentAccount.authority.equals(program.provider.wallet.publicKey)
@@ -241,6 +236,59 @@ describe('demobase', () => {
     assert.ok(argumentAccount.instruction.equals(instructionId));
     assert.ok(argumentAccount.collection.equals(collectionId));
     assert.ok(argumentAccount.application.equals(application.publicKey));
+  });
+
+  it('should update collection instruction argument', async () => {
+    // arrange
+    const argumentName = 'new-name';
+    const argumentKind = 2;
+    const argumentSize = 1;
+    const argumentModifier = 2;
+    // act
+    await program.rpc.updateCollectionInstructionArgument(
+      argumentName,
+      argumentKind,
+      argumentModifier,
+      argumentSize,
+      {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          argument: argument.publicKey,
+        },
+      }
+    );
+    // assert
+    const argumentAccount = await program.account.instructionArgument.fetch(
+      argument.publicKey
+    );
+    assert.equal(
+      utils.bytes.utf8.decode(
+        new Uint8Array(
+          argumentAccount.name.filter((segment: number) => segment !== 0)
+        )
+      ),
+      argumentName
+    );
+    assert.ok('u32' in argumentAccount.kind);
+    assert.equal(argumentAccount.kind.u32.size, 4);
+    assert.ok('vector' in argumentAccount.modifier);
+    assert.equal(argumentAccount.modifier.vector.size, argumentSize);
+  });
+
+  it('should delete collection instruction argument', async () => {
+    // act
+    await program.rpc.deleteCollectionInstructionArgument({
+      accounts: {
+        authority: program.provider.wallet.publicKey,
+        argument: argument.publicKey,
+      },
+    });
+    // assert
+    const argumentAccount =
+      await program.account.instructionArgument.fetchNullable(
+        argument.publicKey
+      );
+    assert.equal(argumentAccount, null);
   });
 
   it('should create collection instruction account', async () => {
