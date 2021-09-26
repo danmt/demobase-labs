@@ -13,6 +13,17 @@ pub mod demobase {
         Ok(())
     }
 
+    pub fn update_application(ctx: Context<UpdateApplication>, name: String) -> ProgramResult {
+        msg!("Update application");
+        ctx.accounts.application.name = parse_string(name);
+        Ok(())
+    }
+
+    pub fn delete_application(_ctx: Context<DeleteApplication>) -> ProgramResult {
+        msg!("Delete application");
+        Ok(())
+    }
+
     pub fn create_collection(ctx: Context<CreateCollection>, name: String) -> ProgramResult {
         msg!("Create collection");
         ctx.accounts.collection.name = parse_string(name);
@@ -141,6 +152,21 @@ pub struct CreateApplication<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String)]
+pub struct UpdateApplication<'info> {
+    #[account(mut, has_one = authority)]
+    pub application: Box<Account<'info, Application>>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteApplication<'info> {
+    #[account(mut, has_one = authority, close = authority)]
+    pub application: Account<'info, Application>,
+    pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]

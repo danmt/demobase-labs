@@ -6,38 +6,92 @@ describe('demobase', () => {
   // Configure the client to use the local cluster.
   setProvider(Provider.env());
   const program = workspace.Demobase;
-  const applicationName = 'myApp';
-  const application = Keypair.generate();
 
-  it('should create application', async () => {
-    // act
-    await program.rpc.createApplication(applicationName, {
-      accounts: {
-        authority: program.provider.wallet.publicKey,
-        application: application.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-      signers: [application],
+  describe('application', () => {
+    const application = Keypair.generate();
+
+    it('should create account', async () => {
+      // arrange
+      const applicationName = 'my-app';
+      // act
+      await program.rpc.createApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [application],
+      });
+      // assert
+      const account = await program.account.application.fetch(
+        application.publicKey
+      );
+      assert.ok(account.authority.equals(program.provider.wallet.publicKey));
+      assert.equal(
+        utils.bytes.utf8.decode(
+          new Uint8Array(
+            account.name.filter((segment: number) => segment !== 0)
+          )
+        ),
+        applicationName
+      );
     });
-    // assert
-    const applicationAccount = await program.account.application.fetch(
-      application.publicKey
-    );
-    assert.ok(
-      applicationAccount.authority.equals(program.provider.wallet.publicKey)
-    );
-    assert.equal(
-      utils.bytes.utf8.decode(
-        new Uint8Array(
-          applicationAccount.name.filter((segment: number) => segment !== 0)
-        )
-      ),
-      applicationName
-    );
+
+    it('should update account', async () => {
+      // arrange
+      const applicationName = 'my-app2';
+      // act
+      await program.rpc.updateApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+        },
+      });
+      // assert
+      const account = await program.account.application.fetch(
+        application.publicKey
+      );
+      assert.equal(
+        utils.bytes.utf8.decode(
+          new Uint8Array(
+            account.name.filter((segment: number) => segment !== 0)
+          )
+        ),
+        applicationName
+      );
+    });
+
+    it('should delete account', async () => {
+      // act
+      await program.rpc.deleteApplication({
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+        },
+      });
+      // assert
+      const account = await program.account.application.fetchNullable(
+        application.publicKey
+      );
+      assert.equal(account, null);
+    });
   });
 
   describe('collection', () => {
     const collection = Keypair.generate();
+    const application = Keypair.generate();
+    const applicationName = 'my-app';
+
+    before(async () => {
+      await program.rpc.createApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [application],
+      });
+    });
 
     it('should create account', async () => {
       // arrange
@@ -111,8 +165,18 @@ describe('demobase', () => {
     const attribute = Keypair.generate();
     const collection = Keypair.generate();
     const collectionName = 'things';
+    const application = Keypair.generate();
+    const applicationName = 'my-app';
 
     before(async () => {
+      await program.rpc.createApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [application],
+      });
       await program.rpc.createCollection(collectionName, {
         accounts: {
           collection: collection.publicKey,
@@ -226,11 +290,20 @@ describe('demobase', () => {
 
   describe('collection instruction', () => {
     const instruction = Keypair.generate();
-    const instructionName = 'create_document';
     const collection = Keypair.generate();
     const collectionName = 'things';
+    const application = Keypair.generate();
+    const applicationName = 'my-app';
 
     before(async () => {
+      await program.rpc.createApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [application],
+      });
       await program.rpc.createCollection(collectionName, {
         accounts: {
           collection: collection.publicKey,
@@ -243,6 +316,8 @@ describe('demobase', () => {
     });
 
     it('should create account', async () => {
+      // arrange
+      const instructionName = 'create_document';
       // act
       await program.rpc.createCollectionInstruction(instructionName, {
         accounts: {
@@ -317,8 +392,18 @@ describe('demobase', () => {
     const instructionName = 'create_document';
     const collection = Keypair.generate();
     const collectionName = 'things';
+    const application = Keypair.generate();
+    const applicationName = 'my-app';
 
     before(async () => {
+      await program.rpc.createApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [application],
+      });
       await program.rpc.createCollection(collectionName, {
         accounts: {
           collection: collection.publicKey,
@@ -328,7 +413,6 @@ describe('demobase', () => {
         },
         signers: [collection],
       });
-
       await program.rpc.createCollectionInstruction(instructionName, {
         accounts: {
           authority: program.provider.wallet.publicKey,
@@ -447,8 +531,18 @@ describe('demobase', () => {
     const instructionName = 'create_document';
     const collection = Keypair.generate();
     const collectionName = 'things';
+    const application = Keypair.generate();
+    const applicationName = 'my-app';
 
     before(async () => {
+      await program.rpc.createApplication(applicationName, {
+        accounts: {
+          authority: program.provider.wallet.publicKey,
+          application: application.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [application],
+      });
       await program.rpc.createCollection(collectionName, {
         accounts: {
           collection: collection.publicKey,
@@ -458,7 +552,6 @@ describe('demobase', () => {
         },
         signers: [collection],
       });
-
       await program.rpc.createCollectionInstruction(instructionName, {
         accounts: {
           authority: program.provider.wallet.publicKey,
