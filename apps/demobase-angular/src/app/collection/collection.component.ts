@@ -1,216 +1,196 @@
-import { Component, HostBinding } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  OnInit,
+} from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
-import { DemobaseService } from '@demobase-labs/demobase-sdk';
-import { PublicKey } from '@solana/web3.js';
-import { of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { WalletStore } from '@danmt/wallet-adapter-angular';
+import {
+  Collection,
+  CollectionAttribute,
+  CollectionInstruction,
+  DemobaseService,
+} from '@demobase-labs/demobase-sdk';
+import { BehaviorSubject } from 'rxjs';
+
+import { CreateAttributeComponent } from './create-attribute.component';
+import { CreateInstructionComponent } from './create-instruction.component';
 
 @Component({
   selector: 'demobase-collection',
   template: `
-    <ng-container *ngIf="collectionAccount$ | ngrxPush as collectionAccount">
+    <ng-container *ngIf="collection$ | ngrxPush as collection">
       <header demobasePageHeader>
-        <h1>{{ collectionAccount.info.name }}</h1>
+        <h1>
+          {{ collection.data.name }}
+          <button
+            mat-icon-button
+            color="primary"
+            aria-label="Reload collection"
+            (click)="onReload()"
+          >
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </h1>
         <p>Visualize all the details about this collection.</p>
       </header>
 
       <main>
-        <h3>Attributes</h3>
+        <section>
+          <h2>Attributes</h2>
 
-        <form
-          [formGroup]="createCollectionAttributeGroup"
-          (ngSubmit)="onCreateCollectionAttribute()"
+          <ul *ngrxLet="attributes$; let attributes">
+            <li *ngFor="let attribute of attributes">
+              <p>Name: {{ attribute.data.name }}.</p>
+              <p>
+                Kind: {{ attribute.data.kind.name }} ({{
+                  attribute.data.kind.size
+                }}
+                bytes).
+              </p>
+              <p>
+                Modifier: {{ attribute.data.modifier.name }} ({{
+                  attribute.data.modifier.size
+                }}).
+              </p>
+              <p>
+                Total size:
+                {{ attribute.data.kind.size * attribute.data.modifier.size }}
+                bytes.
+              </p>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Instructions</h2>
+
+          <ul *ngrxLet="instructions$; let instructions">
+            <li *ngFor="let instruction of instructions">
+              <p>Name: {{ instruction.data.name }}</p>
+              <a
+                [routerLink]="[
+                  '/instructions',
+                  collection.data.application,
+                  collection.id,
+                  instruction.id
+                ]"
+                >view</a
+              >
+            </li>
+          </ul>
+        </section>
+
+        <button
+          *ngIf="connected$ | ngrxPush"
+          class="block fixed right-4 bottom-4"
+          mat-fab
+          color="primary"
+          aria-label="Create options"
+          [matMenuTriggerFor]="createMenu"
         >
-          <label> Name: <input formControlName="name" type="text" /> </label>
-          <label>
-            Kind:
-            <select formControlName="kind">
-              <option [ngValue]="0">u8</option>
-              <option [ngValue]="1">u16</option>
-              <option [ngValue]="2">u32</option>
-              <option [ngValue]="3">u64</option>
-              <option [ngValue]="4">u128</option>
-              <option [ngValue]="5">Pubkey</option>
-            </select>
-          </label>
-
-          <label>
-            Modifier:
-            <select formControlName="modifier">
-              <option [ngValue]="0">None</option>
-              <option [ngValue]="1">Array</option>
-              <option [ngValue]="2">Vector</option>
-            </select>
-          </label>
-
-          <label *ngIf="collectionAttributeModifierControl.value === 1">
-            Size: <input formControlName="size" type="number" />
-          </label>
-
-          <button>Submit</button>
-        </form>
-
-        <ul
-          *ngrxLet="
-            collectionAttributeAccounts$;
-            let collectionAttributeAccounts
-          "
-        >
-          <li
-            *ngFor="
-              let collectionAttributeAccount of collectionAttributeAccounts
-            "
-          >
-            <p>Name: {{ collectionAttributeAccount.info.name }}.</p>
-            <p>
-              Kind: {{ collectionAttributeAccount.info.kind.name }} ({{
-                collectionAttributeAccount.info.kind.size
-              }}
-              bytes).
-            </p>
-            <p>
-              Modifier: {{ collectionAttributeAccount.info.modifier.name }} ({{
-                collectionAttributeAccount.info.modifier.size
-              }}).
-            </p>
-            <p>
-              Total size:
-              {{
-                collectionAttributeAccount.info.kind.size *
-                  collectionAttributeAccount.info.modifier.size
-              }}
-              bytes.
-            </p>
-          </li>
-        </ul>
-
-        <h3>Instructions</h3>
-
-        <form
-          [formGroup]="createCollectionInstructionGroup"
-          (ngSubmit)="onCreateCollectionInstruction()"
-        >
-          <label> Name: <input formControlName="name" type="text" /> </label>
-          <button>Submit</button>
-        </form>
-
-        <ul
-          *ngrxLet="
-            collectionInstructionAccounts$;
-            let collectionInstructionAccounts
-          "
-        >
-          <li
-            *ngFor="
-              let collectionInstructionAccount of collectionInstructionAccounts
-            "
-          >
-            <p>Name: {{ collectionInstructionAccount.info.name }}</p>
-            <a
-              [routerLink]="[
-                '/instructions',
-                collectionAccount.info.application.toBase58(),
-                collectionAccount.pubkey.toBase58(),
-                collectionInstructionAccount.pubkey.toBase58()
-              ]"
-              >view</a
-            >
-          </li>
-        </ul>
+          <mat-icon>add</mat-icon>
+        </button>
+        <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
+          <button mat-menu-item (click)="onCreateCollectionAttribute()">
+            Create attribute
+          </button>
+          <button mat-menu-item (click)="onCreateCollectionInstruction()">
+            Create instruction
+          </button>
+        </mat-menu>
       </main>
     </ng-container>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CollectionComponent {
+export class CollectionComponent implements OnInit {
   @HostBinding('class') class = 'block p-4';
-  readonly createCollectionAttributeGroup = new FormGroup({
-    name: new FormControl('', { validators: [Validators.required] }),
-    kind: new FormControl(0, { validators: [Validators.required] }),
-    modifier: new FormControl(0, { validators: [Validators.required] }),
-    size: new FormControl(1),
-  });
-  get collectionAttributeNameControl() {
-    return this.createCollectionAttributeGroup.get('name') as FormControl;
-  }
-  get collectionAttributeKindControl() {
-    return this.createCollectionAttributeGroup.get('kind') as FormControl;
-  }
-  get collectionAttributeModifierControl() {
-    return this.createCollectionAttributeGroup.get('modifier') as FormControl;
-  }
-  get collectionAttributeSizeControl() {
-    return this.createCollectionAttributeGroup.get('size') as FormControl;
-  }
-
-  readonly createCollectionInstructionGroup = new FormGroup({
-    name: new FormControl('', { validators: [Validators.required] }),
-  });
-  get collectionInstructionNameControl() {
-    return this.createCollectionInstructionGroup.get('name') as FormControl;
-  }
-
-  readonly collectionAccount$ = this._route.paramMap.pipe(
-    switchMap((paramMap) => {
-      const collectionId = paramMap.get('collectionId');
-
-      return collectionId
-        ? this._demobaseService.getCollection(new PublicKey(collectionId))
-        : of(null);
-    })
-  );
-  readonly collectionAttributeAccounts$ = this._route.paramMap.pipe(
-    switchMap((paramMap) => {
-      const applicationId = paramMap.get('applicationId');
-      const collectionId = paramMap.get('collectionId');
-
-      return applicationId && collectionId
-        ? this._demobaseService.getCollectionAttributes(
-            new PublicKey(collectionId)
-          )
-        : of(null);
-    })
-  );
-  readonly collectionInstructionAccounts$ = this._route.paramMap.pipe(
-    switchMap((paramMap) => {
-      const applicationId = paramMap.get('applicationId');
-      const collectionId = paramMap.get('collectionId');
-
-      return applicationId && collectionId
-        ? this._demobaseService.getCollectionInstructions(
-            new PublicKey(collectionId)
-          )
-        : of(null);
-    })
-  );
+  readonly connected$ = this._walletStore.connected$;
+  private readonly _collection = new BehaviorSubject<Collection | null>(null);
+  readonly collection$ = this._collection.asObservable();
+  private readonly _attributes = new BehaviorSubject<
+    CollectionAttribute[] | null
+  >(null);
+  readonly attributes$ = this._attributes.asObservable();
+  private readonly _instructions = new BehaviorSubject<
+    CollectionInstruction[] | null
+  >(null);
+  readonly instructions$ = this._instructions.asObservable();
 
   constructor(
     private readonly _route: ActivatedRoute,
-    private readonly _demobaseService: DemobaseService
+    private readonly _walletStore: WalletStore,
+    private readonly _demobaseService: DemobaseService,
+    private readonly _matDialog: MatDialog
   ) {}
+
+  ngOnInit() {
+    this._getCollection();
+    this._getAttributes();
+    this._getInstructions();
+  }
+
+  private async _getCollection() {
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (collectionId) {
+      try {
+        const collection = await this._demobaseService.getCollection(
+          collectionId
+        );
+        this._collection.next(collection);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  private async _getAttributes() {
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (collectionId) {
+      try {
+        const attributes = await this._demobaseService.getCollectionAttributes(
+          collectionId
+        );
+        this._attributes.next(attributes);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  private async _getInstructions() {
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (collectionId) {
+      try {
+        const instructions =
+          await this._demobaseService.getCollectionInstructions(collectionId);
+        this._instructions.next(instructions);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  onReload() {
+    this._getCollection();
+    this._getAttributes();
+    this._getInstructions();
+  }
 
   onCreateCollectionAttribute() {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
 
-    if (
-      this.createCollectionAttributeGroup.valid &&
-      applicationId &&
-      collectionId
-    ) {
-      const name = this.collectionAttributeNameControl.value;
-      const kind = this.collectionAttributeKindControl.value;
-      const modifier = this.collectionAttributeModifierControl.value;
-      const size = this.collectionAttributeSizeControl.value;
-
-      this._demobaseService.createCollectionAttribute(
-        new PublicKey(applicationId),
-        new PublicKey(collectionId),
-        name,
-        kind,
-        modifier,
-        size
-      );
+    if (applicationId && collectionId) {
+      this._matDialog.open(CreateAttributeComponent, {
+        data: { applicationId, collectionId },
+      });
     }
   }
 
@@ -218,18 +198,10 @@ export class CollectionComponent {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
 
-    if (
-      this.createCollectionInstructionGroup.valid &&
-      applicationId &&
-      collectionId
-    ) {
-      const name = this.collectionInstructionNameControl.value;
-
-      this._demobaseService.createCollectionInstruction(
-        new PublicKey(applicationId),
-        new PublicKey(collectionId),
-        name
-      );
+    if (applicationId && collectionId) {
+      this._matDialog.open(CreateInstructionComponent, {
+        data: { applicationId, collectionId },
+      });
     }
   }
 }

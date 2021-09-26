@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostBinding } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatSelectionListChange } from '@angular/material/list';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
@@ -6,16 +6,8 @@ import { WalletStore } from '@danmt/wallet-adapter-angular';
 @Component({
   selector: 'demobase-connect-wallet',
   template: `
-    <h2 mat-dialog-title class="mat-primary">
-      <span>Select Wallet</span>
-      <button
-        mat-icon-button
-        mat-dialog-close
-        aria-label="Close wallet selection"
-      >
-        <mat-icon>close</mat-icon>
-      </button>
-    </h2>
+    <h2 mat-dialog-title>Select Wallet</h2>
+
     <mat-selection-list
       [multiple]="false"
       (selectionChange)="onSelectionChange($event)"
@@ -33,9 +25,19 @@ import { WalletStore } from '@danmt/wallet-adapter-angular';
         </div>
       </mat-list-option>
     </mat-selection-list>
+
+    <button
+      mat-icon-button
+      aria-label="Close connect wallet form"
+      class="w-8 h-8 leading-none absolute top-0 right-0"
+      mat-dialog-close
+    >
+      <mat-icon>close</mat-icon>
+    </button>
   `,
 })
 export class ConnectWalletComponent {
+  @HostBinding('class') class = 'block w-64 relative';
   readonly wallets$ = this._walletStore.wallets$;
 
   constructor(

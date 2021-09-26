@@ -1,13 +1,5 @@
 import { Idl, Program, Provider } from '@project-serum/anchor';
-import {
-  Commitment,
-  ConfirmOptions,
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-} from '@solana/web3.js';
-import { encode } from 'bs58';
+import { Connection, Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
 
 import * as idl from './idl.json';
 import {
@@ -16,91 +8,89 @@ import {
   Collection,
   CollectionAttribute,
   CollectionInstruction,
-  CollectionInstructionArgument,
   InstructionAccount,
+  InstructionArgument,
   Wallet,
 } from './types';
 import {
   AccountBoolAttributeParser,
-  APPLICATION_DATA_SIZE,
-  APPLICATION_NAME,
   ApplicationParser,
-  COLLECTION_ATTRIBUTE_DATA_SIZE,
-  COLLECTION_ATTRIBUTE_NAME,
-  COLLECTION_DATA_SIZE,
-  COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_DATA_SIZE,
-  COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_NAME,
-  COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE,
-  COLLECTION_INSTRUCTION_ACCOUNT_NAME,
-  COLLECTION_INSTRUCTION_ARGUMENT_DATA_SIZE,
-  COLLECTION_INSTRUCTION_ARGUMENT_NAME,
-  COLLECTION_INSTRUCTION_DATA_SIZE,
-  COLLECTION_INSTRUCTION_NAME,
-  COLLECTION_NAME,
   CollectionAttributeParser,
-  CollectionInstructionArgumentParser,
   CollectionInstructionParser,
   CollectionParser,
   DEMOBASE_PROGRAM_ID,
+  DummyWallet,
   findAccountBoolAttributeAddress,
   findCollectionAddress,
   findCollectionAttributeAddress,
   findCollectionInstructionAddress,
   findCollectionInstructionArgumentAddress,
   findInstructionAccountAddress,
-  getAccountDiscriminator,
   InstructionAccountParser,
+  InstructionArgumentParser,
 } from './utils';
 
 export class DemobaseService {
-  _program: Program | null = null;
+  private readonly _programId = DEMOBASE_PROGRAM_ID;
+  private _programReader: Program | null = null;
+  private _programWriter: Program | null = null;
+  private _connection: Connection | null = null;
+  private _wallet: Wallet | null = null;
 
   get programId() {
-    return this._program ? this._program.programId : null;
+    return this._programId;
   }
 
   get connection() {
-    return this._program ? this._program.provider.connection : null;
+    return this._connection;
   }
 
   get wallet() {
-    return this._program ? this._program.provider.wallet : null;
+    return this._wallet;
   }
 
-  setProgram(program: Program) {
-    this._program = program;
+  get writer() {
+    return this._programWriter;
   }
 
-  setProgramFromConfig(
-    connection: Connection,
-    wallet: Wallet,
-    opts?: ConfirmOptions
-  ) {
-    const provider = new Provider(
-      connection,
-      wallet,
-      opts || Provider.defaultOptions()
+  get reader() {
+    return this._programReader;
+  }
+
+  setConnection(connection: Connection) {
+    this._connection = connection;
+    this._programReader = new Program(
+      idl as Idl,
+      DEMOBASE_PROGRAM_ID,
+      new Provider(connection, new DummyWallet(), Provider.defaultOptions())
     );
-    const program = new Program(idl as Idl, DEMOBASE_PROGRAM_ID, provider);
-    this.setProgram(program);
+    this._programWriter = this.wallet
+      ? new Program(
+          idl as Idl,
+          DEMOBASE_PROGRAM_ID,
+          new Provider(connection, this.wallet, Provider.defaultOptions())
+        )
+      : null;
   }
 
-  static create(connection: Connection, wallet: Wallet, opts?: ConfirmOptions) {
-    const service = new DemobaseService();
-    service.setProgramFromConfig(connection, wallet, opts);
-
-    return service;
-  }
-
-  static fromProgram(program: Program) {
-    const service = new DemobaseService();
-    service.setProgram(program);
-
-    return service;
+  setWallet(wallet: Wallet | null) {
+    this._wallet = wallet;
+    this._programWriter =
+      this.connection && this.wallet
+        ? new Program(
+            idl as Idl,
+            DEMOBASE_PROGRAM_ID,
+            new Provider(
+              this.connection,
+              this.wallet,
+              Provider.defaultOptions()
+            )
+          )
+        : null;
   }
 
   async createApplication(applicationName: string) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -110,7 +100,7 @@ export class DemobaseService {
 
     const application = Keypair.generate();
 
-    return this._program.rpc.createApplication(applicationName, {
+    return this.writer.rpc.createApplication(applicationName, {
       accounts: {
         application: application.publicKey,
         authority: this.wallet.publicKey,
@@ -120,52 +110,32 @@ export class DemobaseService {
     });
   }
 
-  async getApplications(commitment?: Commitment): Promise<Application[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+  async getApplications() {
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: APPLICATION_DATA_SIZE },
-      {
-        memcmp: {
-          bytes: encode(getAccountDiscriminator(APPLICATION_NAME)),
-          offset: 0,
-        },
-      },
-    ];
+    const programAccounts = await this.reader.account.application.all([]);
 
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
-    );
-
-    return programAccounts.map(({ account, pubkey }) =>
-      ApplicationParser(pubkey, account)
+    return programAccounts.map(({ publicKey, account }) =>
+      ApplicationParser(publicKey, account)
     );
   }
 
-  async getApplication(
-    applicationId: PublicKey,
-    commitment?: Commitment
-  ): Promise<Application | null> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+  async getApplication(applicationId: string): Promise<Application | null> {
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const account = await this.connection.getAccountInfo(
-      applicationId,
-      commitment
+    const account = await this.reader.account.application.fetchNullable(
+      applicationId
     );
 
-    return account && ApplicationParser(applicationId, account);
+    return account && ApplicationParser(new PublicKey(applicationId), account);
   }
 
-  async createCollection(applicationId: PublicKey, collectionName: string) {
-    if (!this._program) {
+  async createCollection(applicationId: string, collectionName: string) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -174,110 +144,74 @@ export class DemobaseService {
     }
 
     const [collectionId, collectionBump] = await findCollectionAddress(
-      applicationId,
+      new PublicKey(applicationId),
       collectionName
     );
 
-    return this._program.rpc.createCollection(collectionName, collectionBump, {
+    return this.writer.rpc.createCollection(collectionName, collectionBump, {
       accounts: {
         collection: collectionId,
-        application: applicationId,
+        application: new PublicKey(applicationId),
         authority: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
       },
     });
   }
 
-  async getCollections(commitment?: Commitment): Promise<Collection[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+  async getCollections(): Promise<Collection[]> {
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_DATA_SIZE },
-      {
-        memcmp: {
-          bytes: encode(getAccountDiscriminator(COLLECTION_NAME)),
-          offset: 0,
-        },
-      },
-    ];
+    const programAccounts = await this.reader.account.collection.all();
 
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
-    );
-
-    return programAccounts.map(({ account, pubkey }) =>
-      CollectionParser(pubkey, account)
+    return programAccounts.map(({ publicKey, account }) =>
+      CollectionParser(publicKey, account)
     );
   }
 
   async getCollectionsByApplication(
-    applicationId: PublicKey,
-    commitment?: Commitment
+    applicationId: string
   ): Promise<Collection[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_DATA_SIZE },
+    const programAccounts = await this.reader.account.collection.all([
       {
         memcmp: {
-          bytes: encode(getAccountDiscriminator(COLLECTION_NAME)),
-          offset: 0,
-        },
-      },
-      {
-        memcmp: {
-          bytes: applicationId.toBase58(),
+          bytes: applicationId,
           offset: 40,
         },
       },
-    ];
+    ]);
 
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
-    );
-
-    return programAccounts.map(({ account, pubkey }) =>
-      CollectionParser(pubkey, account)
+    return programAccounts.map(({ publicKey, account }) =>
+      CollectionParser(publicKey, account)
     );
   }
 
-  async getCollection(
-    collectionId: PublicKey,
-    commitment?: Commitment
-  ): Promise<Collection | null> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+  async getCollection(collectionId: string): Promise<Collection | null> {
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const account = await this.connection.getAccountInfo(
-      collectionId,
-      commitment
+    const account = await this.reader.account.collection.fetchNullable(
+      collectionId
     );
 
-    return account && CollectionParser(collectionId, account);
+    return account && CollectionParser(new PublicKey(collectionId), account);
   }
 
   async createCollectionAttribute(
-    applicationId: PublicKey,
-    collectionId: PublicKey,
+    applicationId: string,
+    collectionId: string,
     attributeName: string,
     attributeKind: number,
     attributeModifier: number,
     attributeSize: number
   ) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -286,12 +220,12 @@ export class DemobaseService {
     }
 
     const [attributeId, attributeBump] = await findCollectionAttributeAddress(
-      applicationId,
-      collectionId,
+      new PublicKey(applicationId),
+      new PublicKey(collectionId),
       attributeName
     );
 
-    return this._program.rpc.createCollectionAttribute(
+    return this.writer.rpc.createCollectionAttribute(
       attributeName,
       attributeKind,
       attributeModifier,
@@ -299,8 +233,8 @@ export class DemobaseService {
       attributeBump,
       {
         accounts: {
-          application: applicationId,
-          collection: collectionId,
+          application: new PublicKey(applicationId),
+          collection: new PublicKey(collectionId),
           attribute: attributeId,
           authority: this.wallet.publicKey,
           systemProgram: SystemProgram.programId,
@@ -310,48 +244,32 @@ export class DemobaseService {
   }
 
   async getCollectionAttributes(
-    collectionId: PublicKey,
-    commitment?: Commitment
+    collectionId: string
   ): Promise<CollectionAttribute[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_ATTRIBUTE_DATA_SIZE },
+    const programAccounts = await this.reader.account.collectionAttribute.all([
       {
         memcmp: {
-          bytes: encode(getAccountDiscriminator(COLLECTION_ATTRIBUTE_NAME)),
-          offset: 0,
-        },
-      },
-      {
-        memcmp: {
-          bytes: collectionId.toBase58(),
+          bytes: collectionId,
           offset: 72,
         },
       },
-    ];
+    ]);
 
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
-    );
-
-    return programAccounts.map(({ account, pubkey }) =>
-      CollectionAttributeParser(pubkey, account)
+    return programAccounts.map(({ account, publicKey }) =>
+      CollectionAttributeParser(publicKey, account)
     );
   }
 
   async createCollectionInstruction(
-    applicationId: PublicKey,
-    collectionId: PublicKey,
-    name: string
+    applicationId: string,
+    collectionId: string,
+    instructionName: string
   ) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -359,86 +277,79 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [instructionId, bump] = await findCollectionInstructionAddress(
-      applicationId,
-      collectionId,
-      name
-    );
+    const [instructionId, instructionBump] =
+      await findCollectionInstructionAddress(
+        new PublicKey(applicationId),
+        new PublicKey(collectionId),
+        instructionName
+      );
 
-    return this._program.rpc.createCollectionInstruction(name, bump, {
-      accounts: {
-        application: applicationId,
-        collection: collectionId,
-        instruction: instructionId,
-        authority: this.wallet.publicKey,
-        systemProgram: SystemProgram.programId,
-      },
-    });
+    return this.writer.rpc.createCollectionInstruction(
+      instructionName,
+      instructionBump,
+      {
+        accounts: {
+          application: new PublicKey(applicationId),
+          collection: new PublicKey(collectionId),
+          instruction: instructionId,
+          authority: this.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+      }
+    );
   }
 
   async getCollectionInstructions(
-    collectionId: PublicKey,
-    commitment?: Commitment
+    collectionId: string
   ): Promise<CollectionInstruction[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_INSTRUCTION_DATA_SIZE },
-      {
-        memcmp: {
-          bytes: encode(getAccountDiscriminator(COLLECTION_INSTRUCTION_NAME)),
-          offset: 0,
+    const programAccounts = await this.reader.account.collectionInstruction.all(
+      [
+        {
+          memcmp: {
+            bytes: collectionId,
+            offset: 72,
+          },
         },
-      },
-      {
-        memcmp: {
-          bytes: collectionId.toBase58(),
-          offset: 72,
-        },
-      },
-    ];
-
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
+      ]
     );
 
-    return programAccounts.map(({ account, pubkey }) =>
-      CollectionInstructionParser(pubkey, account)
+    return programAccounts.map(({ account, publicKey }) =>
+      CollectionInstructionParser(publicKey, account)
     );
   }
 
   async getCollectionInstruction(
-    instructionId: PublicKey,
-    commitment?: Commitment
+    instructionId: string
   ): Promise<CollectionInstruction | null> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const account = await this.connection.getAccountInfo(
-      instructionId,
-      commitment
-    );
+    const account =
+      await this.reader.account.collectionInstruction.fetchNullable(
+        new PublicKey(instructionId)
+      );
 
-    return account && CollectionInstructionParser(instructionId, account);
+    return (
+      account &&
+      CollectionInstructionParser(new PublicKey(instructionId), account)
+    );
   }
 
   async createCollectionInstructionArgument(
-    applicationId: PublicKey,
-    collectionId: PublicKey,
-    instructionId: PublicKey,
+    applicationId: string,
+    collectionId: string,
+    instructionId: string,
     argumentName: string,
     argumentKind: number,
     argumentModifier: number,
     argumentSize: number
   ) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -448,13 +359,13 @@ export class DemobaseService {
 
     const [argumentId, argumentBump] =
       await findCollectionInstructionArgumentAddress(
-        applicationId,
-        collectionId,
-        instructionId,
+        new PublicKey(applicationId),
+        new PublicKey(collectionId),
+        new PublicKey(instructionId),
         argumentName
       );
 
-    return this._program.rpc.createCollectionInstructionArgument(
+    return this.writer.rpc.createCollectionInstructionArgument(
       argumentName,
       argumentKind,
       argumentModifier,
@@ -462,10 +373,10 @@ export class DemobaseService {
       argumentBump,
       {
         accounts: {
-          authority: this._program.provider.wallet.publicKey,
-          application: applicationId,
-          collection: collectionId,
-          instruction: instructionId,
+          authority: this.writer.provider.wallet.publicKey,
+          application: new PublicKey(applicationId),
+          collection: new PublicKey(collectionId),
+          instruction: new PublicKey(instructionId),
           argument: argumentId,
           systemProgram: SystemProgram.programId,
         },
@@ -474,52 +385,35 @@ export class DemobaseService {
   }
 
   async getCollectionInstructionArguments(
-    instructionId: PublicKey,
-    commitment?: Commitment
-  ): Promise<CollectionInstructionArgument[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    instructionId: string
+  ): Promise<InstructionArgument[]> {
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_INSTRUCTION_ARGUMENT_DATA_SIZE },
+    const programAccounts = await this.reader.account.instructionArgument.all([
       {
         memcmp: {
-          bytes: encode(
-            getAccountDiscriminator(COLLECTION_INSTRUCTION_ARGUMENT_NAME)
-          ),
-          offset: 0,
-        },
-      },
-      {
-        memcmp: {
-          bytes: instructionId.toBase58(),
+          bytes: instructionId,
           offset: 104,
         },
       },
-    ];
+    ]);
 
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
-    );
-
-    return programAccounts.map(({ account, pubkey }) =>
-      CollectionInstructionArgumentParser(pubkey, account)
+    return programAccounts.map(({ account, publicKey }) =>
+      InstructionArgumentParser(publicKey, account)
     );
   }
 
   async createCollectionInstructionAccount(
-    applicationId: PublicKey,
-    collectionId: PublicKey,
-    instructionId: PublicKey,
+    applicationId: string,
+    collectionId: string,
+    instructionId: string,
     accountName: string,
-    accountKind: number
+    accountKind: number,
+    accountCollectionId: string
   ) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -528,22 +422,23 @@ export class DemobaseService {
     }
 
     const [accountId, accountBump] = await findInstructionAccountAddress(
-      applicationId,
-      collectionId,
-      instructionId,
+      new PublicKey(applicationId),
+      new PublicKey(collectionId),
+      new PublicKey(instructionId),
       accountName
     );
 
-    return this._program.rpc.createCollectionInstructionAccount(
+    return this.writer.rpc.createCollectionInstructionAccount(
       accountName,
       accountKind,
       accountBump,
       {
         accounts: {
           authority: this.wallet.publicKey,
-          application: applicationId,
-          collection: collectionId,
-          instruction: instructionId,
+          application: new PublicKey(applicationId),
+          collection: new PublicKey(collectionId),
+          instruction: new PublicKey(instructionId),
+          accountCollection: new PublicKey(accountCollectionId),
           account: accountId,
           systemProgram: SystemProgram.programId,
         },
@@ -552,52 +447,34 @@ export class DemobaseService {
   }
 
   async getCollectionInstructionAccounts(
-    instructionId: PublicKey,
-    commitment?: Commitment
+    instructionId: string
   ): Promise<InstructionAccount[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_INSTRUCTION_ACCOUNT_DATA_SIZE },
+    const programAccounts = await this.reader.account.instructionAccount.all([
       {
         memcmp: {
-          bytes: encode(
-            getAccountDiscriminator(COLLECTION_INSTRUCTION_ACCOUNT_NAME)
-          ),
-          offset: 0,
-        },
-      },
-      {
-        memcmp: {
-          bytes: instructionId.toBase58(),
+          bytes: instructionId,
           offset: 104,
         },
       },
-    ];
+    ]);
 
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
-    );
-
-    return programAccounts.map(({ account, pubkey }) =>
-      InstructionAccountParser(pubkey, account)
+    return programAccounts.map(({ account, publicKey }) =>
+      InstructionAccountParser(publicKey, account)
     );
   }
 
   async createCollectionInstructionAccountBoolAttribute(
-    applicationId: PublicKey,
-    collectionId: PublicKey,
-    instructionId: PublicKey,
-    accountId: PublicKey,
+    applicationId: string,
+    collectionId: string,
+    instructionId: string,
+    accountId: string,
     kind: number
   ) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -606,19 +483,19 @@ export class DemobaseService {
     }
 
     const [attributeId, attributeBump] = await findAccountBoolAttributeAddress(
-      applicationId,
-      collectionId,
-      instructionId,
-      accountId
+      new PublicKey(applicationId),
+      new PublicKey(collectionId),
+      new PublicKey(instructionId),
+      new PublicKey(accountId)
     );
 
-    return this._program.rpc.createAccountBoolAttribute(kind, attributeBump, {
+    return this.writer.rpc.createAccountBoolAttribute(kind, attributeBump, {
       accounts: {
         authority: this.wallet.publicKey,
-        application: applicationId,
-        collection: collectionId,
-        instruction: instructionId,
-        account: accountId,
+        application: new PublicKey(applicationId),
+        collection: new PublicKey(collectionId),
+        instruction: new PublicKey(instructionId),
+        account: new PublicKey(accountId),
         attribute: attributeId,
         systemProgram: SystemProgram.programId,
       },
@@ -626,10 +503,10 @@ export class DemobaseService {
   }
 
   async updateCollectionInstructionAccountBoolAttribute(
-    attributeId: PublicKey,
+    attributeId: string,
     kind: number
   ) {
-    if (!this._program) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -637,7 +514,7 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    return this._program.rpc.updateAccountBoolAttribute(kind, {
+    return this.writer.rpc.updateAccountBoolAttribute(kind, {
       accounts: {
         authority: this.wallet.publicKey,
         attribute: attributeId,
@@ -645,10 +522,8 @@ export class DemobaseService {
     });
   }
 
-  async deleteCollectionInstructionAccountBoolAttribute(
-    attributeId: PublicKey
-  ) {
-    if (!this._program) {
+  async deleteCollectionInstructionAccountBoolAttribute(attributeId: string) {
+    if (!this.writer) {
       throw Error('Program is not available');
     }
 
@@ -656,7 +531,7 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    return this._program.rpc.deleteAccountBoolAttribute({
+    return this.writer.rpc.deleteAccountBoolAttribute({
       accounts: {
         authority: this.wallet.publicKey,
         attribute: attributeId,
@@ -665,43 +540,25 @@ export class DemobaseService {
   }
 
   async getCollectionInstructionBoolAttributes(
-    instructionId: PublicKey,
-    commitment?: Commitment
+    instructionId: string
   ): Promise<AccountBoolAttribute[]> {
-    if (!this.connection) {
-      throw Error('Connection is not available');
+    if (!this.reader) {
+      throw Error('Program is not available');
     }
 
-    const filters = [
-      { dataSize: COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_DATA_SIZE },
-      {
-        memcmp: {
-          bytes: encode(
-            getAccountDiscriminator(
-              COLLECTION_INSTRUCTION_ACCOUNT_BOOL_ATTRIBUTE_NAME
-            )
-          ),
-          offset: 0,
+    const programAccounts = await this.reader.account.collectionInstruction.all(
+      [
+        {
+          memcmp: {
+            bytes: instructionId,
+            offset: 104,
+          },
         },
-      },
-      {
-        memcmp: {
-          bytes: instructionId.toBase58(),
-          offset: 104,
-        },
-      },
-    ];
-
-    const programAccounts = await this.connection.getProgramAccounts(
-      DEMOBASE_PROGRAM_ID,
-      {
-        filters,
-        commitment,
-      }
+      ]
     );
 
-    return programAccounts.map(({ account, pubkey }) =>
-      AccountBoolAttributeParser(pubkey, account)
+    return programAccounts.map(({ account, publicKey }) =>
+      AccountBoolAttributeParser(publicKey, account)
     );
   }
 }

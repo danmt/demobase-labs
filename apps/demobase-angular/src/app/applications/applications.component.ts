@@ -1,62 +1,87 @@
-import { Component, HostBinding } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { DemobaseService } from '@demobase-labs/demobase-sdk';
-import { defer, from } from 'rxjs';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  OnInit,
+} from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { WalletStore } from '@danmt/wallet-adapter-angular';
+import { Application, DemobaseService } from '@demobase-labs/demobase-sdk';
+import { BehaviorSubject } from 'rxjs';
+
+import { CreateApplicationComponent } from './create-application.component';
 
 @Component({
   selector: 'demobase-applications',
   template: `
     <header demobasePageHeader>
-      <h1>Applications</h1>
+      <h1>
+        Applications
+        <button
+          mat-icon-button
+          color="primary"
+          aria-label="Reload applications list"
+          (click)="onReload()"
+        >
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </h1>
       <p>Visualize all applications.</p>
     </header>
 
     <main>
-      <form
-        [formGroup]="createApplicationGroup"
-        (ngSubmit)="onCreateApplication()"
-      >
-        <label> Name: <input formControlName="name" type="text" /> </label>
+      <ul *ngrxLet="applications$; let applications">
+        <li *ngFor="let application of applications">
+          {{ application.data.name }}
 
-        <button>Submit</button>
-      </form>
-
-      <ul *ngrxLet="applicationAccounts$; let applicationAccounts">
-        <li *ngFor="let applicationAccount of applicationAccounts">
-          {{ applicationAccount.info.name }}
-
-          <a
-            [routerLink]="[
-              '/applications',
-              applicationAccount.pubkey.toBase58()
-            ]"
-            >view</a
-          >
+          <a [routerLink]="['/applications', application.id]">view</a>
         </li>
       </ul>
+
+      <button
+        *ngIf="connected$ | ngrxPush"
+        class="block fixed right-4 bottom-4"
+        mat-fab
+        color="primary"
+        aria-label="Create application"
+        (click)="onCreateApplication()"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
     </main>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApplicationsComponent {
+export class ApplicationsComponent implements OnInit {
   @HostBinding('class') class = 'block p-4';
-  readonly createApplicationGroup = new FormGroup({
-    name: new FormControl('', { validators: [Validators.required] }),
-  });
-  readonly applicationAccounts$ = from(
-    defer(() => this._demobaseService.getApplications())
-  );
+  readonly connected$ = this._walletStore.connected$;
+  private readonly _applications = new BehaviorSubject<Application[]>([]);
+  readonly applications$ = this._applications.asObservable();
 
-  get applicationNameControl() {
-    return this.createApplicationGroup.get('name') as FormControl;
+  constructor(
+    private readonly _walletStore: WalletStore,
+    private readonly _demobaseService: DemobaseService,
+    private readonly _matDialog: MatDialog
+  ) {}
+
+  ngOnInit() {
+    this._getApplications();
   }
 
-  constructor(private readonly _demobaseService: DemobaseService) {}
+  private async _getApplications() {
+    try {
+      const applications = await this._demobaseService.getApplications();
+      this._applications.next(applications);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  onReload() {
+    this._getApplications();
+  }
 
   onCreateApplication() {
-    if (this.createApplicationGroup.valid) {
-      this._demobaseService.createApplication(
-        this.applicationNameControl.value
-      );
-    }
+    this._matDialog.open(CreateApplicationComponent);
   }
 }

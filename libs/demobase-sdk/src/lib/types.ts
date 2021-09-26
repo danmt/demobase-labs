@@ -1,4 +1,4 @@
-import { AccountInfo, PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey, Transaction } from '@solana/web3.js';
 
 export interface Wallet {
   signTransaction(tx: Transaction): Promise<Transaction>;
@@ -7,33 +7,31 @@ export interface Wallet {
 }
 
 export interface ApplicationInfo {
-  authority: PublicKey;
+  authority: string;
   name: string;
 }
 
 export interface Application {
-  pubkey: PublicKey;
-  info: ApplicationInfo;
-  account: AccountInfo<Buffer>;
+  id: string;
+  data: ApplicationInfo;
 }
 
 export interface CollectionInfo {
-  authority: PublicKey;
-  application: PublicKey;
+  authority: string;
+  application: string;
   name: string;
   bump: number;
 }
 
 export interface Collection {
-  pubkey: PublicKey;
-  info: CollectionInfo;
-  account: AccountInfo<Buffer>;
+  id: string;
+  data: CollectionInfo;
 }
 
 export interface CollectionAttributeInfo {
-  authority: PublicKey;
-  application: PublicKey;
-  collection: PublicKey;
+  authority: string;
+  application: string;
+  collection: string;
   name: string;
   kind: {
     name: string;
@@ -47,30 +45,28 @@ export interface CollectionAttributeInfo {
 }
 
 export interface CollectionAttribute {
-  pubkey: PublicKey;
-  info: CollectionAttributeInfo;
-  account: AccountInfo<Buffer>;
+  id: string;
+  data: CollectionAttributeInfo;
 }
 
 export interface CollectionInstructionInfo {
-  authority: PublicKey;
-  application: PublicKey;
-  collection: PublicKey;
+  authority: string;
+  application: string;
+  collection: string;
   name: string;
   bump: number;
 }
 
 export interface CollectionInstruction {
-  pubkey: PublicKey;
-  info: CollectionInstructionInfo;
-  account: AccountInfo<Buffer>;
+  id: string;
+  data: CollectionInstructionInfo;
 }
 
-export interface CollectionInstructionArgumentInfo {
-  authority: PublicKey;
-  application: PublicKey;
-  collection: PublicKey;
-  instruction: PublicKey;
+export interface InstructionArgumentInfo {
+  authority: string;
+  application: string;
+  collection: string;
+  instruction: string;
   name: string;
   kind: string;
   modifier: {
@@ -80,42 +76,39 @@ export interface CollectionInstructionArgumentInfo {
   bump: number;
 }
 
-export interface CollectionInstructionArgument {
-  pubkey: PublicKey;
-  info: CollectionInstructionArgumentInfo;
-  account: AccountInfo<Buffer>;
+export interface InstructionArgument {
+  id: string;
+  data: InstructionArgumentInfo;
 }
 
 export interface InstructionAccountInfo {
-  authority: PublicKey;
-  application: PublicKey;
-  collection: PublicKey;
-  instruction: PublicKey;
+  authority: string;
+  application: string;
+  collection: string;
+  instruction: string;
   name: string;
   kind: string;
   bump: number;
 }
 
 export interface InstructionAccount {
-  pubkey: PublicKey;
-  info: InstructionAccountInfo;
-  account: AccountInfo<Buffer>;
+  id: string;
+  data: InstructionAccountInfo;
 }
 
 export interface AccountBoolAttributeInfo {
-  authority: PublicKey;
-  application: PublicKey;
-  collection: PublicKey;
-  instruction: PublicKey;
-  account: PublicKey;
+  authority: string;
+  application: string;
+  collection: string;
+  instruction: string;
+  account: string;
   kind: string;
   bump: number;
 }
 
 export interface AccountBoolAttribute {
-  pubkey: PublicKey;
-  info: AccountBoolAttributeInfo;
-  account: AccountInfo<Buffer>;
+  id: string;
+  data: AccountBoolAttributeInfo;
 }
 
 export type AccountBoolAttributeKind = 0 | 1 | 2;

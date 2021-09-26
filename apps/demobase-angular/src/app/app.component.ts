@@ -26,9 +26,10 @@ export class AppComponent implements OnInit {
 
     combineLatest([
       this._connectionStore.connection$.pipe(isNotNullOrUndefined),
-      this._walletStore.anchorWallet$.pipe(isNotNullOrUndefined),
-    ]).subscribe(([connection, wallet]) =>
-      this._demobaseService.setProgramFromConfig(connection, wallet)
-    );
+      this._walletStore.anchorWallet$,
+    ]).subscribe(([connection, wallet]) => {
+      this._demobaseService.setConnection(connection);
+      this._demobaseService.setWallet(wallet || null);
+    });
   }
 }
