@@ -116,14 +116,15 @@ interface RawInstructionArgument {
   collection: PublicKey;
   instruction: PublicKey;
   name: Uint8Array;
-  kind: { [key: string]: unknown };
-  modifier: { [key: string]: { size: number } };
+  kind: { [key: string]: { id: number; size: number } };
+  modifier: { [key: string]: { id: number; size: number } };
 }
 
 export const InstructionArgumentParser = (
   publicKey: PublicKey,
   account: RawInstructionArgument
 ): InstructionArgument => {
+  console.log(account);
   return {
     id: publicKey.toBase58(),
     data: {
@@ -134,8 +135,13 @@ export const InstructionArgumentParser = (
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      kind: Object.keys(account.kind)[0],
+      kind: {
+        id: Object.values(account.kind)[0].id,
+        name: Object.keys(account.kind)[0],
+        size: Object.values(account.kind)[0].size,
+      },
       modifier: {
+        id: Object.values(account.modifier)[0].id,
         name: Object.keys(account.modifier)[0],
         size: Object.values(account.modifier)[0].size,
       },

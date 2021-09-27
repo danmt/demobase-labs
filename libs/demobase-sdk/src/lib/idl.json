@@ -714,6 +714,10 @@
             "name": "U8",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -722,6 +726,10 @@
           {
             "name": "U16",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -732,6 +740,10 @@
             "name": "U32",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -740,6 +752,10 @@
           {
             "name": "U64",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -750,6 +766,10 @@
             "name": "U128",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -758,6 +778,10 @@
           {
             "name": "Pubkey",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -776,6 +800,10 @@
             "name": "None",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -785,6 +813,10 @@
             "name": "Array",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -793,6 +825,10 @@
           {
             "name": "Vector",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"

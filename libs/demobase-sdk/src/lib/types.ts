@@ -65,8 +65,13 @@ export interface InstructionArgumentInfo {
   collection: string;
   instruction: string;
   name: string;
-  kind: string;
+  kind: {
+    id: number;
+    name: string;
+    size: number;
+  };
   modifier: {
+    id: number;
     name: string;
     size: number;
   };

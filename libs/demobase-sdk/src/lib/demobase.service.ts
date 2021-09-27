@@ -356,6 +356,35 @@ export class DemobaseService {
     );
   }
 
+  async updateCollectionInstructionArgument(
+    argumentId: string,
+    argumentName: string,
+    argumentKind: number,
+    argumentModifier: number,
+    argumentSize: number
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionInstructionArgument(
+      argumentName,
+      argumentKind,
+      argumentModifier,
+      argumentSize,
+      {
+        accounts: {
+          authority: this.writer.provider.wallet.publicKey,
+          argument: new PublicKey(argumentId),
+        },
+      }
+    );
+  }
+
   async getCollectionInstructionArguments(
     instructionId: string
   ): Promise<InstructionArgument[]> {

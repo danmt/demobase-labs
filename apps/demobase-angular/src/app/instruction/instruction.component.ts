@@ -18,7 +18,7 @@ import { map } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 import { CreateAccountComponent } from './create-account.component';
-import { CreateArgumentComponent } from './create-argument.component';
+import { EditArgumentComponent } from './edit-argument.component';
 
 @Component({
   selector: 'demobase-instruction',
@@ -46,7 +46,7 @@ import { CreateArgumentComponent } from './create-argument.component';
           <mat-grid-list
             *ngIf="arguments.length > 0; else emptyList"
             [cols]="gridCols$ | ngrxPush"
-            rowHeight="10rem"
+            rowHeight="11rem"
             gutterSize="16"
           >
             <mat-grid-tile
@@ -57,12 +57,21 @@ import { CreateArgumentComponent } from './create-argument.component';
             >
               <mat-card class="w-full h-full">
                 <h3>Name: {{ argument.data.name }}.</h3>
-                <p>Kind: {{ argument.data.kind }}.</p>
+                <p>Kind: {{ argument.data.kind.name }}.</p>
                 <p>
                   Modifier: {{ argument.data.modifier.name }} ({{
                     argument.data.modifier.size
                   }}).
                 </p>
+                <button
+                  mat-mini-fab
+                  color="primary"
+                  [attr.aria-label]="'Edit ' + argument.data.name + ' argument'"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  (click)="onCreateInstructionArgument(argument)"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -234,14 +243,14 @@ export class InstructionComponent implements OnInit {
     this._getAccounts();
   }
 
-  onCreateInstructionArgument() {
+  onCreateInstructionArgument(argument?: InstructionArgument) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
     const instructionId = this._route.snapshot.paramMap.get('instructionId');
 
     if (applicationId && collectionId && instructionId) {
-      this._matDialog.open(CreateArgumentComponent, {
-        data: { applicationId, collectionId, instructionId },
+      this._matDialog.open(EditArgumentComponent, {
+        data: { applicationId, collectionId, instructionId, argument },
       });
     }
   }
