@@ -8,8 +8,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import {
-  AccountBoolAttribute,
-  AccountBoolAttributeKind,
   CollectionInstruction,
   DemobaseService,
   InstructionAccount,
@@ -17,8 +15,8 @@ import {
 } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 
+import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 import { CreateAccountComponent } from './create-account.component';
 import { CreateArgumentComponent } from './create-argument.component';
 
@@ -75,107 +73,39 @@ import { CreateArgumentComponent } from './create-argument.component';
         </section>
 
         <section *ngrxLet="accounts$; let accounts">
-          <ng-container *ngrxLet="boolAttributes$; let boolAttributes">
-            <h2>Accounts</h2>
+          <h2>Accounts</h2>
 
-            <mat-grid-list
-              *ngIf="accounts.length > 0; else emptyList"
-              [cols]="gridCols$ | ngrxPush"
-              rowHeight="10rem"
-              gutterSize="16"
+          <mat-grid-list
+            *ngIf="accounts.length > 0; else emptyList"
+            [cols]="gridCols$ | ngrxPush"
+            rowHeight="10rem"
+            gutterSize="16"
+          >
+            <mat-grid-tile
+              *ngFor="let account of accounts"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
             >
-              <mat-grid-tile
-                *ngFor="let account of accounts"
-                [colspan]="1"
-                [rowspan]="1"
-                class="overflow-visible"
-              >
-                <mat-card class="w-full h-full">
-                  <h3>Name: {{ account.data.name }}</h3>
-                  <p>Kind: {{ account.data.kind }}</p>
-                  <p>
-                    Collection:
-                    {{ account.data.collection | obscureAddress }}
-                    <a
-                      [routerLink]="[
-                        '/collections',
-                        account.data.application,
-                        account.data.collection
-                      ]"
-                      >view</a
-                    >
-                  </p>
-
-                  <div>
-                    Bool Attribute:
-                    <button
-                      (click)="
-                        onSetBoolAttribute(
-                          instruction.id,
-                          account.id,
-                          boolAttributes.get(account.id)?.id || null,
-                          null
-                        )
-                      "
-                      [ngClass]="{
-                        selected: !boolAttributes.has(account.id)
-                      }"
-                    >
-                      None
-                    </button>
-                    <button
-                      (click)="
-                        onSetBoolAttribute(
-                          instruction.id,
-                          account.id,
-                          boolAttributes.get(account.id)?.id || null,
-                          0
-                        )
-                      "
-                      [ngClass]="{
-                        selected:
-                          boolAttributes.get(account.id)?.data?.kind === 'init'
-                      }"
-                    >
-                      Init
-                    </button>
-                    <button
-                      (click)="
-                        onSetBoolAttribute(
-                          instruction.id,
-                          account.id,
-                          boolAttributes.get(account.id)?.id || null,
-                          1
-                        )
-                      "
-                      [ngClass]="{
-                        selected:
-                          boolAttributes.get(account.id)?.data?.kind === 'mut'
-                      }"
-                    >
-                      Mut
-                    </button>
-                    <button
-                      (click)="
-                        onSetBoolAttribute(
-                          instruction.id,
-                          account.id,
-                          boolAttributes.get(account.id)?.id || null,
-                          2
-                        )
-                      "
-                      [ngClass]="{
-                        selected:
-                          boolAttributes.get(account.id)?.data?.kind === 'zero'
-                      }"
-                    >
-                      Zero
-                    </button>
-                  </div>
-                </mat-card>
-              </mat-grid-tile>
-            </mat-grid-list>
-          </ng-container>
+              <mat-card class="w-full h-full">
+                <h3>Name: {{ account.data.name }}</h3>
+                <p>Kind: {{ account.data.kind }}</p>
+                <p>Mark attribute: {{ account.data.markAttribute }}</p>
+                <p>
+                  Collection:
+                  {{ account.data.collection | obscureAddress }}
+                  <a
+                    [routerLink]="[
+                      '/collections',
+                      account.data.application,
+                      account.data.collection
+                    ]"
+                    >view</a
+                  >
+                </p>
+              </mat-card>
+            </mat-grid-tile>
+          </mat-grid-list>
 
           <ng-template #emptyList>
             <p class="text-center text-xl">There's no accounts yet.</p>
@@ -222,10 +152,6 @@ export class InstructionComponent implements OnInit {
   readonly arguments$ = this._arguments.asObservable();
   private readonly _accounts = new BehaviorSubject<InstructionAccount[]>([]);
   readonly accounts$ = this._accounts.asObservable();
-  private readonly _boolAttributes = new BehaviorSubject<
-    Map<string, AccountBoolAttribute>
-  >(new Map<string, AccountBoolAttribute>());
-  readonly boolAttributes$ = this._boolAttributes.asObservable();
   readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
     map((activeBreakpoint) => {
       switch (activeBreakpoint) {
@@ -254,7 +180,6 @@ export class InstructionComponent implements OnInit {
     this._getInstruction();
     this._getArguments();
     this._getAccounts();
-    this._getBoolAttributes();
   }
 
   private async _getInstruction() {
@@ -303,35 +228,10 @@ export class InstructionComponent implements OnInit {
     }
   }
 
-  private async _getBoolAttributes() {
-    const instructionId = this._route.snapshot.paramMap.get('instructionId');
-
-    if (instructionId) {
-      try {
-        const boolAttributes =
-          await this._demobaseService.getCollectionInstructionBoolAttributes(
-            instructionId
-          );
-
-        this._boolAttributes.next(
-          new Map(
-            boolAttributes.map((boolAttribute) => [
-              boolAttribute.data.account,
-              boolAttribute,
-            ])
-          )
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
   onReload() {
     this._getInstruction();
     this._getArguments();
     this._getAccounts();
-    this._getBoolAttributes();
   }
 
   onCreateInstructionArgument() {
@@ -355,41 +255,6 @@ export class InstructionComponent implements OnInit {
       this._matDialog.open(CreateAccountComponent, {
         data: { applicationId, collectionId, instructionId },
       });
-    }
-  }
-
-  onSetBoolAttribute(
-    instructionId: string,
-    accountId: string,
-    boolAttributeId: string | null,
-    kind: AccountBoolAttributeKind | null
-  ) {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-    const collectionId = this._route.snapshot.paramMap.get('collectionId');
-
-    if (applicationId && collectionId) {
-      if (boolAttributeId === null) {
-        if (kind !== null) {
-          this._demobaseService.createCollectionInstructionAccountBoolAttribute(
-            applicationId,
-            collectionId,
-            instructionId,
-            accountId,
-            kind
-          );
-        }
-      } else {
-        if (kind === null) {
-          this._demobaseService.deleteCollectionInstructionAccountBoolAttribute(
-            boolAttributeId
-          );
-        } else {
-          this._demobaseService.updateCollectionInstructionAccountBoolAttribute(
-            boolAttributeId,
-            kind
-          );
-        }
-      }
     }
   }
 }

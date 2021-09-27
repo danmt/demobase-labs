@@ -34,7 +34,6 @@ interface RawCollection {
   authority: PublicKey;
   application: PublicKey;
   name: Uint8Array;
-  bump: number;
 }
 
 export const CollectionParser = (
@@ -60,7 +59,6 @@ interface RawCollectionAttribute {
   name: Uint8Array;
   kind: { [key: string]: { size: number } };
   modifier: { [key: string]: { size: number } };
-  bump: number;
 }
 
 export const CollectionAttributeParser = (
@@ -93,7 +91,6 @@ interface RawCollectionInstruction {
   application: PublicKey;
   collection: PublicKey;
   name: Uint8Array;
-  bump: number;
 }
 
 export const CollectionInstructionParser = (
@@ -121,7 +118,6 @@ interface RawInstructionArgument {
   name: Uint8Array;
   kind: { [key: string]: unknown };
   modifier: { [key: string]: { size: number } };
-  bump: number;
 }
 
 export const InstructionArgumentParser = (
@@ -155,7 +151,6 @@ interface RawInstructionAccount {
   name: Uint8Array;
   kind: { [key: string]: unknown };
   markAttribute: { [key: string]: unknown };
-  bump: number;
 }
 
 export const InstructionAccountParser = (

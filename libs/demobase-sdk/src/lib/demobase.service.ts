@@ -383,7 +383,8 @@ export class DemobaseService {
     instructionId: string,
     accountName: string,
     accountKind: number,
-    accountCollectionId: string
+    accountCollectionId: string,
+    accountMarkAttribute: number
   ) {
     if (!this.writer) {
       throw Error('Program is not available');
@@ -398,6 +399,7 @@ export class DemobaseService {
     return this.writer.rpc.createCollectionInstructionAccount(
       accountName,
       accountKind,
+      accountMarkAttribute,
       {
         accounts: {
           authority: this.wallet.publicKey,
@@ -408,6 +410,7 @@ export class DemobaseService {
           account: account.publicKey,
           systemProgram: SystemProgram.programId,
         },
+        signers: [account],
       }
     );
   }
