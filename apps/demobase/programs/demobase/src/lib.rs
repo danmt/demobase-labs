@@ -205,7 +205,7 @@ pub struct CreateCollectionAttribute<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 2 + 2
+        space = 8 + 32 + 32 + 32 + 32 + 3 + 3
     )]
     pub attribute: Box<Account<'info, CollectionAttribute>>,
     pub application: Box<Account<'info, Application>>,
@@ -267,7 +267,7 @@ pub struct CreateInstructionArgument<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 2,
+        space = 8 + 32 + 32 + 32 + 32 + 32 + 3 + 3,
     )]
     pub argument: Box<Account<'info, InstructionArgument>>,
     pub application: Box<Account<'info, Application>>,
@@ -391,21 +391,27 @@ pub fn parse_string(string: String) -> [u8; 32] {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum AttributeKind {
     U8 {
+      id: u8,
       size: u8
     },
     U16 {
+      id: u8,
       size: u8
     },
     U32 {
+      id: u8,
       size: u8
     },
     U64 {
+      id: u8,
       size: u8
     },
     U128 {
+      id: u8,
       size: u8
     },
     Pubkey {
+      id: u8,
       size: u8
     },
 }
@@ -413,12 +419,12 @@ pub enum AttributeKind {
 impl AttributeKind {
     fn from(index: u8) -> Result<Self> {
         match index {
-            0 => Ok(AttributeKind::U8 { size: 1 }),
-            1 => Ok(AttributeKind::U16 { size: 2 }),
-            2 => Ok(AttributeKind::U32 { size: 4 }),
-            3 => Ok(AttributeKind::U64 { size: 8 }),
-            4 => Ok(AttributeKind::U128 { size: 16 }),
-            5 => Ok(AttributeKind::Pubkey { size: 32 }),
+            0 => Ok(AttributeKind::U8 { id: 0, size: 1 }),
+            1 => Ok(AttributeKind::U16 { id: 1, size: 2 }),
+            2 => Ok(AttributeKind::U32 { id: 2, size: 4 }),
+            3 => Ok(AttributeKind::U64 { id: 3, size: 8 }),
+            4 => Ok(AttributeKind::U128 { id: 4, size: 16 }),
+            5 => Ok(AttributeKind::Pubkey { id: 5, size: 32 }),
             _ => Err(ErrorCode::InvalidAttributeKind.into()),
         }
     }
@@ -428,12 +434,15 @@ impl AttributeKind {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum AttributeKindModifier {
     None {
+      id: u8,
       size: u8
     },
     Array {
+      id: u8,
       size: u8
     },
     Vector {
+      id: u8,
       size: u8
     }
 }
@@ -441,9 +450,9 @@ pub enum AttributeKindModifier {
 impl AttributeKindModifier {
     fn from(index: u8, size: u8) -> Result<Self> {
         match index {
-            0 => Ok(AttributeKindModifier::None { size: 1 }),
-            1 => Ok(AttributeKindModifier::Array { size: size }),
-            2 => Ok(AttributeKindModifier::Vector { size: 1 }),
+            0 => Ok(AttributeKindModifier::None { id: 0, size: 1 }),
+            1 => Ok(AttributeKindModifier::Array { id: 1, size: size }),
+            2 => Ok(AttributeKindModifier::Vector { id: 2, size: 1 }),
             _ => Err(ErrorCode::InvalidAttributeModifier.into()),
         }
     }

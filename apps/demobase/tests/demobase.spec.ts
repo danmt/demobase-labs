@@ -224,9 +224,11 @@ describe('demobase', () => {
         attributeName
       );
       assert.ok('u8' in account.kind);
+      assert.equal(account.kind.u8.id, attributeKind);
       assert.equal(account.kind.u8.size, 1);
       assert.ok('array' in account.modifier);
       assert.equal(account.modifier.array.size, attributeSize);
+      assert.equal(account.modifier.array.id, attributeModifier);
       assert.ok(account.collection.equals(collection.publicKey));
       assert.ok(account.application.equals(application.publicKey));
     });
@@ -266,8 +268,10 @@ describe('demobase', () => {
         attributeName
       );
       assert.ok('u16' in account.kind);
+      assert.equal(account.kind.u16.id, attributeKind);
       assert.equal(account.kind.u16.size, 2);
       assert.ok('vector' in account.modifier);
+      assert.equal(account.modifier.vector.id, attributeModifier);
       assert.equal(account.modifier.vector.size, attributeSize);
     });
 
@@ -462,8 +466,10 @@ describe('demobase', () => {
         argumentName
       );
       assert.ok('u16' in account.kind);
+      assert.equal(account.kind.u16.id, argumentKind);
       assert.equal(account.kind.u16.size, 2);
       assert.ok('array' in account.modifier);
+      assert.equal(account.modifier.array.id, argumentModifier);
       assert.equal(account.modifier.array.size, argumentSize);
       assert.ok(account.instruction.equals(instruction.publicKey));
       assert.ok(account.collection.equals(collection.publicKey));
@@ -502,8 +508,10 @@ describe('demobase', () => {
         argumentName
       );
       assert.ok('u32' in account.kind);
+      assert.equal(account.kind.u32.id, argumentKind);
       assert.equal(account.kind.u32.size, 4);
       assert.ok('vector' in account.modifier);
+      assert.equal(account.modifier.vector.id, argumentModifier);
       assert.equal(account.modifier.vector.size, argumentSize);
     });
 
@@ -553,7 +561,7 @@ describe('demobase', () => {
         },
         signers: [collection],
       });
-      await program.rpc.createCollection(collectionName, {
+      await program.rpc.createCollection(anotherCollectionName, {
         accounts: {
           collection: anotherCollection.publicKey,
           application: application.publicKey,
