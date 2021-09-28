@@ -461,17 +461,23 @@ impl AttributeKindModifier {
 #[repr(u8)]
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum AccountKind {
-    Account,
-    Signer,
-    Program,
+    Account {
+        id: u8
+    },
+    Signer {
+        id: u8
+    },
+    Program {
+        id: u8
+    },
 }
 
 impl AccountKind {
     fn from(index: u8) -> Result<Self> {
         match index {
-            0 => Ok(AccountKind::Account),
-            1 => Ok(AccountKind::Signer),
-            2 => Ok(AccountKind::Program),
+            0 => Ok(AccountKind::Account{ id: 0 }),
+            1 => Ok(AccountKind::Signer{ id: 1 }),
+            2 => Ok(AccountKind::Program{ id: 2 }),
             _ => Err(ErrorCode::InvalidAccountKind.into()),
         }
     }
@@ -480,19 +486,27 @@ impl AccountKind {
 #[repr(u8)]
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum MarkAttribute {
-    None,
-    Init,
-    Mut,
-    Zero,
+    None {
+        id: u8
+    },
+    Init {
+        id: u8
+    },
+    Mut {
+        id: u8
+    },
+    Zero {
+        id: u8
+    },
 }
 
 impl MarkAttribute {
     fn from(index: u8) -> Result<Self> {
         match index {
-            0 => Ok(MarkAttribute::None),
-            1 => Ok(MarkAttribute::Init),
-            2 => Ok(MarkAttribute::Mut),
-            3 => Ok(MarkAttribute::Zero),
+            0 => Ok(MarkAttribute::None{ id: 0 }),
+            1 => Ok(MarkAttribute::Init{ id: 1 }),
+            2 => Ok(MarkAttribute::Mut{ id: 2 }),
+            3 => Ok(MarkAttribute::Zero{ id: 3 }),
             _ => Err(ErrorCode::InvalidMarkAttribute.into()),
         }
     }

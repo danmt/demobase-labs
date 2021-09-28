@@ -619,7 +619,9 @@ describe('demobase', () => {
         instructionAccountName
       );
       assert.ok('account' in account.kind);
+      assert.equal(account.kind.account.id, instructionAccountKind);
       assert.ok('none' in account.markAttribute);
+      assert.equal(account.markAttribute.none.id, instructionAccountMarkAttribute);
       assert.ok(account.instruction.equals(instruction.publicKey));
       assert.ok(account.collection.equals(collection.publicKey));
       assert.ok(account.application.equals(application.publicKey));
@@ -656,7 +658,9 @@ describe('demobase', () => {
         instructionAccountName
       );
       assert.ok('signer' in account.kind);
+      assert.equal(account.kind.signer.id, instructionAccountKind);
       assert.ok('init' in account.markAttribute);
+      assert.equal(account.markAttribute.init.id, instructionAccountMarkAttribute);
       assert.ok(account.accountCollection.equals(anotherCollection.publicKey));
     });
 
