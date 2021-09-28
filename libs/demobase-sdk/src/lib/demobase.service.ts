@@ -229,6 +229,35 @@ export class DemobaseService {
     );
   }
 
+  async updateCollectionAttribute(
+    attributeId: string,
+    attributeName: string,
+    attributeKind: number,
+    attributeModifier: number,
+    attributeSize: number
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionAttribute(
+      attributeName,
+      attributeKind,
+      attributeModifier,
+      attributeSize,
+      {
+        accounts: {
+          attribute: new PublicKey(attributeId),
+          authority: this.wallet.publicKey,
+        },
+      }
+    );
+  }
+
   async getCollectionAttributes(
     collectionId: string
   ): Promise<CollectionAttribute[]> {
@@ -275,6 +304,29 @@ export class DemobaseService {
       },
       signers: [instruction],
     });
+  }
+
+  async updateCollectionInstruction(
+    instructionId: string,
+    instructionName: string,
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionInstruction(
+      instructionName,
+      {
+        accounts: {
+          authority: this.writer.provider.wallet.publicKey,
+          instruction: new PublicKey(instructionId),
+        },
+      }
+    );
   }
 
   async getCollectionInstructions(
@@ -472,7 +524,6 @@ export class DemobaseService {
       }
     );
   }
-
 
   async getCollectionInstructionAccounts(
     instructionId: string

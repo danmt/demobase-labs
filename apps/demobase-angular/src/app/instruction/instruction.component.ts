@@ -17,8 +17,9 @@ import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { EditAccountComponent } from './edit-account.component';
-import { EditArgumentComponent } from './edit-argument.component';
+import { EditAccountComponent } from '../shared/components/edit-account.component';
+import { EditArgumentComponent } from '../shared/components/edit-argument.component';
+import { EditInstructionComponent } from '../shared/components/edit-instruction.component';
 
 @Component({
   selector: 'demobase-instruction',
@@ -138,14 +139,17 @@ import { EditArgumentComponent } from './edit-argument.component';
           aria-label="Create options"
           [matMenuTriggerFor]="createMenu"
         >
-          <mat-icon>add</mat-icon>
+          <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
           <button mat-menu-item (click)="onEditInstructionAccount()">
-            Create account
+            New account
           </button>
           <button mat-menu-item (click)="onEditInstructionArgument()">
-            Create argument
+            New argument
+          </button>
+          <button mat-menu-item (click)="onEditInstruction(instruction)">
+            Edit instruction
           </button>
         </mat-menu>
       </main>
@@ -250,6 +254,17 @@ export class InstructionComponent implements OnInit {
     this._getInstruction();
     this._getArguments();
     this._getAccounts();
+  }
+
+  onEditInstruction(instruction?: CollectionInstruction) {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (applicationId && collectionId) {
+      this._matDialog.open(EditInstructionComponent, {
+        data: { applicationId, collectionId, instruction },
+      });
+    }
   }
 
   onEditInstructionArgument(argument?: InstructionArgument) {

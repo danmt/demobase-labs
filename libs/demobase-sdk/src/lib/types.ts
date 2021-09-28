@@ -33,10 +33,12 @@ export interface CollectionAttributeInfo {
   collection: string;
   name: string;
   kind: {
+    id: number;
     name: string;
     size: number;
   };
   modifier: {
+    id: number;
     name: string;
     size: number;
   };

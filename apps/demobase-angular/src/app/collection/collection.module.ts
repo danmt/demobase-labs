@@ -15,8 +15,6 @@ import { ReactiveComponentModule } from '@ngrx/component';
 
 import { SharedModule } from '../shared/shared.module';
 import { CollectionComponent } from './collection.component';
-import { CreateAttributeComponent } from './create-attribute.component';
-import { CreateInstructionComponent } from './create-instruction.component';
 
 @NgModule({
   imports: [
@@ -43,8 +41,6 @@ import { CreateInstructionComponent } from './create-instruction.component';
   ],
   declarations: [
     CollectionComponent,
-    CreateAttributeComponent,
-    CreateInstructionComponent,
   ],
 })
 export class CollectionModule {}

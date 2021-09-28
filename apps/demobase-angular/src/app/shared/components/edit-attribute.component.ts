@@ -1,17 +1,17 @@
-import { Component, HostBinding, Inject } from '@angular/core';
+import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { DemobaseService } from '@demobase-labs/demobase-sdk';
+import { CollectionAttribute, DemobaseService } from '@demobase-labs/demobase-sdk';
 
 @Component({
-  selector: 'demobase-create-attribute',
+  selector: 'demobase-edit-attribute',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Create attribute</h2>
+    <h2 mat-dialog-title class="mat-primary">{{ data.attribute ? 'Edit' : 'Create' }} attribute</h2>
 
     <form
       [formGroup]="attributeGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onCreateAttribute()"
+      (ngSubmit)="onEditAttribute()"
     >
       <mat-form-field
         class="w-full"
@@ -79,7 +79,8 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
           formControlName="size"
           required
           autocomplete="off"
-          maxlength="32"
+          min="1"
+          type="number"
         />
         <mat-error *ngIf="submitted && sizeControl.errors?.required"
           >The size is mandatory.</mat-error
@@ -95,13 +96,13 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
         class="w-full"
         [disabled]="submitted && attributeGroup.invalid"
       >
-        Create
+        {{ data.attribute ? 'Save' : 'Create' }}
       </button>
     </form>
 
     <button
       mat-icon-button
-      aria-label="Close create attribute form"
+      aria-label="Close edit attribute form"
       class="w-8 h-8 leading-none absolute top-0 right-0"
       mat-dialog-close
     >
@@ -109,7 +110,7 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
     </button>
   `,
 })
-export class CreateAttributeComponent {
+export class EditAttributeComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly attributeGroup = new FormGroup({
@@ -136,24 +137,50 @@ export class CreateAttributeComponent {
 
   constructor(
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialogRef: MatDialogRef<CreateAttributeComponent>,
+    private readonly _matDialogRef: MatDialogRef<EditAttributeComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: { applicationId: string; collectionId: string }
+    public data: { applicationId: string; collectionId: string, attribute?: CollectionAttribute }
   ) {}
 
-  async onCreateAttribute() {
+  ngOnInit() {
+    if (this.data.attribute) {
+      this.attributeGroup.setValue(
+        {
+          name: this.data.attribute.data.name,
+          kind: this.data.attribute.data.kind.id,
+          modifier: this.data.attribute.data.modifier.id,
+          size: this.data.attribute.data.modifier.size,
+        },
+        { emitEvent: false }
+      );
+    }
+  }
+
+  async onEditAttribute() {
     this.submitted = true;
     this.attributeGroup.markAllAsTouched();
 
     if (this.attributeGroup.valid) {
-      await this._demobaseService.createCollectionAttribute(
-        this.data.applicationId,
-        this.data.collectionId,
-        this.nameControl.value,
-        this.kindControl.value,
-        this.modifierControl.value,
-        this.sizeControl.value
-      );
+      const attribute = this.data.attribute;
+
+      if (attribute) {
+        await this._demobaseService.updateCollectionAttribute(
+          attribute.id,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.modifierControl.value,
+          this.sizeControl.value
+        );
+      } else {
+        await this._demobaseService.createCollectionAttribute(
+          this.data.applicationId,
+          this.data.collectionId,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.modifierControl.value,
+          this.sizeControl.value
+        );
+      }
       this._matDialogRef.close();
     }
   }

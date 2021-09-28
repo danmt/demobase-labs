@@ -11,7 +11,9 @@ import { BehaviorSubject } from 'rxjs';
 @Component({
   selector: 'demobase-edit-account',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Edit account</h2>
+    <h2 mat-dialog-title class="mat-primary">
+      {{ data.account ? 'Edit' : 'Create' }} account
+    </h2>
 
     <form
       [formGroup]="accountGroup"

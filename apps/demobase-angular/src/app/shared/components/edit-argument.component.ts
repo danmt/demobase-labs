@@ -9,7 +9,7 @@ import {
 @Component({
   selector: 'demobase-edit-argument',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Edit argument</h2>
+    <h2 mat-dialog-title class="mat-primary">{{ data.argument ? 'Edit' : 'Create' }} argument</h2>
 
     <form
       [formGroup]="argumentGroup"

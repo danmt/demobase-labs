@@ -57,8 +57,8 @@ interface RawCollectionAttribute {
   application: PublicKey;
   collection: PublicKey;
   name: Uint8Array;
-  kind: { [key: string]: { size: number } };
-  modifier: { [key: string]: { size: number } };
+  kind: { [key: string]: { id: number; name: string; size: number } };
+  modifier: { [key: string]: { id: number; name: string; size: number } };
 }
 
 export const CollectionAttributeParser = (
@@ -75,10 +75,12 @@ export const CollectionAttributeParser = (
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
       kind: {
+        id: Object.values(account.kind)[0].id,
         name: Object.keys(account.kind)[0],
         size: Object.values(account.kind)[0].size,
       },
       modifier: {
+        id: Object.values(account.modifier)[0].id,
         name: Object.keys(account.modifier)[0],
         size: Object.values(account.modifier)[0].size,
       },
@@ -164,7 +166,6 @@ export const InstructionAccountParser = (
   publicKey: PublicKey,
   account: RawInstructionAccount
 ): InstructionAccount => {
-  console.log(account);
   return {
     id: publicKey.toBase58(),
     data: {
