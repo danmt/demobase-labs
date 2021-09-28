@@ -102,6 +102,23 @@ export class DemobaseService {
     });
   }
 
+  async updateApplication(applicationId: string, applicationName: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateApplication(applicationName, {
+      accounts: {
+        application: new PublicKey(applicationId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
   async getApplications() {
     if (!this.reader) {
       throw Error('Program is not available');

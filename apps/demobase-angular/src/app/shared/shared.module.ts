@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveComponentModule } from '@ngrx/component';
 import { EditAccountComponent } from './components/edit-account.component';
+import { EditApplicationComponent } from './components/edit-application.component';
 import { EditArgumentComponent } from './components/edit-argument.component';
 import { EditAttributeComponent } from './components/edit-attribute.component';
 import { EditInstructionComponent } from './components/edit-instruction.component';
@@ -35,7 +36,8 @@ import { SanitizeUrlPipe } from './pipes/sanitize-url.pipe';
     EditInstructionComponent,
     EditAccountComponent,
     EditArgumentComponent,
-    EditAttributeComponent
+    EditAttributeComponent,
+    EditApplicationComponent
   ],
   declarations: [
     ObscureAddressPipe,
@@ -44,7 +46,8 @@ import { SanitizeUrlPipe } from './pipes/sanitize-url.pipe';
     EditInstructionComponent,
     EditAccountComponent,
     EditArgumentComponent,
-    EditAttributeComponent
+    EditAttributeComponent,
+    EditApplicationComponent
   ],
 })
 export class SharedModule {}

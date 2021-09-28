@@ -150,7 +150,7 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
           aria-label="Create options"
           [matMenuTriggerFor]="createMenu"
         >
-          <mat-icon>add</mat-icon>
+          <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
           <button mat-menu-item (click)="onEditAttribute()">
