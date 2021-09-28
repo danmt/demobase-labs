@@ -1,18 +1,22 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Collection, DemobaseService } from '@demobase-labs/demobase-sdk';
+import {
+  Collection,
+  DemobaseService,
+  InstructionAccount,
+} from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
-  selector: 'demobase-create-account',
+  selector: 'demobase-edit-account',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Create account</h2>
+    <h2 mat-dialog-title class="mat-primary">Edit account</h2>
 
     <form
       [formGroup]="accountGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onCreateAccount()"
+      (ngSubmit)="onEditAccount()"
     >
       <mat-form-field
         class="w-full"
@@ -90,13 +94,13 @@ import { BehaviorSubject } from 'rxjs';
         class="w-full"
         [disabled]="submitted && accountGroup.invalid"
       >
-        Create
+        {{ data.account ? 'Save' : 'Create' }}
       </button>
     </form>
 
     <button
       mat-icon-button
-      aria-label="Close create account form"
+      aria-label="Close edit account form"
       class="w-8 h-8 leading-none absolute top-0 right-0"
       mat-dialog-close
     >
@@ -104,7 +108,7 @@ import { BehaviorSubject } from 'rxjs';
     </button>
   `,
 })
-export class CreateAccountComponent implements OnInit {
+export class EditAccountComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly accountGroup = new FormGroup({
@@ -131,17 +135,30 @@ export class CreateAccountComponent implements OnInit {
 
   constructor(
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialogRef: MatDialogRef<CreateAccountComponent>,
+    private readonly _matDialogRef: MatDialogRef<EditAccountComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       applicationId: string;
       collectionId: string;
       instructionId: string;
+      account?: InstructionAccount;
     }
   ) {}
 
   ngOnInit() {
     this._getCollections();
+
+    if (this.data.account) {
+      this.accountGroup.setValue(
+        {
+          name: this.data.account.data.name,
+          kind: this.data.account.data.kind.id,
+          collection: this.data.account.data.accountCollection,
+          markAttribute: this.data.account.data.markAttribute.id,
+        },
+        { emitEvent: false }
+      );
+    }
   }
 
   private async _getCollections() {
@@ -153,20 +170,32 @@ export class CreateAccountComponent implements OnInit {
     }
   }
 
-  async onCreateAccount() {
+  async onEditAccount() {
     this.submitted = true;
     this.accountGroup.markAllAsTouched();
 
     if (this.accountGroup.valid) {
-      await this._demobaseService.createCollectionInstructionAccount(
-        this.data.applicationId,
-        this.data.collectionId,
-        this.data.instructionId,
-        this.nameControl.value,
-        this.kindControl.value,
-        this.collectionControl.value,
-        this.markAttributeControl.value
-      );
+      const account = this.data.account;
+
+      if (account) {
+        await this._demobaseService.updateCollectionInstructionAccount(
+          account.id,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.collectionControl.value,
+          this.markAttributeControl.value
+        );
+      } else {
+        await this._demobaseService.createCollectionInstructionAccount(
+          this.data.applicationId,
+          this.data.collectionId,
+          this.data.instructionId,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.collectionControl.value,
+          this.markAttributeControl.value
+        );
+      }
       this._matDialogRef.close();
     }
   }

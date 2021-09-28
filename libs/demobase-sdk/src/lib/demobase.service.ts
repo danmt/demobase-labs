@@ -444,6 +444,36 @@ export class DemobaseService {
     );
   }
 
+  async updateCollectionInstructionAccount(
+    accountId: string,
+    accountName: string,
+    accountKind: number,
+    accountCollectionId: string,
+    accountMarkAttribute: number
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionInstructionAccount(
+      accountName,
+      accountKind,
+      accountMarkAttribute,
+      {
+        accounts: {
+          authority: this.writer.provider.wallet.publicKey,
+          account: new PublicKey(accountId),
+          accountCollection: new PublicKey(accountCollectionId),
+        },
+      }
+    );
+  }
+
+
   async getCollectionInstructionAccounts(
     instructionId: string
   ): Promise<InstructionAccount[]> {

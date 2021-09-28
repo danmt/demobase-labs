@@ -116,8 +116,8 @@ interface RawInstructionArgument {
   collection: PublicKey;
   instruction: PublicKey;
   name: Uint8Array;
-  kind: { [key: string]: { id: number; size: number } };
-  modifier: { [key: string]: { id: number; size: number } };
+  kind: { [key: string]: { id: number; name: string; size: number } };
+  modifier: { [key: string]: { id: number; name: string; size: number } };
 }
 
 export const InstructionArgumentParser = (
@@ -154,15 +154,17 @@ interface RawInstructionAccount {
   application: PublicKey;
   collection: PublicKey;
   instruction: PublicKey;
+  accountCollection: PublicKey;
   name: Uint8Array;
-  kind: { [key: string]: unknown };
-  markAttribute: { [key: string]: unknown };
+  kind: { [key: string]: { id: number; name: string } };
+  markAttribute: { [key: string]: { id: number; name: string } };
 }
 
 export const InstructionAccountParser = (
   publicKey: PublicKey,
   account: RawInstructionAccount
 ): InstructionAccount => {
+  console.log(account);
   return {
     id: publicKey.toBase58(),
     data: {
@@ -170,11 +172,18 @@ export const InstructionAccountParser = (
       application: account.application.toBase58(),
       collection: account.collection.toBase58(),
       instruction: account.instruction.toBase58(),
+      accountCollection: account.accountCollection.toBase58(),
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      kind: Object.keys(account.kind)[0],
-      markAttribute: Object.keys(account.markAttribute)[0],
+      kind: {
+        id: Object.values(account.kind)[0].id,
+        name: Object.keys(account.kind)[0],
+      },
+      markAttribute: {
+        id: Object.values(account.markAttribute)[0].id,
+        name: Object.keys(account.markAttribute)[0],
+      },
     },
   };
 };

@@ -17,7 +17,7 @@ import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { CreateAccountComponent } from './create-account.component';
+import { EditAccountComponent } from './edit-account.component';
 import { EditArgumentComponent } from './edit-argument.component';
 
 @Component({
@@ -68,7 +68,7 @@ import { EditArgumentComponent } from './edit-argument.component';
                   color="primary"
                   [attr.aria-label]="'Edit ' + argument.data.name + ' argument'"
                   [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onCreateInstructionArgument(argument)"
+                  (click)="onEditInstructionArgument(argument)"
                 >
                   <mat-icon>edit</mat-icon>
                 </button>
@@ -87,7 +87,7 @@ import { EditArgumentComponent } from './edit-argument.component';
           <mat-grid-list
             *ngIf="accounts.length > 0; else emptyList"
             [cols]="gridCols$ | ngrxPush"
-            rowHeight="10rem"
+            rowHeight="13rem"
             gutterSize="16"
           >
             <mat-grid-tile
@@ -98,8 +98,8 @@ import { EditArgumentComponent } from './edit-argument.component';
             >
               <mat-card class="w-full h-full">
                 <h3>Name: {{ account.data.name }}</h3>
-                <p>Kind: {{ account.data.kind }}</p>
-                <p>Mark attribute: {{ account.data.markAttribute }}</p>
+                <p>Kind: {{ account.data.kind.name }}</p>
+                <p>Mark attribute: {{ account.data.markAttribute.name }}</p>
                 <p>
                   Collection:
                   {{ account.data.collection | obscureAddress }}
@@ -112,6 +112,15 @@ import { EditArgumentComponent } from './edit-argument.component';
                     >view</a
                   >
                 </p>
+                <button
+                  mat-mini-fab
+                  color="primary"
+                  [attr.aria-label]="'Edit ' + account.data.name + ' account'"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  (click)="onEditInstructionAccount(account)"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -132,10 +141,10 @@ import { EditArgumentComponent } from './edit-argument.component';
           <mat-icon>add</mat-icon>
         </button>
         <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
-          <button mat-menu-item (click)="onCreateInstructionAccount()">
+          <button mat-menu-item (click)="onEditInstructionAccount()">
             Create account
           </button>
-          <button mat-menu-item (click)="onCreateInstructionArgument()">
+          <button mat-menu-item (click)="onEditInstructionArgument()">
             Create argument
           </button>
         </mat-menu>
@@ -243,7 +252,7 @@ export class InstructionComponent implements OnInit {
     this._getAccounts();
   }
 
-  onCreateInstructionArgument(argument?: InstructionArgument) {
+  onEditInstructionArgument(argument?: InstructionArgument) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
     const instructionId = this._route.snapshot.paramMap.get('instructionId');
@@ -255,14 +264,14 @@ export class InstructionComponent implements OnInit {
     }
   }
 
-  onCreateInstructionAccount() {
+  onEditInstructionAccount(account?: InstructionAccount) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
     const instructionId = this._route.snapshot.paramMap.get('instructionId');
 
     if (applicationId && collectionId && instructionId) {
-      this._matDialog.open(CreateAccountComponent, {
-        data: { applicationId, collectionId, instructionId },
+      this._matDialog.open(EditAccountComponent, {
+        data: { applicationId, collectionId, instructionId, account },
       });
     }
   }

@@ -88,8 +88,15 @@ export interface InstructionAccountInfo {
   collection: string;
   instruction: string;
   name: string;
-  kind: string;
-  markAttribute: string;
+  kind: {
+    id: number;
+    name: string;
+  };
+  accountCollection: string;
+  markAttribute: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface InstructionAccount {

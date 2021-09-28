@@ -81,6 +81,7 @@ import {
           matInput
           formControlName="size"
           required
+          type="number"
           autocomplete="off"
           maxlength="32"
         />

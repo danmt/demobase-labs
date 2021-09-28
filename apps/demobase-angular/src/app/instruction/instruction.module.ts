@@ -14,7 +14,7 @@ import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
 
 import { SharedModule } from '../shared/shared.module';
-import { CreateAccountComponent } from './create-account.component';
+import { EditAccountComponent } from './edit-account.component';
 import { EditArgumentComponent } from './edit-argument.component';
 import { InstructionComponent } from './instruction.component';
 
@@ -43,7 +43,7 @@ import { InstructionComponent } from './instruction.component';
   ],
   declarations: [
     InstructionComponent,
-    CreateAccountComponent,
+    EditAccountComponent,
     EditArgumentComponent,
   ],
 })

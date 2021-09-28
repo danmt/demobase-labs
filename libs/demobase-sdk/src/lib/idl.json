@@ -844,13 +844,31 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "Account"
+            "name": "Account",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Signer"
+            "name": "Signer",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Program"
+            "name": "Program",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           }
         ]
       }
@@ -861,16 +879,40 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "None"
+            "name": "None",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Init"
+            "name": "Init",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Mut"
+            "name": "Mut",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Zero"
+            "name": "Zero",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           }
         ]
       }
