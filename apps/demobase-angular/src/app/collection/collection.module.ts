@@ -6,6 +6,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
 
@@ -28,11 +29,10 @@ import { CollectionComponent } from './collection.component';
     MatGridListModule,
     MatIconModule,
     MatMenuModule,
+    MatTabsModule,
     ReactiveComponentModule,
     SharedModule,
   ],
-  declarations: [
-    CollectionComponent,
-  ],
+  declarations: [CollectionComponent],
 })
 export class CollectionModule {}

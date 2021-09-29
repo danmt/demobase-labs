@@ -80,7 +80,11 @@ import { CoreModule } from './core/core.module';
           redirectTo: 'applications',
         },
       ],
-      { initialNavigation: 'enabledBlocking' }
+      {
+        initialNavigation: 'enabledBlocking',
+        paramsInheritanceStrategy: 'always',
+        onSameUrlNavigation: 'reload',
+      }
     ),
     ReactiveFormsModule,
     ReactiveComponentModule,

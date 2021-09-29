@@ -1,3 +1,4 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,7 +14,7 @@ import {
   DemobaseService,
 } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
 import { EditApplicationComponent } from '../shared/components/edit-application.component';
@@ -40,58 +41,29 @@ import { EditCollectionComponent } from '../shared/components/edit-collection.co
 
       <main>
         <section *ngrxLet="collections$; let collections">
-          <mat-grid-list
-            *ngIf="collections.length > 0; else emptyList"
-            [cols]="gridCols$ | ngrxPush"
-            rowHeight="10rem"
-            gutterSize="16"
-          >
-            <mat-grid-tile
-              *ngFor="let collection of collections"
-              [colspan]="1"
-              [rowspan]="1"
-              class="overflow-visible"
+          <mat-sidenav-container class="sidenav-container" fullscreen>
+            <mat-sidenav
+              #drawer
+              class="sidenav"
+              [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+              [mode]="(isHandset$ | async) ? 'over' : 'side'"
+              [opened]="(isHandset$ | async) === false"
             >
-              <mat-card class="w-full h-full">
-                <h2>{{ collection.data.name }}</h2>
-
-                <p>
-                  <a
-                    [routerLink]="[
-                      '/collections',
-                      application.id,
-                      collection.id
-                    ]"
-                  >
-                    view
-                  </a>
-                </p>
-
-                <button
-                  mat-mini-fab
-                  color="primary"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  [attr.aria-label]="
-                    'Edit ' + collection.data.name + ' collection'
-                  "
-                  (click)="onEditCollection(collection)"
+              <h2 class="mt-4 text-center">Collections</h2>
+              <mat-nav-list *ngIf="collections.length > 0; else emptyList">
+                <a
+                  *ngFor="let collection of collections"
+                  mat-list-item
+                  [routerLink]="['collections', collection.id]"
                 >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-mini-fab
-                  color="warn"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  [attr.aria-label]="
-                    'Delete ' + collection.data.name + ' collection'
-                  "
-                  (click)="onDeleteCollection(collection.id)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </mat-card>
-            </mat-grid-tile>
-          </mat-grid-list>
+                  {{ collection.data.name }}
+                </a>
+              </mat-nav-list>
+            </mat-sidenav>
+            <mat-sidenav-content>
+              <router-outlet></router-outlet>
+            </mat-sidenav-content>
+          </mat-sidenav-container>
 
           <ng-template #emptyList>
             <p class="text-center text-xl">
@@ -99,17 +71,6 @@ import { EditCollectionComponent } from '../shared/components/edit-collection.co
             </p>
           </ng-template>
         </section>
-
-        <button
-          *ngIf="connected$ | ngrxPush"
-          class="block fixed right-4 bottom-4"
-          mat-fab
-          color="primary"
-          aria-label="Edit collection"
-          (click)="onEditCollection()"
-        >
-          <mat-icon>add</mat-icon>
-        </button>
 
         <button
           *ngIf="connected$ | ngrxPush"
@@ -133,6 +94,22 @@ import { EditCollectionComponent } from '../shared/components/edit-collection.co
     </ng-container>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [
+    `
+      .sidenav-container {
+        height: calc(100% + 9.5rem);
+        top: 9.5rem;
+      }
+
+      .sidenav {
+        width: 200px;
+      }
+
+      .sidenav .mat-toolbar {
+        background: inherit;
+      }
+    `,
+  ],
 })
 export class ApplicationComponent implements OnInit {
   @HostBinding('class') class = 'block p-4';
@@ -156,13 +133,20 @@ export class ApplicationComponent implements OnInit {
       }
     })
   );
+  readonly isHandset$ = this._breakpointObserver
+    .observe(Breakpoints.Handset)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay()
+    );
 
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _demobaseService: DemobaseService,
     private readonly _walletStore: WalletStore,
     private readonly _matDialog: MatDialog,
-    private readonly _activeBreakpointService: ActiveBreakpointService
+    private readonly _activeBreakpointService: ActiveBreakpointService,
+    private readonly _breakpointObserver: BreakpointObserver
   ) {}
 
   ngOnInit() {
