@@ -119,6 +119,23 @@ export class DemobaseService {
     });
   }
 
+  async deleteApplication(applicationId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteApplication({
+      accounts: {
+        application: new PublicKey(applicationId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
   async getApplications() {
     if (!this.reader) {
       throw Error('Program is not available');
@@ -175,6 +192,23 @@ export class DemobaseService {
     }
 
     return this.writer.rpc.updateCollection(collectionName, {
+      accounts: {
+        collection: new PublicKey(collectionId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
+  async deleteCollection(collectionId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollection({
       accounts: {
         collection: new PublicKey(collectionId),
         authority: this.wallet.publicKey,
@@ -292,6 +326,23 @@ export class DemobaseService {
     );
   }
 
+  async deleteCollectionAttribute(attributeId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionAttribute({
+      accounts: {
+        attribute: new PublicKey(attributeId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
   async getCollectionAttributes(
     collectionId: string
   ): Promise<CollectionAttribute[]> {
@@ -342,7 +393,7 @@ export class DemobaseService {
 
   async updateCollectionInstruction(
     instructionId: string,
-    instructionName: string,
+    instructionName: string
   ) {
     if (!this.writer) {
       throw Error('Program is not available');
@@ -352,15 +403,29 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    return this.writer.rpc.updateCollectionInstruction(
-      instructionName,
-      {
-        accounts: {
-          authority: this.writer.provider.wallet.publicKey,
-          instruction: new PublicKey(instructionId),
-        },
-      }
-    );
+    return this.writer.rpc.updateCollectionInstruction(instructionName, {
+      accounts: {
+        authority: this.writer.provider.wallet.publicKey,
+        instruction: new PublicKey(instructionId),
+      },
+    });
+  }
+
+  async deleteCollectionInstruction(instructionId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionInstruction({
+      accounts: {
+        instruction: new PublicKey(instructionId),
+        authority: this.wallet.publicKey,
+      },
+    });
   }
 
   async getCollectionInstructions(
@@ -471,6 +536,23 @@ export class DemobaseService {
     );
   }
 
+  async deleteCollectionInstructionArgument(argumentId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionInstructionArgument({
+      accounts: {
+        argument: new PublicKey(argumentId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
   async getCollectionInstructionArguments(
     instructionId: string
   ): Promise<InstructionArgument[]> {
@@ -557,6 +639,23 @@ export class DemobaseService {
         },
       }
     );
+  }
+
+  async deleteCollectionInstructionAccount(accountId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionInstructionAccount({
+      accounts: {
+        account: new PublicKey(accountId),
+        authority: this.wallet.publicKey,
+      },
+    });
   }
 
   async getCollectionInstructionAccounts(

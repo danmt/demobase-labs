@@ -73,6 +73,17 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
                 >
                   <mat-icon>edit</mat-icon>
                 </button>
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  [attr.aria-label]="
+                    'Delete ' + argument.data.name + ' argument'
+                  "
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  (click)="onDeleteInstructionArgument(argument.id)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -122,6 +133,15 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
                 >
                   <mat-icon>edit</mat-icon>
                 </button>
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  [attr.aria-label]="'Delete ' + account.data.name + ' account'"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  (click)="onDeleteInstructionAccount(account.id)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -150,6 +170,9 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
           </button>
           <button mat-menu-item (click)="onEditInstruction(instruction)">
             Edit instruction
+          </button>
+          <button mat-menu-item (click)="onDeleteInstruction(instruction.id)">
+            Delete instruction
           </button>
         </mat-menu>
       </main>
@@ -267,6 +290,12 @@ export class InstructionComponent implements OnInit {
     }
   }
 
+  onDeleteInstruction(instructionId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollectionInstruction(instructionId);
+    }
+  }
+
   onEditInstructionArgument(argument?: InstructionArgument) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
@@ -279,6 +308,12 @@ export class InstructionComponent implements OnInit {
     }
   }
 
+  onDeleteInstructionArgument(argumentId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollectionInstructionArgument(argumentId);
+    }
+  }
+
   onEditInstructionAccount(account?: InstructionAccount) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
@@ -288,6 +323,12 @@ export class InstructionComponent implements OnInit {
       this._matDialog.open(EditAccountComponent, {
         data: { applicationId, collectionId, instructionId, account },
       });
+    }
+  }
+
+  onDeleteInstructionAccount(accountId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollectionInstructionAccount(accountId);
     }
   }
 }

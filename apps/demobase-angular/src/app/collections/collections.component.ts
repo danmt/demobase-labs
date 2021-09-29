@@ -70,6 +70,17 @@ import { EditCollectionComponent } from '../shared/components/edit-collection.co
               >
                 <mat-icon>edit</mat-icon>
               </button>
+              <button
+                mat-mini-fab
+                color="warn"
+                [attr.aria-label]="
+                  'Delete ' + collection.data.name + ' collection'
+                "
+                [disabled]="(connected$ | ngrxPush) === false"
+                (click)="onDeleteCollection(collection.id)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
             </mat-card>
           </mat-grid-tile>
         </mat-grid-list>
@@ -140,5 +151,11 @@ export class CollectionsComponent implements OnInit {
 
   onEditCollection(collection?: Collection) {
     this._matDialog.open(EditCollectionComponent, { data: { collection } });
+  }
+
+  onDeleteCollection(collectionId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollection(collectionId);
+    }
   }
 }
