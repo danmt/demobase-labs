@@ -165,6 +165,23 @@ export class DemobaseService {
     });
   }
 
+  async updateCollection(collectionId: string, collectionName: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollection(collectionName, {
+      accounts: {
+        collection: new PublicKey(collectionId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
   async getCollections(): Promise<Collection[]> {
     if (!this.reader) {
       throw Error('Program is not available');

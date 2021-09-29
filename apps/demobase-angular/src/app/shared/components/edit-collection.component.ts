@@ -1,18 +1,24 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
-import { Application, DemobaseService } from '@demobase-labs/demobase-sdk';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import {
+  Application,
+  Collection,
+  DemobaseService,
+} from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
-  selector: 'demobase-create-collection',
+  selector: 'demobase-edit-collection',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Create collection</h2>
+    <h2 mat-dialog-title class="mat-primary">
+      {{ data.collection ? 'Edit' : 'Create' }} collection
+    </h2>
 
     <form
       [formGroup]="collectionGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onCreateCollection()"
+      (ngSubmit)="onEditCollection()"
     >
       <mat-form-field
         class="w-full"
@@ -41,6 +47,7 @@ import { BehaviorSubject } from 'rxjs';
         class="w-full"
         appearance="fill"
         hintLabel="Select an application."
+        *ngIf="!data.collection && !data.applicationId"
       >
         <mat-label>Application</mat-label>
         <mat-select formControlName="application">
@@ -63,13 +70,13 @@ import { BehaviorSubject } from 'rxjs';
         class="w-full"
         [disabled]="submitted && collectionGroup.invalid"
       >
-        Create
+        {{ data.collection ? 'Save' : 'Create' }}
       </button>
     </form>
 
     <button
       mat-icon-button
-      aria-label="Close create collection form"
+      aria-label="Close edit collection form"
       class="w-8 h-8 leading-none absolute top-0 right-0"
       mat-dialog-close
     >
@@ -77,7 +84,7 @@ import { BehaviorSubject } from 'rxjs';
     </button>
   `,
 })
-export class CreateCollectionComponent implements OnInit {
+export class EditCollectionComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly collectionGroup = new FormGroup({
@@ -86,6 +93,7 @@ export class CreateCollectionComponent implements OnInit {
     }),
     application: new FormControl('', { validators: [Validators.required] }),
   });
+
   get nameControl() {
     return this.collectionGroup.get('name') as FormControl;
   }
@@ -98,11 +106,35 @@ export class CreateCollectionComponent implements OnInit {
 
   constructor(
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialogRef: MatDialogRef<CreateCollectionComponent>
+    private readonly _matDialogRef: MatDialogRef<EditCollectionComponent>,
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      applicationId?: string;
+      collection?: Collection;
+    }
   ) {}
 
   ngOnInit() {
     this._getApplications();
+
+    if (this.data.applicationId) {
+      this.collectionGroup.patchValue(
+        {
+          application: this.data.applicationId,
+        },
+        { emitEvent: false }
+      );
+    }
+
+    if (this.data.collection) {
+      this.collectionGroup.setValue(
+        {
+          name: this.data.collection.data.name,
+          application: this.data.collection.data.application,
+        },
+        { emitEvent: false }
+      );
+    }
   }
 
   private async _getApplications() {
@@ -114,15 +146,24 @@ export class CreateCollectionComponent implements OnInit {
     }
   }
 
-  async onCreateCollection() {
+  async onEditCollection() {
     this.submitted = true;
     this.collectionGroup.markAllAsTouched();
 
     if (this.collectionGroup.valid) {
-      await this._demobaseService.createCollection(
-        this.applicationControl.value,
-        this.nameControl.value
-      );
+      const collection = this.data.collection;
+
+      if (collection) {
+        await this._demobaseService.updateCollection(
+          collection.id,
+          this.nameControl.value
+        );
+      } else {
+        await this._demobaseService.createCollection(
+          this.applicationControl.value,
+          this.nameControl.value
+        );
+      }
       this._matDialogRef.close();
     }
   }

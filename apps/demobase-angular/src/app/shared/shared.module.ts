@@ -12,6 +12,7 @@ import { EditAccountComponent } from './components/edit-account.component';
 import { EditApplicationComponent } from './components/edit-application.component';
 import { EditArgumentComponent } from './components/edit-argument.component';
 import { EditAttributeComponent } from './components/edit-attribute.component';
+import { EditCollectionComponent } from './components/edit-collection.component';
 import { EditInstructionComponent } from './components/edit-instruction.component';
 import { PageHeaderDirective } from './directives/page-header.directive';
 import { ObscureAddressPipe } from './pipes/obscure-address.pipe';
@@ -37,7 +38,8 @@ import { SanitizeUrlPipe } from './pipes/sanitize-url.pipe';
     EditAccountComponent,
     EditArgumentComponent,
     EditAttributeComponent,
-    EditApplicationComponent
+    EditApplicationComponent,
+    EditCollectionComponent
   ],
   declarations: [
     ObscureAddressPipe,
@@ -47,7 +49,8 @@ import { SanitizeUrlPipe } from './pipes/sanitize-url.pipe';
     EditAccountComponent,
     EditArgumentComponent,
     EditAttributeComponent,
-    EditApplicationComponent
+    EditApplicationComponent,
+    EditCollectionComponent
   ],
 })
 export class SharedModule {}
