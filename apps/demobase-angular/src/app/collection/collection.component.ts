@@ -16,9 +16,9 @@ import {
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-
-import { CreateAttributeComponent } from './create-attribute.component';
-import { CreateInstructionComponent } from './create-instruction.component';
+import { EditAttributeComponent } from '../shared/components/edit-attribute.component';
+import { EditCollectionComponent } from '../shared/components/edit-collection.component';
+import { EditInstructionComponent } from '../shared/components/edit-instruction.component';
 
 @Component({
   selector: 'demobase-collection',
@@ -46,7 +46,7 @@ import { CreateInstructionComponent } from './create-instruction.component';
           <mat-grid-list
             *ngIf="attributes.length > 0; else emptyList"
             [cols]="gridCols$ | ngrxPush"
-            rowHeight="10rem"
+            rowHeight="13rem"
             gutterSize="16"
           >
             <mat-grid-tile
@@ -73,6 +73,28 @@ import { CreateInstructionComponent } from './create-instruction.component';
                   {{ attribute.data.kind.size * attribute.data.modifier.size }}
                   bytes.
                 </p>
+                <button
+                  mat-mini-fab
+                  color="primary"
+                  [attr.aria-label]="
+                    'Edit ' + attribute.data.name + ' attribute'
+                  "
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  (click)="onEditAttribute(attribute)"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  [attr.aria-label]="
+                    'Delete ' + attribute.data.name + ' attribute'
+                  "
+                  (click)="onDeleteAttribute(attribute.id)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -100,15 +122,39 @@ import { CreateInstructionComponent } from './create-instruction.component';
               >
                 <mat-card class="w-full h-full">
                   <h3>Name: {{ instruction.data.name }}</h3>
-                  <a
-                    [routerLink]="[
-                      '/instructions',
-                      collection.data.application,
-                      collection.id,
-                      instruction.id
-                    ]"
-                    >view</a
+                  <p>
+                    <a
+                      [routerLink]="[
+                        '/instructions',
+                        collection.data.application,
+                        collection.id,
+                        instruction.id
+                      ]"
+                      >view</a
+                    >
+                  </p>
+                  <button
+                    mat-mini-fab
+                    color="primary"
+                    [attr.aria-label]="
+                      'Edit ' + instruction.data.name + ' instruction'
+                    "
+                    [disabled]="(connected$ | ngrxPush) === false"
+                    (click)="onEditInstruction(instruction)"
                   >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-mini-fab
+                    color="warn"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                    [attr.aria-label]="
+                      'Delete ' + instruction.data.name + ' instruction'
+                    "
+                    (click)="onDeleteInstruction(instruction.id)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </mat-card>
               </mat-grid-tile>
             </mat-grid-list>
@@ -127,14 +173,20 @@ import { CreateInstructionComponent } from './create-instruction.component';
           aria-label="Create options"
           [matMenuTriggerFor]="createMenu"
         >
-          <mat-icon>add</mat-icon>
+          <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
-          <button mat-menu-item (click)="onCreateCollectionAttribute()">
-            Create attribute
+          <button mat-menu-item (click)="onEditAttribute()">
+            New attribute
           </button>
-          <button mat-menu-item (click)="onCreateCollectionInstruction()">
-            Create instruction
+          <button mat-menu-item (click)="onEditInstruction()">
+            New instruction
+          </button>
+          <button mat-menu-item (click)="onEditCollection(collection)">
+            Edit collection
+          </button>
+          <button mat-menu-item (click)="onDeleteCollection(collection.id)">
+            Delete collection
           </button>
         </mat-menu>
       </main>
@@ -233,25 +285,55 @@ export class CollectionComponent implements OnInit {
     this._getInstructions();
   }
 
-  onCreateCollectionAttribute() {
+  onEditCollection(collection?: Collection) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
-    const collectionId = this._route.snapshot.paramMap.get('collectionId');
 
-    if (applicationId && collectionId) {
-      this._matDialog.open(CreateAttributeComponent, {
-        data: { applicationId, collectionId },
+    if (applicationId) {
+      this._matDialog.open(EditCollectionComponent, {
+        data: {
+          collection,
+        },
       });
     }
   }
 
-  onCreateCollectionInstruction() {
+  onDeleteCollection(collectionId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollection(collectionId);
+    }
+  }
+
+  onEditAttribute(attribute?: CollectionAttribute) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
     const collectionId = this._route.snapshot.paramMap.get('collectionId');
 
     if (applicationId && collectionId) {
-      this._matDialog.open(CreateInstructionComponent, {
-        data: { applicationId, collectionId },
+      this._matDialog.open(EditAttributeComponent, {
+        data: { applicationId, collectionId, attribute },
       });
+    }
+  }
+
+  onDeleteAttribute(attributeId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollectionAttribute(attributeId);
+    }
+  }
+
+  onEditInstruction(instruction?: CollectionInstruction) {
+    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+    const collectionId = this._route.snapshot.paramMap.get('collectionId');
+
+    if (applicationId && collectionId) {
+      this._matDialog.open(EditInstructionComponent, {
+        data: { applicationId, collectionId, instruction },
+      });
+    }
+  }
+
+  onDeleteInstruction(instructionId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollectionInstruction(instructionId);
     }
   }
 }

@@ -11,7 +11,7 @@ import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { CreateApplicationComponent } from './create-application.component';
+import { EditApplicationComponent } from '../shared/components/edit-application.component';
 
 @Component({
   selector: 'demobase-applications',
@@ -47,8 +47,31 @@ import { CreateApplicationComponent } from './create-application.component';
           >
             <mat-card class="w-full h-full">
               <h2>{{ application.data.name }}</h2>
-
-              <a [routerLink]="['/applications', application.id]">view</a>
+              <p>
+                <a [routerLink]="['/applications', application.id]">view</a>
+              </p>
+              <button
+                mat-mini-fab
+                color="primary"
+                [attr.aria-label]="
+                  'Edit ' + application.data.name + ' application'
+                "
+                [disabled]="(connected$ | ngrxPush) === false"
+                (click)="onEditApplication(application)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-mini-fab
+                color="warn"
+                [disabled]="(connected$ | ngrxPush) === false"
+                [attr.aria-label]="
+                  'Delete ' + application.data.name + ' application'
+                "
+                (click)="onDeleteApplication(application.id)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
             </mat-card>
           </mat-grid-tile>
         </mat-grid-list>
@@ -63,8 +86,8 @@ import { CreateApplicationComponent } from './create-application.component';
         class="block fixed right-4 bottom-4"
         mat-fab
         color="primary"
-        aria-label="Create application"
-        (click)="onCreateApplication()"
+        aria-label="Edit application"
+        (click)="onEditApplication()"
       >
         <mat-icon>add</mat-icon>
       </button>
@@ -117,7 +140,13 @@ export class ApplicationsComponent implements OnInit {
     this._getApplications();
   }
 
-  onCreateApplication() {
-    this._matDialog.open(CreateApplicationComponent);
+  onEditApplication(application?: Application) {
+    this._matDialog.open(EditApplicationComponent, { data: { application } });
+  }
+
+  onDeleteApplication(applicationId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteApplication(applicationId);
+    }
   }
 }

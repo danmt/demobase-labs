@@ -16,7 +16,8 @@ import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { CreateCollectionComponent } from './create-collection.component';
+import { EditApplicationComponent } from '../shared/components/edit-application.component';
+import { EditCollectionComponent } from '../shared/components/edit-collection.component';
 
 @Component({
   selector: 'demobase-application',
@@ -54,11 +55,40 @@ import { CreateCollectionComponent } from './create-collection.component';
               <mat-card class="w-full h-full">
                 <h2>{{ collection.data.name }}</h2>
 
-                <a
-                  [routerLink]="['/collections', application.id, collection.id]"
+                <p>
+                  <a
+                    [routerLink]="[
+                      '/collections',
+                      application.id,
+                      collection.id
+                    ]"
+                  >
+                    view
+                  </a>
+                </p>
+
+                <button
+                  mat-mini-fab
+                  color="primary"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  [attr.aria-label]="
+                    'Edit ' + collection.data.name + ' collection'
+                  "
+                  (click)="onEditCollection(collection)"
                 >
-                  view
-                </a>
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-mini-fab
+                  color="warn"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  [attr.aria-label]="
+                    'Delete ' + collection.data.name + ' collection'
+                  "
+                  (click)="onDeleteCollection(collection.id)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -75,11 +105,30 @@ import { CreateCollectionComponent } from './create-collection.component';
           class="block fixed right-4 bottom-4"
           mat-fab
           color="primary"
-          aria-label="Create collection"
-          (click)="onCreateCollection()"
+          aria-label="Edit collection"
+          (click)="onEditCollection()"
         >
           <mat-icon>add</mat-icon>
         </button>
+
+        <button
+          *ngIf="connected$ | ngrxPush"
+          class="block fixed right-4 bottom-4"
+          mat-fab
+          color="primary"
+          aria-label="Create options"
+          [matMenuTriggerFor]="createMenu"
+        >
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
+          <button mat-menu-item (click)="onEditCollection()">
+            New collection
+          </button>
+          <button mat-menu-item (click)="onEditApplication(application)">
+            Edit application
+          </button>
+        </mat-menu>
       </main>
     </ng-container>
   `,
@@ -157,13 +206,32 @@ export class ApplicationComponent implements OnInit {
     this._getCollections();
   }
 
-  onCreateCollection() {
+  onEditCollection(collection?: Collection) {
     const applicationId = this._route.snapshot.paramMap.get('applicationId');
 
     if (applicationId) {
-      this._matDialog.open(CreateCollectionComponent, {
-        data: applicationId,
+      this._matDialog.open(EditCollectionComponent, {
+        data: {
+          applicationId: !collection && applicationId,
+          collection,
+        },
       });
+    }
+  }
+
+  onDeleteCollection(collectionId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollection(collectionId);
+    }
+  }
+
+  onEditApplication(application: Application) {
+    this._matDialog.open(EditApplicationComponent, { data: { application } });
+  }
+
+  onDeleteApplication(applicationId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteApplication(applicationId);
     }
   }
 }

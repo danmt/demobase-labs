@@ -1,17 +1,20 @@
-import { Component, HostBinding, Inject } from '@angular/core';
+import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { DemobaseService } from '@demobase-labs/demobase-sdk';
+import {
+  DemobaseService,
+  InstructionArgument,
+} from '@demobase-labs/demobase-sdk';
 
 @Component({
-  selector: 'demobase-create-argument',
+  selector: 'demobase-edit-argument',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Create argument</h2>
+    <h2 mat-dialog-title class="mat-primary">{{ data.argument ? 'Edit' : 'Create' }} argument</h2>
 
     <form
       [formGroup]="argumentGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onCreateArgument()"
+      (ngSubmit)="onEditArgument()"
     >
       <mat-form-field
         class="w-full"
@@ -78,6 +81,7 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
           matInput
           formControlName="size"
           required
+          type="number"
           autocomplete="off"
           maxlength="32"
         />
@@ -95,13 +99,13 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
         class="w-full"
         [disabled]="submitted && argumentGroup.invalid"
       >
-        Create
+        {{ data.argument ? 'Save' : 'Create' }}
       </button>
     </form>
 
     <button
       mat-icon-button
-      aria-label="Close create argument form"
+      aria-label="Close edit argument form"
       class="w-8 h-8 leading-none absolute top-0 right-0"
       mat-dialog-close
     >
@@ -109,7 +113,7 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
     </button>
   `,
 })
-export class CreateArgumentComponent {
+export class EditArgumentComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly argumentGroup = new FormGroup({
@@ -136,29 +140,56 @@ export class CreateArgumentComponent {
 
   constructor(
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialogRef: MatDialogRef<CreateArgumentComponent>,
+    private readonly _matDialogRef: MatDialogRef<EditArgumentComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       applicationId: string;
       collectionId: string;
       instructionId: string;
+      argument?: InstructionArgument;
     }
   ) {}
 
-  async onCreateArgument() {
+  ngOnInit() {
+    if (this.data.argument) {
+      this.argumentGroup.setValue(
+        {
+          name: this.data.argument.data.name,
+          kind: this.data.argument.data.kind.id,
+          modifier: this.data.argument.data.modifier.id,
+          size: this.data.argument.data.modifier.size,
+        },
+        { emitEvent: false }
+      );
+    }
+  }
+
+  async onEditArgument() {
     this.submitted = true;
     this.argumentGroup.markAllAsTouched();
 
     if (this.argumentGroup.valid) {
-      await this._demobaseService.createCollectionInstructionArgument(
-        this.data.applicationId,
-        this.data.collectionId,
-        this.data.instructionId,
-        this.nameControl.value,
-        this.kindControl.value,
-        this.modifierControl.value,
-        this.sizeControl.value
-      );
+      const argument = this.data.argument;
+
+      if (argument) {
+        await this._demobaseService.updateCollectionInstructionArgument(
+          argument.id,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.modifierControl.value,
+          this.sizeControl.value
+        );
+      } else {
+        await this._demobaseService.createCollectionInstructionArgument(
+          this.data.applicationId,
+          this.data.collectionId,
+          this.data.instructionId,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.modifierControl.value,
+          this.sizeControl.value
+        );
+      }
       this._matDialogRef.close();
     }
   }

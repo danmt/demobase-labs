@@ -3,7 +3,6 @@ import { Connection, Keypair, PublicKey, SystemProgram } from '@solana/web3.js';
 
 import * as idl from './idl.json';
 import {
-  AccountBoolAttribute,
   Application,
   Collection,
   CollectionAttribute,
@@ -13,19 +12,12 @@ import {
   Wallet,
 } from './types';
 import {
-  AccountBoolAttributeParser,
   ApplicationParser,
   CollectionAttributeParser,
   CollectionInstructionParser,
   CollectionParser,
   DEMOBASE_PROGRAM_ID,
   DummyWallet,
-  findAccountBoolAttributeAddress,
-  findCollectionAddress,
-  findCollectionAttributeAddress,
-  findCollectionInstructionAddress,
-  findCollectionInstructionArgumentAddress,
-  findInstructionAccountAddress,
   InstructionAccountParser,
   InstructionArgumentParser,
 } from './utils';
@@ -110,6 +102,40 @@ export class DemobaseService {
     });
   }
 
+  async updateApplication(applicationId: string, applicationName: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateApplication(applicationName, {
+      accounts: {
+        application: new PublicKey(applicationId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
+  async deleteApplication(applicationId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteApplication({
+      accounts: {
+        application: new PublicKey(applicationId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
   async getApplications() {
     if (!this.reader) {
       throw Error('Program is not available');
@@ -143,17 +169,49 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [collectionId, collectionBump] = await findCollectionAddress(
-      new PublicKey(applicationId),
-      collectionName
-    );
+    const collection = Keypair.generate();
 
-    return this.writer.rpc.createCollection(collectionName, collectionBump, {
+    return this.writer.rpc.createCollection(collectionName, {
       accounts: {
-        collection: collectionId,
+        collection: collection.publicKey,
         application: new PublicKey(applicationId),
         authority: this.wallet.publicKey,
         systemProgram: SystemProgram.programId,
+      },
+      signers: [collection],
+    });
+  }
+
+  async updateCollection(collectionId: string, collectionName: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollection(collectionName, {
+      accounts: {
+        collection: new PublicKey(collectionId),
+        authority: this.wallet.publicKey,
+      },
+    });
+  }
+
+  async deleteCollection(collectionId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollection({
+      accounts: {
+        collection: new PublicKey(collectionId),
+        authority: this.wallet.publicKey,
       },
     });
   }
@@ -219,28 +277,70 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [attributeId, attributeBump] = await findCollectionAttributeAddress(
-      new PublicKey(applicationId),
-      new PublicKey(collectionId),
-      attributeName
-    );
+    const attribute = Keypair.generate();
 
     return this.writer.rpc.createCollectionAttribute(
       attributeName,
       attributeKind,
       attributeModifier,
       attributeSize,
-      attributeBump,
       {
         accounts: {
           application: new PublicKey(applicationId),
           collection: new PublicKey(collectionId),
-          attribute: attributeId,
+          attribute: attribute.publicKey,
           authority: this.wallet.publicKey,
           systemProgram: SystemProgram.programId,
         },
+        signers: [attribute],
       }
     );
+  }
+
+  async updateCollectionAttribute(
+    attributeId: string,
+    attributeName: string,
+    attributeKind: number,
+    attributeModifier: number,
+    attributeSize: number
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionAttribute(
+      attributeName,
+      attributeKind,
+      attributeModifier,
+      attributeSize,
+      {
+        accounts: {
+          attribute: new PublicKey(attributeId),
+          authority: this.wallet.publicKey,
+        },
+      }
+    );
+  }
+
+  async deleteCollectionAttribute(attributeId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionAttribute({
+      accounts: {
+        attribute: new PublicKey(attributeId),
+        authority: this.wallet.publicKey,
+      },
+    });
   }
 
   async getCollectionAttributes(
@@ -277,26 +377,55 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [instructionId, instructionBump] =
-      await findCollectionInstructionAddress(
-        new PublicKey(applicationId),
-        new PublicKey(collectionId),
-        instructionName
-      );
+    const instruction = Keypair.generate();
 
-    return this.writer.rpc.createCollectionInstruction(
-      instructionName,
-      instructionBump,
-      {
-        accounts: {
-          application: new PublicKey(applicationId),
-          collection: new PublicKey(collectionId),
-          instruction: instructionId,
-          authority: this.wallet.publicKey,
-          systemProgram: SystemProgram.programId,
-        },
-      }
-    );
+    return this.writer.rpc.createCollectionInstruction(instructionName, {
+      accounts: {
+        application: new PublicKey(applicationId),
+        collection: new PublicKey(collectionId),
+        instruction: instruction.publicKey,
+        authority: this.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+      signers: [instruction],
+    });
+  }
+
+  async updateCollectionInstruction(
+    instructionId: string,
+    instructionName: string
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionInstruction(instructionName, {
+      accounts: {
+        authority: this.writer.provider.wallet.publicKey,
+        instruction: new PublicKey(instructionId),
+      },
+    });
+  }
+
+  async deleteCollectionInstruction(instructionId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionInstruction({
+      accounts: {
+        instruction: new PublicKey(instructionId),
+        authority: this.wallet.publicKey,
+      },
+    });
   }
 
   async getCollectionInstructions(
@@ -357,31 +486,71 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [argumentId, argumentBump] =
-      await findCollectionInstructionArgumentAddress(
-        new PublicKey(applicationId),
-        new PublicKey(collectionId),
-        new PublicKey(instructionId),
-        argumentName
-      );
+    const argument = Keypair.generate();
 
     return this.writer.rpc.createCollectionInstructionArgument(
       argumentName,
       argumentKind,
       argumentModifier,
       argumentSize,
-      argumentBump,
       {
         accounts: {
           authority: this.writer.provider.wallet.publicKey,
           application: new PublicKey(applicationId),
           collection: new PublicKey(collectionId),
           instruction: new PublicKey(instructionId),
-          argument: argumentId,
+          argument: argument.publicKey,
           systemProgram: SystemProgram.programId,
+        },
+        signers: [argument],
+      }
+    );
+  }
+
+  async updateCollectionInstructionArgument(
+    argumentId: string,
+    argumentName: string,
+    argumentKind: number,
+    argumentModifier: number,
+    argumentSize: number
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionInstructionArgument(
+      argumentName,
+      argumentKind,
+      argumentModifier,
+      argumentSize,
+      {
+        accounts: {
+          authority: this.writer.provider.wallet.publicKey,
+          argument: new PublicKey(argumentId),
         },
       }
     );
+  }
+
+  async deleteCollectionInstructionArgument(argumentId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionInstructionArgument({
+      accounts: {
+        argument: new PublicKey(argumentId),
+        authority: this.wallet.publicKey,
+      },
+    });
   }
 
   async getCollectionInstructionArguments(
@@ -411,7 +580,8 @@ export class DemobaseService {
     instructionId: string,
     accountName: string,
     accountKind: number,
-    accountCollectionId: string
+    accountCollectionId: string,
+    accountMarkAttribute: number
   ) {
     if (!this.writer) {
       throw Error('Program is not available');
@@ -421,17 +591,12 @@ export class DemobaseService {
       throw Error('Wallet is not available');
     }
 
-    const [accountId, accountBump] = await findInstructionAccountAddress(
-      new PublicKey(applicationId),
-      new PublicKey(collectionId),
-      new PublicKey(instructionId),
-      accountName
-    );
+    const account = Keypair.generate();
 
     return this.writer.rpc.createCollectionInstructionAccount(
       accountName,
       accountKind,
-      accountBump,
+      accountMarkAttribute,
       {
         accounts: {
           authority: this.wallet.publicKey,
@@ -439,11 +604,58 @@ export class DemobaseService {
           collection: new PublicKey(collectionId),
           instruction: new PublicKey(instructionId),
           accountCollection: new PublicKey(accountCollectionId),
-          account: accountId,
+          account: account.publicKey,
           systemProgram: SystemProgram.programId,
+        },
+        signers: [account],
+      }
+    );
+  }
+
+  async updateCollectionInstructionAccount(
+    accountId: string,
+    accountName: string,
+    accountKind: number,
+    accountCollectionId: string,
+    accountMarkAttribute: number
+  ) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.updateCollectionInstructionAccount(
+      accountName,
+      accountKind,
+      accountMarkAttribute,
+      {
+        accounts: {
+          authority: this.writer.provider.wallet.publicKey,
+          account: new PublicKey(accountId),
+          accountCollection: new PublicKey(accountCollectionId),
         },
       }
     );
+  }
+
+  async deleteCollectionInstructionAccount(accountId: string) {
+    if (!this.writer) {
+      throw Error('Program is not available');
+    }
+
+    if (!this.wallet) {
+      throw Error('Wallet is not available');
+    }
+
+    return this.writer.rpc.deleteCollectionInstructionAccount({
+      accounts: {
+        account: new PublicKey(accountId),
+        authority: this.wallet.publicKey,
+      },
+    });
   }
 
   async getCollectionInstructionAccounts(
@@ -464,99 +676,6 @@ export class DemobaseService {
 
     return programAccounts.map(({ account, publicKey }) =>
       InstructionAccountParser(publicKey, account)
-    );
-  }
-
-  async createCollectionInstructionAccountBoolAttribute(
-    applicationId: string,
-    collectionId: string,
-    instructionId: string,
-    accountId: string,
-    kind: number
-  ) {
-    if (!this.writer) {
-      throw Error('Program is not available');
-    }
-
-    if (!this.wallet) {
-      throw Error('Wallet is not available');
-    }
-
-    const [attributeId, attributeBump] = await findAccountBoolAttributeAddress(
-      new PublicKey(applicationId),
-      new PublicKey(collectionId),
-      new PublicKey(instructionId),
-      new PublicKey(accountId)
-    );
-
-    return this.writer.rpc.createAccountBoolAttribute(kind, attributeBump, {
-      accounts: {
-        authority: this.wallet.publicKey,
-        application: new PublicKey(applicationId),
-        collection: new PublicKey(collectionId),
-        instruction: new PublicKey(instructionId),
-        account: new PublicKey(accountId),
-        attribute: attributeId,
-        systemProgram: SystemProgram.programId,
-      },
-    });
-  }
-
-  async updateCollectionInstructionAccountBoolAttribute(
-    attributeId: string,
-    kind: number
-  ) {
-    if (!this.writer) {
-      throw Error('Program is not available');
-    }
-
-    if (!this.wallet) {
-      throw Error('Wallet is not available');
-    }
-
-    return this.writer.rpc.updateAccountBoolAttribute(kind, {
-      accounts: {
-        authority: this.wallet.publicKey,
-        attribute: attributeId,
-      },
-    });
-  }
-
-  async deleteCollectionInstructionAccountBoolAttribute(attributeId: string) {
-    if (!this.writer) {
-      throw Error('Program is not available');
-    }
-
-    if (!this.wallet) {
-      throw Error('Wallet is not available');
-    }
-
-    return this.writer.rpc.deleteAccountBoolAttribute({
-      accounts: {
-        authority: this.wallet.publicKey,
-        attribute: attributeId,
-      },
-    });
-  }
-
-  async getCollectionInstructionBoolAttributes(
-    instructionId: string
-  ): Promise<AccountBoolAttribute[]> {
-    if (!this.reader) {
-      throw Error('Program is not available');
-    }
-
-    const programAccounts = await this.reader.account.accountBoolAttribute.all([
-      {
-        memcmp: {
-          bytes: instructionId,
-          offset: 104,
-        },
-      },
-    ]);
-
-    return programAccounts.map(({ account, publicKey }) =>
-      AccountBoolAttributeParser(publicKey, account)
     );
   }
 }

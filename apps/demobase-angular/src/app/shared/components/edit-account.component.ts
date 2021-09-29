@@ -1,18 +1,24 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Collection, DemobaseService } from '@demobase-labs/demobase-sdk';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {
+  Collection,
+  DemobaseService,
+  InstructionAccount,
+} from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
-  selector: 'demobase-create-account',
+  selector: 'demobase-edit-account',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Create account</h2>
+    <h2 mat-dialog-title class="mat-primary">
+      {{ data.account ? 'Edit' : 'Create' }} account
+    </h2>
 
     <form
       [formGroup]="accountGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onCreateAccount()"
+      (ngSubmit)="onEditAccount()"
     >
       <mat-form-field
         class="w-full"
@@ -56,7 +62,7 @@ import { BehaviorSubject } from 'rxjs';
         appearance="fill"
         hintLabel="Select a collection."
       >
-        <mat-label>Modifier</mat-label>
+        <mat-label>Collection</mat-label>
         <mat-select formControlName="collection">
           <mat-option
             *ngFor="let collection of collections$ | ngrxPush"
@@ -69,19 +75,34 @@ import { BehaviorSubject } from 'rxjs';
         <mat-error *ngIf="submitted">The collection is required.</mat-error>
       </mat-form-field>
 
+      <mat-form-field
+        class="w-full"
+        appearance="fill"
+        hintLabel="Select a mark attribute."
+      >
+        <mat-label>Mark attribute</mat-label>
+        <mat-select formControlName="markAttribute">
+          <mat-option [value]="0">None</mat-option>
+          <mat-option [value]="1">Init</mat-option>
+          <mat-option [value]="2">Mut</mat-option>
+          <mat-option [value]="3">Zero</mat-option>
+        </mat-select>
+        <mat-error *ngIf="submitted">The mark attribute is required.</mat-error>
+      </mat-form-field>
+
       <button
         mat-stroked-button
         color="primary"
         class="w-full"
         [disabled]="submitted && accountGroup.invalid"
       >
-        Create
+        {{ data.account ? 'Save' : 'Create' }}
       </button>
     </form>
 
     <button
       mat-icon-button
-      aria-label="Close create account form"
+      aria-label="Close edit account form"
       class="w-8 h-8 leading-none absolute top-0 right-0"
       mat-dialog-close
     >
@@ -89,13 +110,14 @@ import { BehaviorSubject } from 'rxjs';
     </button>
   `,
 })
-export class CreateAccountComponent implements OnInit {
+export class EditAccountComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly accountGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
     kind: new FormControl(0, { validators: [Validators.required] }),
     collection: new FormControl(null, { validators: [Validators.required] }),
+    markAttribute: new FormControl(0, { validators: [Validators.required] }),
   });
   get nameControl() {
     return this.accountGroup.get('name') as FormControl;
@@ -106,23 +128,39 @@ export class CreateAccountComponent implements OnInit {
   get collectionControl() {
     return this.accountGroup.get('collection') as FormControl;
   }
+  get markAttributeControl() {
+    return this.accountGroup.get('markAttribute') as FormControl;
+  }
 
   private readonly _collections = new BehaviorSubject<Collection[]>([]);
   readonly collections$ = this._collections.asObservable();
 
   constructor(
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialogRef: MatDialogRef<CreateAccountComponent>,
+    private readonly _matDialogRef: MatDialogRef<EditAccountComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data: {
       applicationId: string;
       collectionId: string;
       instructionId: string;
+      account?: InstructionAccount;
     }
   ) {}
 
   ngOnInit() {
     this._getCollections();
+
+    if (this.data.account) {
+      this.accountGroup.setValue(
+        {
+          name: this.data.account.data.name,
+          kind: this.data.account.data.kind.id,
+          collection: this.data.account.data.accountCollection,
+          markAttribute: this.data.account.data.markAttribute.id,
+        },
+        { emitEvent: false }
+      );
+    }
   }
 
   private async _getCollections() {
@@ -134,19 +172,32 @@ export class CreateAccountComponent implements OnInit {
     }
   }
 
-  async onCreateAccount() {
+  async onEditAccount() {
     this.submitted = true;
     this.accountGroup.markAllAsTouched();
 
     if (this.accountGroup.valid) {
-      await this._demobaseService.createCollectionInstructionAccount(
-        this.data.applicationId,
-        this.data.collectionId,
-        this.data.instructionId,
-        this.nameControl.value,
-        this.kindControl.value,
-        this.collectionControl.value
-      );
+      const account = this.data.account;
+
+      if (account) {
+        await this._demobaseService.updateCollectionInstructionAccount(
+          account.id,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.collectionControl.value,
+          this.markAttributeControl.value
+        );
+      } else {
+        await this._demobaseService.createCollectionInstructionAccount(
+          this.data.applicationId,
+          this.data.collectionId,
+          this.data.instructionId,
+          this.nameControl.value,
+          this.kindControl.value,
+          this.collectionControl.value,
+          this.markAttributeControl.value
+        );
+      }
       this._matDialogRef.close();
     }
   }

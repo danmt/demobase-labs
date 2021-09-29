@@ -29,12 +29,49 @@
       ]
     },
     {
+      "name": "updateApplication",
+      "accounts": [
+        {
+          "name": "application",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleteApplication",
+      "accounts": [
+        {
+          "name": "application",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createCollection",
       "accounts": [
         {
           "name": "collection",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "application",
@@ -56,12 +93,45 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "bump",
-          "type": "u8"
         }
       ]
+    },
+    {
+      "name": "updateCollection",
+      "accounts": [
+        {
+          "name": "collection",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleteCollection",
+      "accounts": [
+        {
+          "name": "collection",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
     },
     {
       "name": "createCollectionAttribute",
@@ -69,7 +139,7 @@
         {
           "name": "attribute",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "application",
@@ -108,12 +178,57 @@
         {
           "name": "size",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "updateCollectionAttribute",
+      "accounts": [
+        {
+          "name": "attribute",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "bump",
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "modifier",
+          "type": "u8"
+        },
+        {
+          "name": "size",
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "deleteCollectionAttribute",
+      "accounts": [
+        {
+          "name": "attribute",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
     },
     {
       "name": "createCollectionInstruction",
@@ -121,7 +236,7 @@
         {
           "name": "instruction",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "application",
@@ -148,12 +263,45 @@
         {
           "name": "name",
           "type": "string"
-        },
-        {
-          "name": "bump",
-          "type": "u8"
         }
       ]
+    },
+    {
+      "name": "updateCollectionInstruction",
+      "accounts": [
+        {
+          "name": "instruction",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleteCollectionInstruction",
+      "accounts": [
+        {
+          "name": "instruction",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
     },
     {
       "name": "createCollectionInstructionArgument",
@@ -161,7 +309,7 @@
         {
           "name": "argument",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "application",
@@ -205,12 +353,57 @@
         {
           "name": "size",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "updateCollectionInstructionArgument",
+      "accounts": [
+        {
+          "name": "argument",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "bump",
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "modifier",
+          "type": "u8"
+        },
+        {
+          "name": "size",
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "deleteCollectionInstructionArgument",
+      "accounts": [
+        {
+          "name": "argument",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
     },
     {
       "name": "createCollectionInstructionAccount",
@@ -218,7 +411,7 @@
         {
           "name": "account",
           "isMut": true,
-          "isSigner": false
+          "isSigner": true
         },
         {
           "name": "application",
@@ -261,67 +454,22 @@
           "type": "u8"
         },
         {
-          "name": "bump",
+          "name": "markAttribute",
           "type": "u8"
         }
       ]
     },
     {
-      "name": "createAccountBoolAttribute",
+      "name": "updateCollectionInstructionAccount",
       "accounts": [
-        {
-          "name": "attribute",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "application",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "collection",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "instruction",
-          "isMut": false,
-          "isSigner": false
-        },
         {
           "name": "account",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
+          "name": "accountCollection",
           "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "kind",
-          "type": "u8"
-        },
-        {
-          "name": "bump",
-          "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "updateAccountBoolAttribute",
-      "accounts": [
-        {
-          "name": "attribute",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -332,16 +480,24 @@
       ],
       "args": [
         {
+          "name": "name",
+          "type": "string"
+        },
+        {
           "name": "kind",
+          "type": "u8"
+        },
+        {
+          "name": "markAttribute",
           "type": "u8"
         }
       ]
     },
     {
-      "name": "deleteAccountBoolAttribute",
+      "name": "deleteCollectionInstructionAccount",
       "accounts": [
         {
-          "name": "attribute",
+          "name": "account",
           "isMut": true,
           "isSigner": false
         },
@@ -391,10 +547,6 @@
             "type": {
               "array": ["u8", 32]
             }
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -433,10 +585,6 @@
             "type": {
               "defined": "AttributeKindModifier"
             }
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -463,10 +611,6 @@
             "type": {
               "array": ["u8", 32]
             }
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -509,10 +653,6 @@
             "type": {
               "defined": "AttributeKindModifier"
             }
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -555,46 +695,10 @@
             }
           },
           {
-            "name": "bump",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "AccountBoolAttribute",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "publicKey"
-          },
-          {
-            "name": "application",
-            "type": "publicKey"
-          },
-          {
-            "name": "collection",
-            "type": "publicKey"
-          },
-          {
-            "name": "instruction",
-            "type": "publicKey"
-          },
-          {
-            "name": "account",
-            "type": "publicKey"
-          },
-          {
-            "name": "kind",
+            "name": "markAttribute",
             "type": {
-              "defined": "AccountBoolAttributeKind"
+              "defined": "MarkAttribute"
             }
-          },
-          {
-            "name": "bump",
-            "type": "u8"
           }
         ]
       }
@@ -610,6 +714,10 @@
             "name": "U8",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -618,6 +726,10 @@
           {
             "name": "U16",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -628,6 +740,10 @@
             "name": "U32",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -636,6 +752,10 @@
           {
             "name": "U64",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -646,6 +766,10 @@
             "name": "U128",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -654,6 +778,10 @@
           {
             "name": "Pubkey",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -672,6 +800,10 @@
             "name": "None",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -681,6 +813,10 @@
             "name": "Array",
             "fields": [
               {
+                "name": "id",
+                "type": "u8"
+              },
+              {
                 "name": "size",
                 "type": "u8"
               }
@@ -689,6 +825,10 @@
           {
             "name": "Vector",
             "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              },
               {
                 "name": "size",
                 "type": "u8"
@@ -704,30 +844,75 @@
         "kind": "enum",
         "variants": [
           {
-            "name": "Account"
+            "name": "Account",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Signer"
+            "name": "Signer",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Program"
+            "name": "Program",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           }
         ]
       }
     },
     {
-      "name": "AccountBoolAttributeKind",
+      "name": "MarkAttribute",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "Init"
+            "name": "None",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Mut"
+            "name": "Init",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           },
           {
-            "name": "Zero"
+            "name": "Mut",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
+          },
+          {
+            "name": "Zero",
+            "fields": [
+              {
+                "name": "id",
+                "type": "u8"
+              }
+            ]
           }
         ]
       }
@@ -741,8 +926,8 @@
     },
     {
       "code": 301,
-      "name": "InvalidAttributeKindModifier",
-      "msg": "Invalid attribute kind modifier"
+      "name": "InvalidAttributeModifier",
+      "msg": "Invalid attribute modifier"
     },
     {
       "code": 302,
@@ -751,8 +936,8 @@
     },
     {
       "code": 303,
-      "name": "InvalidAccountAttributeKind",
-      "msg": "Invalid account attribute kind"
+      "name": "InvalidMarkAttribute",
+      "msg": "Invalid mark attribute"
     }
   ],
   "metadata": {

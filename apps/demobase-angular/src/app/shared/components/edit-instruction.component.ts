@@ -1,17 +1,22 @@
-import { Component, HostBinding, Inject } from '@angular/core';
+import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { DemobaseService } from '@demobase-labs/demobase-sdk';
+import {
+  CollectionInstruction,
+  DemobaseService,
+} from '@demobase-labs/demobase-sdk';
 
 @Component({
-  selector: 'demobase-create-instruction',
+  selector: 'demobase-edit-instruction',
   template: `
-    <h2 mat-dialog-title class="mat-primary">Create instruction</h2>
+    <h2 mat-dialog-title class="mat-primary">
+      {{ data.instruction ? 'Edit' : 'Create' }} instruction
+    </h2>
 
     <form
       [formGroup]="instructionGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onCreateInstruction()"
+      (ngSubmit)="onEditInstruction()"
     >
       <mat-form-field
         class="w-full"
@@ -42,13 +47,13 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
         class="w-full"
         [disabled]="submitted && instructionGroup.invalid"
       >
-        Create
+        {{ data.instruction ? 'Save' : 'Create' }}
       </button>
     </form>
 
     <button
       mat-icon-button
-      aria-label="Close create instruction form"
+      aria-label="Close edit instruction form"
       class="w-8 h-8 leading-none absolute top-0 right-0"
       mat-dialog-close
     >
@@ -56,7 +61,7 @@ import { DemobaseService } from '@demobase-labs/demobase-sdk';
     </button>
   `,
 })
-export class CreateInstructionComponent {
+export class EditInstructionComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly instructionGroup = new FormGroup({
@@ -69,21 +74,45 @@ export class CreateInstructionComponent {
 
   constructor(
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialogRef: MatDialogRef<CreateInstructionComponent>,
+    private readonly _matDialogRef: MatDialogRef<EditInstructionComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: { applicationId: string; collectionId: string }
+    public data: {
+      applicationId: string;
+      collectionId: string;
+      instruction?: CollectionInstruction;
+    }
   ) {}
 
-  async onCreateInstruction() {
+  ngOnInit() {
+    if (this.data.instruction) {
+      this.instructionGroup.setValue(
+        {
+          name: this.data.instruction.data.name,
+        },
+        { emitEvent: false }
+      );
+    }
+  }
+
+  async onEditInstruction() {
     this.submitted = true;
     this.instructionGroup.markAllAsTouched();
 
     if (this.instructionGroup.valid) {
-      await this._demobaseService.createCollectionInstruction(
-        this.data.applicationId,
-        this.data.collectionId,
-        this.nameControl.value
-      );
+      const instruction = this.data.instruction;
+
+      if (instruction) {
+        await this._demobaseService.updateCollectionInstruction(
+          instruction.id,
+          this.nameControl.value
+        );
+      } else {
+        await this._demobaseService.createCollectionInstruction(
+          this.data.applicationId,
+          this.data.collectionId,
+          this.nameControl.value
+        );
+      }
       this._matDialogRef.close();
     }
   }

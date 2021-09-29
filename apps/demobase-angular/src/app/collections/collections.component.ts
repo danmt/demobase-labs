@@ -10,8 +10,7 @@ import { Collection, DemobaseService } from '@demobase-labs/demobase-sdk';
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-
-import { CreateCollectionComponent } from './create-collection.component';
+import { EditCollectionComponent } from '../shared/components/edit-collection.component';
 
 @Component({
   selector: 'demobase-collections',
@@ -48,15 +47,40 @@ import { CreateCollectionComponent } from './create-collection.component';
             <mat-card class="w-full h-full">
               <h2>{{ collection.data.name }}</h2>
 
-              <a
-                [routerLink]="[
-                  '/collections',
-                  collection.data.application,
-                  collection.id
-                ]"
+              <p>
+                <a
+                  [routerLink]="[
+                    '/collections',
+                    collection.data.application,
+                    collection.id
+                  ]"
+                >
+                  view
+                </a>
+              </p>
+
+              <button
+                mat-mini-fab
+                color="primary"
+                [disabled]="(connected$ | ngrxPush) === false"
+                [attr.aria-label]="
+                  'Edit ' + collection.data.name + ' collection'
+                "
+                (click)="onEditCollection(collection)"
               >
-                view
-              </a>
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-mini-fab
+                color="warn"
+                [attr.aria-label]="
+                  'Delete ' + collection.data.name + ' collection'
+                "
+                [disabled]="(connected$ | ngrxPush) === false"
+                (click)="onDeleteCollection(collection.id)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
             </mat-card>
           </mat-grid-tile>
         </mat-grid-list>
@@ -72,7 +96,7 @@ import { CreateCollectionComponent } from './create-collection.component';
         mat-fab
         color="primary"
         aria-label="Create collection"
-        (click)="onCreateCollection()"
+        (click)="onEditCollection()"
       >
         <mat-icon>add</mat-icon>
       </button>
@@ -125,7 +149,13 @@ export class CollectionsComponent implements OnInit {
     this._getCollections();
   }
 
-  onCreateCollection() {
-    this._matDialog.open(CreateCollectionComponent);
+  onEditCollection(collection?: Collection) {
+    this._matDialog.open(EditCollectionComponent, { data: { collection } });
+  }
+
+  onDeleteCollection(collectionId: string) {
+    if (confirm('Are you sure? This action cannot be reverted.')) {
+      this._demobaseService.deleteCollection(collectionId);
+    }
   }
 }
