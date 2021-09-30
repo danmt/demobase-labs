@@ -12,7 +12,7 @@ import { BehaviorSubject } from 'rxjs';
   selector: 'demobase-edit-collection',
   template: `
     <h2 mat-dialog-title class="mat-primary">
-      {{ data.collection ? 'Edit' : 'Create' }} collection
+      {{ data?.collection ? 'Edit' : 'Create' }} collection
     </h2>
 
     <form
@@ -43,34 +43,13 @@ import { BehaviorSubject } from 'rxjs';
         >
       </mat-form-field>
 
-      <mat-form-field
-        class="w-full"
-        appearance="fill"
-        hintLabel="Select an application."
-        *ngIf="!data.collection && !data.applicationId"
-      >
-        <mat-label>Application</mat-label>
-        <mat-select formControlName="application">
-          <mat-option
-            *ngFor="let application of applications$ | ngrxPush"
-            [value]="application.id"
-          >
-            {{ application.data.name }} |
-            {{ application.id | obscureAddress }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="submitted && nameControl.errors?.maxlength"
-          >The application is required.</mat-error
-        >
-      </mat-form-field>
-
       <button
         mat-stroked-button
         color="primary"
         class="w-full"
         [disabled]="submitted && collectionGroup.invalid"
       >
-        {{ data.collection ? 'Save' : 'Create' }}
+        {{ data?.collection ? 'Save' : 'Create' }}
       </button>
     </form>
 
@@ -91,14 +70,10 @@ export class EditCollectionComponent implements OnInit {
     name: new FormControl('', {
       validators: [Validators.required, Validators.maxLength(32)],
     }),
-    application: new FormControl('', { validators: [Validators.required] }),
   });
 
   get nameControl() {
     return this.collectionGroup.get('name') as FormControl;
-  }
-  get applicationControl() {
-    return this.collectionGroup.get('application') as FormControl;
   }
 
   private readonly _applications = new BehaviorSubject<Application[]>([]);
@@ -108,8 +83,7 @@ export class EditCollectionComponent implements OnInit {
     private readonly _demobaseService: DemobaseService,
     private readonly _matDialogRef: MatDialogRef<EditCollectionComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: {
-      applicationId?: string;
+    public data?: {
       collection?: Collection;
     }
   ) {}
@@ -117,20 +91,10 @@ export class EditCollectionComponent implements OnInit {
   ngOnInit() {
     this._getApplications();
 
-    if (this.data.applicationId) {
-      this.collectionGroup.patchValue(
-        {
-          application: this.data.applicationId,
-        },
-        { emitEvent: false }
-      );
-    }
-
-    if (this.data.collection) {
+    if (this.data?.collection) {
       this.collectionGroup.setValue(
         {
           name: this.data.collection.data.name,
-          application: this.data.collection.data.application,
         },
         { emitEvent: false }
       );
@@ -151,20 +115,9 @@ export class EditCollectionComponent implements OnInit {
     this.collectionGroup.markAllAsTouched();
 
     if (this.collectionGroup.valid) {
-      const collection = this.data.collection;
-
-      if (collection) {
-        await this._demobaseService.updateCollection(
-          collection.id,
-          this.nameControl.value
-        );
-      } else {
-        await this._demobaseService.createCollection(
-          this.applicationControl.value,
-          this.nameControl.value
-        );
-      }
-      this._matDialogRef.close();
+      this._matDialogRef.close({
+        name: this.nameControl.value,
+      });
     }
   }
 }

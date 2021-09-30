@@ -29,6 +29,13 @@ import { ApplicationComponent } from './application.component';
                 (m) => m.CollectionModule
               ),
           },
+          {
+            path: 'instructions/:instructionId',
+            loadChildren: () =>
+              import('../instruction/instruction.module').then(
+                (m) => m.InstructionModule
+              ),
+          },
         ],
       },
     ]),

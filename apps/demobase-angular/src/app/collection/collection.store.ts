@@ -4,7 +4,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   Collection,
   CollectionAttribute,
-  CollectionInstruction,
   DemobaseService,
 } from '@demobase-labs/demobase-sdk';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
@@ -17,22 +16,26 @@ import {
   of,
   Subject,
 } from 'rxjs';
-import { concatMap, filter, tap, withLatestFrom } from 'rxjs/operators';
+import {
+  concatMap,
+  exhaustMap,
+  filter,
+  tap,
+  withLatestFrom,
+} from 'rxjs/operators';
+import { DemobaseStore } from '../core/stores/demobase.store';
 
 import { EditAttributeComponent } from '../shared/components/edit-attribute.component';
 import { EditCollectionComponent } from '../shared/components/edit-collection.component';
-import { EditInstructionComponent } from '../shared/components/edit-instruction.component';
 
 interface ViewModel {
   collection: Collection | null;
   attributes: CollectionAttribute[];
-  instructions: CollectionInstruction[];
 }
 
 const initialState: ViewModel = {
   collection: null,
   attributes: [],
-  instructions: [],
 };
 
 @Injectable()
@@ -55,13 +58,12 @@ export class CollectionStore extends ComponentStore<ViewModel> {
   );
   readonly collection$ = this.select(({ collection }) => collection);
   readonly attributes$ = this.select(({ attributes }) => attributes);
-  readonly instructions$ = this.select(({ instructions }) => instructions);
 
   constructor(
     private readonly _route: ActivatedRoute,
-    private readonly _router: Router,
     private readonly _demobaseService: DemobaseService,
-    private readonly _matDialog: MatDialog
+    private readonly _matDialog: MatDialog,
+    private readonly _demobaseStore: DemobaseStore
   ) {
     super(initialState);
   }
@@ -98,98 +100,67 @@ export class CollectionStore extends ComponentStore<ViewModel> {
     )
   );
 
-  readonly loadInstructions = this.effect(() =>
-    combineLatest([this.collectionId$, this.reload$]).pipe(
-      concatMap(([collectionId]) =>
-        from(
-          defer(() =>
-            this._demobaseService.getCollectionInstructions(collectionId)
-          )
-        ).pipe(
-          tapResponse(
-            (instructions) => this.patchState({ instructions }),
-            (error) => this._error.next(error)
-          )
-        )
+  readonly deleteCollectionAttribute = this.effect(
+    (attributeId$: Observable<string>) =>
+      attributeId$.pipe(
+        concatMap((attributeId) =>
+          this._demobaseStore.deleteCollectionAttribute(attributeId)
+        ),
+        tap(() => this._reload.next(null))
       )
+  );
+
+  readonly createCollectionAttribute = this.effect((action$) =>
+    action$.pipe(
+      concatMap(() =>
+        of(null).pipe(withLatestFrom(this.applicationId$, this.collectionId$))
+      ),
+      exhaustMap(([, applicationId, collectionId]) =>
+        this._matDialog
+          .open(EditAttributeComponent)
+          .afterClosed()
+          .pipe(
+            filter((data) => data),
+            concatMap(({ name, kind, modifier, size }) =>
+              this._demobaseStore.createCollectionAttribute(
+                applicationId,
+                collectionId,
+                name,
+                kind,
+                modifier,
+                size
+              )
+            )
+          )
+      ),
+      tap(() => this._reload.next(null))
     )
   );
 
-  openEditCollection = this.effect(
-    (collection$: Observable<Collection | undefined>) =>
-      collection$.pipe(
-        tap((collection) =>
-          this._matDialog.open(EditCollectionComponent, {
-            data: {
-              collection,
-            },
-          })
-        )
-      )
-  );
-
-  deleteCollection = this.effect((collectionId$: Observable<string>) =>
-    collectionId$.pipe(
-      tap((collectionId) =>
-        this._demobaseService.deleteCollection(collectionId)
-      )
-    )
-  );
-
-  openEditAttribute = this.effect(
-    (attribute$: Observable<CollectionAttribute | undefined>) =>
+  readonly updateCollectionAttribute = this.effect(
+    (attribute$: Observable<CollectionAttribute>) =>
       attribute$.pipe(
-        concatMap((attribute) =>
-          of(attribute).pipe(
-            withLatestFrom(this.applicationId$, this.collectionId$)
-          )
+        exhaustMap((attribute) =>
+          this._matDialog
+            .open(EditAttributeComponent, {
+              data: { attribute },
+            })
+            .afterClosed()
+            .pipe(
+              filter((data) => data),
+              concatMap(({ name, kind, modifier, size }) =>
+                this._demobaseStore.updateCollectionAttribute(
+                  attribute.id,
+                  name,
+                  kind,
+                  modifier,
+                  size
+                )
+              )
+            )
         ),
-        tap(([attribute, applicationId, collectionId]) =>
-          this._matDialog.open(EditAttributeComponent, {
-            data: {
-              applicationId,
-              collectionId,
-              attribute,
-            },
-          })
-        )
+        tap(() => this._reload.next(null))
       )
-  );
-
-  deleteAttribute = this.effect((attributeId$: Observable<string>) =>
-    attributeId$.pipe(
-      tap((attributeId) =>
-        this._demobaseService.deleteCollectionAttribute(attributeId)
-      )
-    )
-  );
-
-  openEditInstruction = this.effect(
-    (instruction$: Observable<CollectionInstruction | undefined>) =>
-      instruction$.pipe(
-        concatMap((instruction) =>
-          of(instruction).pipe(
-            withLatestFrom(this.applicationId$, this.collectionId$)
-          )
-        ),
-        tap(([instruction, applicationId, collectionId]) =>
-          this._matDialog.open(EditInstructionComponent, {
-            data: {
-              applicationId,
-              collectionId,
-              instruction,
-            },
-          })
-        )
-      )
-  );
-
-  deleteInstruction = this.effect((instructionId$: Observable<string>) =>
-    instructionId$.pipe(
-      tap((instructionId) =>
-        this._demobaseService.deleteCollectionInstruction(instructionId)
-      )
-    )
   );
 
   reload() {

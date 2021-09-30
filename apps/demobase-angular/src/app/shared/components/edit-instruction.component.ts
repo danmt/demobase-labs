@@ -1,16 +1,13 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import {
-  CollectionInstruction,
-  DemobaseService,
-} from '@demobase-labs/demobase-sdk';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Instruction } from '@demobase-labs/demobase-sdk';
 
 @Component({
   selector: 'demobase-edit-instruction',
   template: `
     <h2 mat-dialog-title class="mat-primary">
-      {{ data.instruction ? 'Edit' : 'Create' }} instruction
+      {{ data?.instruction ? 'Edit' : 'Create' }} instruction
     </h2>
 
     <form
@@ -47,7 +44,7 @@ import {
         class="w-full"
         [disabled]="submitted && instructionGroup.invalid"
       >
-        {{ data.instruction ? 'Save' : 'Create' }}
+        {{ data?.instruction ? 'Save' : 'Create' }}
       </button>
     </form>
 
@@ -73,18 +70,15 @@ export class EditInstructionComponent implements OnInit {
   }
 
   constructor(
-    private readonly _demobaseService: DemobaseService,
     private readonly _matDialogRef: MatDialogRef<EditInstructionComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: {
-      applicationId: string;
-      collectionId: string;
-      instruction?: CollectionInstruction;
+    public data?: {
+      instruction?: Instruction;
     }
   ) {}
 
   ngOnInit() {
-    if (this.data.instruction) {
+    if (this.data?.instruction) {
       this.instructionGroup.setValue(
         {
           name: this.data.instruction.data.name,
@@ -99,21 +93,7 @@ export class EditInstructionComponent implements OnInit {
     this.instructionGroup.markAllAsTouched();
 
     if (this.instructionGroup.valid) {
-      const instruction = this.data.instruction;
-
-      if (instruction) {
-        await this._demobaseService.updateCollectionInstruction(
-          instruction.id,
-          this.nameControl.value
-        );
-      } else {
-        await this._demobaseService.createCollectionInstruction(
-          this.data.applicationId,
-          this.data.collectionId,
-          this.nameControl.value
-        );
-      }
-      this._matDialogRef.close();
+      this._matDialogRef.close({ name: this.nameControl.value });
     }
   }
 }

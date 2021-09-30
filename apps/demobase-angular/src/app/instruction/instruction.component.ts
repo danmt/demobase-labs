@@ -1,25 +1,15 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostBinding,
-  OnInit,
-} from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import {
-  CollectionInstruction,
-  DemobaseService,
+  Instruction,
   InstructionAccount,
   InstructionArgument,
 } from '@demobase-labs/demobase-sdk';
-import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { ApplicationStore } from '../application/application.store';
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { EditAccountComponent } from '../shared/components/edit-account.component';
-import { EditArgumentComponent } from '../shared/components/edit-argument.component';
-import { EditInstructionComponent } from '../shared/components/edit-instruction.component';
+import { InstructionStore } from './instruction.store';
 
 @Component({
   selector: 'demobase-instruction',
@@ -42,7 +32,17 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
 
       <main>
         <section *ngrxLet="arguments$; let arguments">
-          <h2>Arguments</h2>
+          <h2>
+            Arguments
+            <button
+              mat-icon-button
+              (click)="onCreateInstructionArgument()"
+              [disabled]="(connected$ | ngrxPush) === false"
+              aria-label="Create instruction argument"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </h2>
 
           <mat-grid-list
             *ngIf="arguments.length > 0; else emptyList"
@@ -94,12 +94,22 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
         </section>
 
         <section *ngrxLet="accounts$; let accounts">
-          <h2>Accounts</h2>
+          <h2>
+            Accounts
+            <button
+              mat-icon-button
+              (click)="onCreateInstructionAccount()"
+              [disabled]="(connected$ | ngrxPush) === false"
+              aria-label="Create instruction account"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </h2>
 
           <mat-grid-list
             *ngIf="accounts.length > 0; else emptyList"
             [cols]="gridCols$ | ngrxPush"
-            rowHeight="13rem"
+            rowHeight="14rem"
             gutterSize="16"
           >
             <mat-grid-tile
@@ -111,7 +121,7 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
               <mat-card class="w-full h-full">
                 <h3>Name: {{ account.data.name }}</h3>
                 <p>Kind: {{ account.data.kind.name }}</p>
-                <p>Mark attribute: {{ account.data.markAttribute.name }}</p>
+                <p>Mark argument: {{ account.data.markAttribute.name }}</p>
                 <p>
                   Collection:
                   {{ account.data.collection | obscureAddress }}
@@ -150,53 +160,19 @@ import { EditInstructionComponent } from '../shared/components/edit-instruction.
             <p class="text-center text-xl">There's no accounts yet.</p>
           </ng-template>
         </section>
-
-        <button
-          *ngIf="connected$ | ngrxPush"
-          class="block fixed right-4 bottom-4"
-          mat-fab
-          color="primary"
-          aria-label="Create options"
-          [matMenuTriggerFor]="createMenu"
-        >
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
-          <button mat-menu-item (click)="onEditInstructionAccount()">
-            New account
-          </button>
-          <button mat-menu-item (click)="onEditInstructionArgument()">
-            New argument
-          </button>
-          <button mat-menu-item (click)="onEditInstruction(instruction)">
-            Edit instruction
-          </button>
-          <button mat-menu-item (click)="onDeleteInstruction(instruction.id)">
-            Delete instruction
-          </button>
-        </mat-menu>
       </main>
     </ng-container>
   `,
-  styles: [
-    `
-      .selected {
-        border: 2px solid red;
-      }
-    `,
-  ],
+  styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [InstructionStore],
 })
-export class InstructionComponent implements OnInit {
+export class InstructionComponent {
   @HostBinding('class') class = 'block p-4';
   readonly connected$ = this._walletStore.connected$;
-  private readonly _instruction =
-    new BehaviorSubject<CollectionInstruction | null>(null);
-  readonly instruction$ = this._instruction.asObservable();
-  private readonly _arguments = new BehaviorSubject<InstructionArgument[]>([]);
-  readonly arguments$ = this._arguments.asObservable();
-  private readonly _accounts = new BehaviorSubject<InstructionAccount[]>([]);
-  readonly accounts$ = this._accounts.asObservable();
+  readonly instruction$ = this._instructionStore.instruction$;
+  readonly arguments$ = this._instructionStore.arguments$;
+  readonly accounts$ = this._instructionStore.accounts$;
   readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
     map((activeBreakpoint) => {
       switch (activeBreakpoint) {
@@ -214,121 +190,45 @@ export class InstructionComponent implements OnInit {
   );
 
   constructor(
-    private readonly _route: ActivatedRoute,
     private readonly _walletStore: WalletStore,
-    private readonly _demobaseService: DemobaseService,
-    private readonly _matDialog: MatDialog,
-    private readonly _activeBreakpointService: ActiveBreakpointService
+    private readonly _activeBreakpointService: ActiveBreakpointService,
+    private readonly _instructionStore: InstructionStore,
+    private readonly _applicationStore: ApplicationStore
   ) {}
 
-  ngOnInit() {
-    this._getInstruction();
-    this._getArguments();
-    this._getAccounts();
-  }
-
-  private async _getInstruction() {
-    const instructionId = this._route.snapshot.paramMap.get('instructionId');
-
-    if (instructionId) {
-      try {
-        const instruction =
-          await this._demobaseService.getCollectionInstruction(instructionId);
-        this._instruction.next(instruction);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
-  private async _getArguments() {
-    const instructionId = this._route.snapshot.paramMap.get('instructionId');
-
-    if (instructionId) {
-      try {
-        const instructionArguments =
-          await this._demobaseService.getCollectionInstructionArguments(
-            instructionId
-          );
-        this._arguments.next(instructionArguments);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
-  private async _getAccounts() {
-    const instructionId = this._route.snapshot.paramMap.get('instructionId');
-
-    if (instructionId) {
-      try {
-        const accounts =
-          await this._demobaseService.getCollectionInstructionAccounts(
-            instructionId
-          );
-        this._accounts.next(accounts);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
   onReload() {
-    this._getInstruction();
-    this._getArguments();
-    this._getAccounts();
+    this._instructionStore.reload();
   }
 
-  onEditInstruction(instruction?: CollectionInstruction) {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-    const collectionId = this._route.snapshot.paramMap.get('collectionId');
-
-    if (applicationId && collectionId) {
-      this._matDialog.open(EditInstructionComponent, {
-        data: { applicationId, collectionId, instruction },
-      });
-    }
+  onEditInstruction(instruction: Instruction) {
+    this._applicationStore.updateInstruction(instruction);
   }
 
   onDeleteInstruction(instructionId: string) {
-    if (confirm('Are you sure? This action cannot be reverted.')) {
-      this._demobaseService.deleteCollectionInstruction(instructionId);
-    }
+    this._applicationStore.deleteInstruction(instructionId);
   }
 
-  onEditInstructionArgument(argument?: InstructionArgument) {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-    const collectionId = this._route.snapshot.paramMap.get('collectionId');
-    const instructionId = this._route.snapshot.paramMap.get('instructionId');
+  onCreateInstructionArgument() {
+    this._instructionStore.createInstructionArgument();
+  }
 
-    if (applicationId && collectionId && instructionId) {
-      this._matDialog.open(EditArgumentComponent, {
-        data: { applicationId, collectionId, instructionId, argument },
-      });
-    }
+  onEditInstructionArgument(argument: InstructionArgument) {
+    this._instructionStore.updateInstructionArgument(argument);
   }
 
   onDeleteInstructionArgument(argumentId: string) {
-    if (confirm('Are you sure? This action cannot be reverted.')) {
-      this._demobaseService.deleteCollectionInstructionArgument(argumentId);
-    }
+    this._instructionStore.deleteInstructionArgument(argumentId);
   }
 
-  onEditInstructionAccount(account?: InstructionAccount) {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-    const collectionId = this._route.snapshot.paramMap.get('collectionId');
-    const instructionId = this._route.snapshot.paramMap.get('instructionId');
+  onCreateInstructionAccount() {
+    this._instructionStore.createInstructionAccount();
+  }
 
-    if (applicationId && collectionId && instructionId) {
-      this._matDialog.open(EditAccountComponent, {
-        data: { applicationId, collectionId, instructionId, account },
-      });
-    }
+  onEditInstructionAccount(account: InstructionAccount) {
+    this._instructionStore.updateInstructionAccount(account);
   }
 
   onDeleteInstructionAccount(accountId: string) {
-    if (confirm('Are you sure? This action cannot be reverted.')) {
-      this._demobaseService.deleteCollectionInstructionAccount(accountId);
-    }
+    this._instructionStore.deleteInstructionAccount(accountId);
   }
 }

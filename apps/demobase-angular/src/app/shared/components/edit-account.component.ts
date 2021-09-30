@@ -12,7 +12,7 @@ import { BehaviorSubject } from 'rxjs';
   selector: 'demobase-edit-account',
   template: `
     <h2 mat-dialog-title class="mat-primary">
-      {{ data.account ? 'Edit' : 'Create' }} account
+      {{ data?.account ? 'Edit' : 'Create' }} account
     </h2>
 
     <form
@@ -96,7 +96,7 @@ import { BehaviorSubject } from 'rxjs';
         class="w-full"
         [disabled]="submitted && accountGroup.invalid"
       >
-        {{ data.account ? 'Save' : 'Create' }}
+        {{ data?.account ? 'Save' : 'Create' }}
       </button>
     </form>
 
@@ -139,10 +139,7 @@ export class EditAccountComponent implements OnInit {
     private readonly _demobaseService: DemobaseService,
     private readonly _matDialogRef: MatDialogRef<EditAccountComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: {
-      applicationId: string;
-      collectionId: string;
-      instructionId: string;
+    public data?: {
       account?: InstructionAccount;
     }
   ) {}
@@ -150,12 +147,12 @@ export class EditAccountComponent implements OnInit {
   ngOnInit() {
     this._getCollections();
 
-    if (this.data.account) {
+    if (this.data?.account) {
       this.accountGroup.setValue(
         {
           name: this.data.account.data.name,
           kind: this.data.account.data.kind.id,
-          collection: this.data.account.data.accountCollection,
+          collection: this.data.account.data.collection,
           markAttribute: this.data.account.data.markAttribute.id,
         },
         { emitEvent: false }
@@ -177,28 +174,12 @@ export class EditAccountComponent implements OnInit {
     this.accountGroup.markAllAsTouched();
 
     if (this.accountGroup.valid) {
-      const account = this.data.account;
-
-      if (account) {
-        await this._demobaseService.updateCollectionInstructionAccount(
-          account.id,
-          this.nameControl.value,
-          this.kindControl.value,
-          this.collectionControl.value,
-          this.markAttributeControl.value
-        );
-      } else {
-        await this._demobaseService.createCollectionInstructionAccount(
-          this.data.applicationId,
-          this.data.collectionId,
-          this.data.instructionId,
-          this.nameControl.value,
-          this.kindControl.value,
-          this.collectionControl.value,
-          this.markAttributeControl.value
-        );
-      }
-      this._matDialogRef.close();
+      this._matDialogRef.close({
+        name: this.nameControl.value,
+        kind: this.kindControl.value,
+        markAttribute: this.markAttributeControl.value,
+        collection: this.collectionControl.value,
+      });
     }
   }
 }

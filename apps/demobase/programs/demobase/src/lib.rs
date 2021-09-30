@@ -365,8 +365,8 @@ pub struct InstructionArgument {
 pub struct InstructionAccount {
     pub authority: Pubkey,
     pub application: Pubkey,
-    pub collection: Pubkey,
     pub instruction: Pubkey,
+    pub collection: Pubkey,
     pub name: [u8; 32],
     pub kind: AccountKind,
     pub mark_attribute: MarkAttribute,

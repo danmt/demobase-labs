@@ -17,6 +17,7 @@ import {
 
 import { AppComponent } from './app.component';
 import { CoreModule } from './core/core.module';
+import { DemobaseStore } from './core/stores/demobase.store';
 
 @NgModule({
   declarations: [AppComponent],
@@ -40,37 +41,6 @@ import { CoreModule } from './core/core.module';
               loadChildren: () =>
                 import('./application/application.module').then(
                   (m) => m.ApplicationModule
-                ),
-            },
-          ],
-        },
-        {
-          path: 'collections',
-          children: [
-            {
-              path: '',
-              loadChildren: () =>
-                import('./collections/collections.module').then(
-                  (m) => m.CollectionsModule
-                ),
-            },
-            {
-              path: ':applicationId/:collectionId',
-              loadChildren: () =>
-                import('./collection/collection.module').then(
-                  (m) => m.CollectionModule
-                ),
-            },
-          ],
-        },
-        {
-          path: 'instructions',
-          children: [
-            {
-              path: ':applicationId/:collectionId/:instructionId',
-              loadChildren: () =>
-                import('./instruction/instruction.module').then(
-                  (m) => m.InstructionModule
                 ),
             },
           ],
@@ -104,6 +74,7 @@ import { CoreModule } from './core/core.module';
     },
     ConnectionStore,
     WalletStore,
+    DemobaseStore,
   ],
   bootstrap: [AppComponent],
 })

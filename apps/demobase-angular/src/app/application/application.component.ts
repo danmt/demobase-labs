@@ -1,24 +1,11 @@
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostBinding,
-  OnInit,
-} from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
-import {
-  Application,
-  Collection,
-  DemobaseService,
-} from '@demobase-labs/demobase-sdk';
-import { BehaviorSubject } from 'rxjs';
+import { Collection, Instruction } from '@demobase-labs/demobase-sdk';
 import { map, shareReplay } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { EditApplicationComponent } from '../shared/components/edit-application.component';
-import { EditCollectionComponent } from '../shared/components/edit-collection.component';
+import { ApplicationStore } from './application.store';
 
 @Component({
   selector: 'demobase-application',
@@ -40,56 +27,101 @@ import { EditCollectionComponent } from '../shared/components/edit-collection.co
       </header>
 
       <main>
-        <section *ngrxLet="collections$; let collections">
-          <mat-sidenav-container class="sidenav-container" fullscreen>
-            <mat-sidenav
-              #drawer
-              class="sidenav"
-              [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-              [mode]="(isHandset$ | async) ? 'over' : 'side'"
-              [opened]="(isHandset$ | async) === false"
-            >
-              <h2 class="mt-4 text-center">Collections</h2>
-              <mat-nav-list *ngIf="collections.length > 0; else emptyList">
-                <a
-                  *ngFor="let collection of collections"
-                  mat-list-item
-                  [routerLink]="['collections', collection.id]"
+        <mat-sidenav-container class="sidenav-container" fullscreen>
+          <mat-sidenav
+            #drawer
+            class="sidenav"
+            [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+            [mode]="(isHandset$ | async) ? 'over' : 'side'"
+            [opened]="(isHandset$ | async) === false"
+          >
+            <ng-container *ngrxLet="collections$; let collections">
+              <h2 class="mt-4 text-center">
+                Collections
+                <button
+                  mat-icon-button
+                  (click)="onCreateCollection()"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  aria-label="Create collection"
                 >
-                  {{ collection.data.name }}
-                </a>
+                  <mat-icon>add</mat-icon>
+                </button>
+              </h2>
+              <mat-nav-list *ngIf="collections.length > 0">
+                <mat-list-item *ngFor="let collection of collections">
+                  <a matLine [routerLink]="['collections', collection.id]">
+                    {{ collection.data.name }}
+                  </a>
+
+                  <button
+                    mat-icon-button
+                    (click)="onEditCollection(collection)"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                    [attr.aria-label]="
+                      'Edit ' + collection.data.name + ' collection'
+                    "
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    (click)="onDeleteCollection(collection.id)"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                    [attr.aria-label]="
+                      'Delete ' + collection.data.name + ' collection'
+                    "
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-list-item>
               </mat-nav-list>
-            </mat-sidenav>
-            <mat-sidenav-content>
-              <router-outlet></router-outlet>
-            </mat-sidenav-content>
-          </mat-sidenav-container>
+            </ng-container>
+            <ng-container *ngrxLet="instructions$; let instructions">
+              <h2 class="mt-4 text-center">
+                Instructions
+                <button
+                  mat-icon-button
+                  (click)="onCreateInstruction()"
+                  [disabled]="(connected$ | ngrxPush) === false"
+                  aria-label="Create instruction"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+              </h2>
+              <mat-nav-list *ngIf="instructions.length > 0">
+                <mat-list-item *ngFor="let instruction of instructions">
+                  <a matLine [routerLink]="['instructions', instruction.id]">
+                    {{ instruction.data.name }}
+                  </a>
 
-          <ng-template #emptyList>
-            <p class="text-center text-xl">
-              This application doesn't have collections yet.
-            </p>
-          </ng-template>
-        </section>
-
-        <button
-          *ngIf="connected$ | ngrxPush"
-          class="block fixed right-4 bottom-4"
-          mat-fab
-          color="primary"
-          aria-label="Create options"
-          [matMenuTriggerFor]="createMenu"
-        >
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #createMenu="matMenu" xPosition="before" yPosition="above">
-          <button mat-menu-item (click)="onEditCollection()">
-            New collection
-          </button>
-          <button mat-menu-item (click)="onEditApplication(application)">
-            Edit application
-          </button>
-        </mat-menu>
+                  <button
+                    mat-icon-button
+                    (click)="onEditInstruction(instruction)"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                    [attr.aria-label]="
+                      'Edit ' + instruction.data.name + ' instruction'
+                    "
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    (click)="onDeleteInstruction(instruction.id)"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                    [attr.aria-label]="
+                      'Delete ' + instruction.data.name + ' instruction'
+                    "
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-list-item>
+              </mat-nav-list>
+            </ng-container>
+          </mat-sidenav>
+          <mat-sidenav-content>
+            <router-outlet></router-outlet>
+          </mat-sidenav-content>
+        </mat-sidenav-container>
       </main>
     </ng-container>
   `,
@@ -110,14 +142,14 @@ import { EditCollectionComponent } from '../shared/components/edit-collection.co
       }
     `,
   ],
+  providers: [ApplicationStore],
 })
-export class ApplicationComponent implements OnInit {
+export class ApplicationComponent {
   @HostBinding('class') class = 'block p-4';
   readonly connected$ = this._walletStore.connected$;
-  private readonly _application = new BehaviorSubject<Application | null>(null);
-  readonly application$ = this._application.asObservable();
-  private readonly _collections = new BehaviorSubject<Collection[]>([]);
-  readonly collections$ = this._collections.asObservable();
+  readonly application$ = this._applicationStore.application$;
+  readonly collections$ = this._applicationStore.collections$;
+  readonly instructions$ = this._applicationStore.instructions$;
   readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
     map((activeBreakpoint) => {
       switch (activeBreakpoint) {
@@ -141,81 +173,41 @@ export class ApplicationComponent implements OnInit {
     );
 
   constructor(
-    private readonly _route: ActivatedRoute,
-    private readonly _demobaseService: DemobaseService,
     private readonly _walletStore: WalletStore,
-    private readonly _matDialog: MatDialog,
     private readonly _activeBreakpointService: ActiveBreakpointService,
-    private readonly _breakpointObserver: BreakpointObserver
+    private readonly _breakpointObserver: BreakpointObserver,
+    private readonly _applicationStore: ApplicationStore
   ) {}
 
-  ngOnInit() {
-    this._getApplication();
-    this._getCollections();
-  }
-
-  private async _getApplication() {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-
-    if (applicationId) {
-      try {
-        const application = await this._demobaseService.getApplication(
-          applicationId
-        );
-        this._application.next(application);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
-  private async _getCollections() {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
-
-    if (applicationId) {
-      try {
-        const collections =
-          await this._demobaseService.getCollectionsByApplication(
-            applicationId
-          );
-        this._collections.next(collections);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-
   onReload() {
-    this._getApplication();
-    this._getCollections();
+    this._applicationStore.reload();
   }
 
-  onEditCollection(collection?: Collection) {
-    const applicationId = this._route.snapshot.paramMap.get('applicationId');
+  onCreateCollection() {
+    this._applicationStore.createCollection(
+      this._applicationStore.applicationId$
+    );
+  }
 
-    if (applicationId) {
-      this._matDialog.open(EditCollectionComponent, {
-        data: {
-          applicationId: !collection && applicationId,
-          collection,
-        },
-      });
-    }
+  onEditCollection(collection: Collection) {
+    this._applicationStore.updateCollection(collection);
   }
 
   onDeleteCollection(collectionId: string) {
-    if (confirm('Are you sure? This action cannot be reverted.')) {
-      this._demobaseService.deleteCollection(collectionId);
-    }
+    this._applicationStore.deleteCollection(collectionId);
   }
 
-  onEditApplication(application: Application) {
-    this._matDialog.open(EditApplicationComponent, { data: { application } });
+  onCreateInstruction() {
+    this._applicationStore.createInstruction(
+      this._applicationStore.applicationId$
+    );
   }
 
-  onDeleteApplication(applicationId: string) {
-    if (confirm('Are you sure? This action cannot be reverted.')) {
-      this._demobaseService.deleteApplication(applicationId);
-    }
+  onEditInstruction(instruction: Instruction) {
+    this._applicationStore.updateInstruction(instruction);
+  }
+
+  onDeleteInstruction(instructionId: string) {
+    this._applicationStore.deleteInstruction(instructionId);
   }
 }

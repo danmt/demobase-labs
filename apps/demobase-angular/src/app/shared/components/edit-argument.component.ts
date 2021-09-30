@@ -1,15 +1,14 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import {
-  DemobaseService,
-  InstructionArgument,
-} from '@demobase-labs/demobase-sdk';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { InstructionArgument } from '@demobase-labs/demobase-sdk';
 
 @Component({
   selector: 'demobase-edit-argument',
   template: `
-    <h2 mat-dialog-title class="mat-primary">{{ data.argument ? 'Edit' : 'Create' }} argument</h2>
+    <h2 mat-dialog-title class="mat-primary">
+      {{ data?.argument ? 'Edit' : 'Create' }} argument
+    </h2>
 
     <form
       [formGroup]="argumentGroup"
@@ -99,7 +98,7 @@ import {
         class="w-full"
         [disabled]="submitted && argumentGroup.invalid"
       >
-        {{ data.argument ? 'Save' : 'Create' }}
+        {{ data?.argument ? 'Save' : 'Create' }}
       </button>
     </form>
 
@@ -139,19 +138,15 @@ export class EditArgumentComponent implements OnInit {
   }
 
   constructor(
-    private readonly _demobaseService: DemobaseService,
     private readonly _matDialogRef: MatDialogRef<EditArgumentComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: {
-      applicationId: string;
-      collectionId: string;
-      instructionId: string;
+    public data?: {
       argument?: InstructionArgument;
     }
   ) {}
 
   ngOnInit() {
-    if (this.data.argument) {
+    if (this.data?.argument) {
       this.argumentGroup.setValue(
         {
           name: this.data.argument.data.name,
@@ -169,28 +164,12 @@ export class EditArgumentComponent implements OnInit {
     this.argumentGroup.markAllAsTouched();
 
     if (this.argumentGroup.valid) {
-      const argument = this.data.argument;
-
-      if (argument) {
-        await this._demobaseService.updateCollectionInstructionArgument(
-          argument.id,
-          this.nameControl.value,
-          this.kindControl.value,
-          this.modifierControl.value,
-          this.sizeControl.value
-        );
-      } else {
-        await this._demobaseService.createCollectionInstructionArgument(
-          this.data.applicationId,
-          this.data.collectionId,
-          this.data.instructionId,
-          this.nameControl.value,
-          this.kindControl.value,
-          this.modifierControl.value,
-          this.sizeControl.value
-        );
-      }
-      this._matDialogRef.close();
+      this._matDialogRef.close({
+        name: this.nameControl.value,
+        kind: this.kindControl.value,
+        modifier: this.modifierControl.value,
+        size: this.sizeControl.value,
+      });
     }
   }
 }

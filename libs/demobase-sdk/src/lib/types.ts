@@ -49,22 +49,20 @@ export interface CollectionAttribute {
   data: CollectionAttributeInfo;
 }
 
-export interface CollectionInstructionInfo {
+export interface InstructionInfo {
   authority: string;
   application: string;
-  collection: string;
   name: string;
 }
 
-export interface CollectionInstruction {
+export interface Instruction {
   id: string;
-  data: CollectionInstructionInfo;
+  data: InstructionInfo;
 }
 
 export interface InstructionArgumentInfo {
   authority: string;
   application: string;
-  collection: string;
   instruction: string;
   name: string;
   kind: {
@@ -94,7 +92,6 @@ export interface InstructionAccountInfo {
     id: number;
     name: string;
   };
-  accountCollection: string;
   markAttribute: {
     id: number;
     name: string;
