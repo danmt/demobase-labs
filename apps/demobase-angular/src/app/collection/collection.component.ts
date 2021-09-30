@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostBinding,
-  OnInit,
-} from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import {
   Collection,
@@ -39,63 +33,26 @@ import { CollectionStore } from './collection.store';
         <mat-tab-group mat-align-tabs="start">
           <mat-tab label="Instructions">
             <section *ngrxLet="instructions$; let instructions">
-              <mat-grid-list
-                *ngIf="instructions.length > 0; else emptyList"
-                [cols]="gridCols$ | ngrxPush"
-                rowHeight="10rem"
-                gutterSize="16"
-              >
-                <mat-grid-tile
-                  *ngFor="let instruction of instructions"
-                  [colspan]="1"
-                  [rowspan]="1"
-                  class="overflow-visible"
-                >
-                  <mat-card class="w-full h-full">
-                    <h3>Name: {{ instruction.data.name }}</h3>
-                    <p>
-                      <a
-                        [routerLink]="[
-                          '/instructions',
-                          collection.data.application,
-                          collection.id,
-                          instruction.id
-                        ]"
-                        >view</a
-                      >
-                    </p>
-                    <button
-                      mat-mini-fab
-                      color="primary"
-                      [attr.aria-label]="
-                        'Edit ' + instruction.data.name + ' instruction'
-                      "
-                      [disabled]="(connected$ | ngrxPush) === false"
-                      (click)="onEditInstruction(instruction)"
-                    >
-                      <mat-icon>edit</mat-icon>
-                    </button>
-                    <button
-                      mat-mini-fab
-                      color="warn"
-                      [disabled]="(connected$ | ngrxPush) === false"
-                      [attr.aria-label]="
-                        'Delete ' + instruction.data.name + ' instruction'
-                      "
-                      (click)="onDeleteInstruction(instruction.id)"
-                    >
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </mat-card>
-                </mat-grid-tile>
-              </mat-grid-list>
-
-              <ng-template #emptyList>
-                <p class="text-center text-xl">There's no instructions yet.</p>
-              </ng-template>
+              <demobase-collection-instructions
+                [instructions]="instructions"
+                [connected]="connected$ | ngrxPush"
+                (createInstruction)="onEditInstruction()"
+                (editInstruction)="onEditInstruction($event)"
+                (deleteInstruction)="onDeleteInstruction($event)"
+              ></demobase-collection-instructions>
             </section>
           </mat-tab>
-          <mat-tab label="Context">Context</mat-tab>
+          <mat-tab label="Context">
+            <section *ngrxLet="instructions$; let instructions">
+              <demobase-collection-context
+                [instructions]="instructions"
+                [connected]="connected$ | ngrxPush"
+                (createInstruction)="onEditInstruction()"
+                (editInstruction)="onEditInstruction($event)"
+                (deleteInstruction)="onDeleteInstruction($event)"
+              ></demobase-collection-context>
+            </section>
+          </mat-tab>
           <mat-tab label="Account">
             <section *ngrxLet="attributes$; let attributes">
               <mat-grid-list
@@ -193,7 +150,7 @@ import { CollectionStore } from './collection.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CollectionStore],
 })
-export class CollectionComponent implements OnInit {
+export class CollectionComponent {
   @HostBinding('class') class = 'block p-4';
   readonly connected$ = this._walletStore.connected$;
   readonly collection$ = this._collectionStore.collection$;
@@ -216,20 +173,12 @@ export class CollectionComponent implements OnInit {
   );
 
   constructor(
-    private readonly _route: ActivatedRoute,
     private readonly _walletStore: WalletStore,
     private readonly _activeBreakpointService: ActiveBreakpointService,
     private readonly _collectionStore: CollectionStore
   ) {}
 
-  ngOnInit() {
-    this._collectionStore.state$.subscribe((a) => console.log(a));
-
-    console.log(this._route);
-  }
-
   onReload() {
-    console.log('reload');
     this._collectionStore.reload();
   }
 

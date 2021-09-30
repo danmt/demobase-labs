@@ -13,6 +13,10 @@ import { ReactiveComponentModule } from '@ngrx/component';
 import { SharedModule } from '../shared/shared.module';
 import { CollectionComponent } from './collection.component';
 
+import { MatExpansionModule } from '@angular/material/expansion';
+import { CollectionInstructionsComponent } from './instructions.component';
+import { CollectionContextComponent } from './context.component';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -26,6 +30,7 @@ import { CollectionComponent } from './collection.component';
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
+    MatExpansionModule,
     MatGridListModule,
     MatIconModule,
     MatMenuModule,
@@ -33,6 +38,10 @@ import { CollectionComponent } from './collection.component';
     ReactiveComponentModule,
     SharedModule,
   ],
-  declarations: [CollectionComponent],
+  declarations: [
+    CollectionComponent,
+    CollectionInstructionsComponent,
+    CollectionContextComponent,
+  ],
 })
 export class CollectionModule {}
