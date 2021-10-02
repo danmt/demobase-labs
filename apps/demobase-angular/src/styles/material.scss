@@ -6,7 +6,6 @@
 @import 'https://fonts.googleapis.com/css?family=Material+Icons';
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400&display=swap');
 
-
 @include mat.core($fontConfig);
 
 $theme: set-light-theme($theme-primary, $theme-accent, $theme-warn);
@@ -22,26 +21,27 @@ $darkTheme: set-dark-theme($theme-primary, $theme-accent, $theme-warn);
 // Specific component overrides, pieces that are not in line with the general theming
 
 // Handle buttons appropriately, with respect to line-height
-.mat-raised-button, .mat-stroked-button, .mat-flat-button {
+.mat-raised-button,
+.mat-stroked-button,
+.mat-flat-button {
   padding: 0 1.15em;
-  margin: 0 .65em;
+  margin: 0 0.65em;
   min-width: 3em;
-  line-height: 36.4px
+  line-height: 36.4px;
 }
 
 .mat-standard-chip {
-  padding: .5em .85em;
+  padding: 0.5em 0.85em;
   min-height: 2.5em;
 }
 
 .material-icons {
   font-size: 24px;
-  font-family: 'Material Icons', 'Material Icons';  
+  font-family: 'Material Icons', 'Material Icons';
   .mat-badge-content {
     font-family: 'Roboto';
   }
 }
-
 
 // Custom
 //// Handle buttons appropriately, with respect to line-height
@@ -80,5 +80,28 @@ mat-icon {
 }
 
 .mat-dialog-container {
-    padding: 1rem !important;
+  padding: 1rem !important;
+}
+
+.mat-sidenav {
+  .mat-nav-list {
+    padding: 0 !important;
+  }
+
+  .mat-expansion-panel-body {
+    padding: 0;
+  }
+
+  .mat-expansion-panel {
+    border-radius: 0 !important;
+  }
+
+  .mat-expansion-panel-header {
+    padding: 16px !important;
+  }
+
+  .mat-expansion-panel-header,
+  .mat-expansion-panel-header .mat-expanded {
+    height: 48px !important;
+  }
 }

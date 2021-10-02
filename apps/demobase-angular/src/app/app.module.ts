@@ -1,23 +1,14 @@
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
-import {
-  ConnectionStore,
-  WALLET_CONFIG,
-  WalletStore,
-} from '@danmt/wallet-adapter-angular';
-import { DemobaseService } from '@demobase-labs/demobase-sdk';
-import { ReactiveComponentModule } from '@ngrx/component';
+import { WALLET_CONFIG } from '@danmt/wallet-adapter-angular';
 import {
   getPhantomWallet,
   getSolletWallet,
 } from '@solana/wallet-adapter-wallets';
 
 import { AppComponent } from './app.component';
-import { CoreModule } from './core/core.module';
-import { DemobaseStore } from './core/stores/demobase.store';
 
 @NgModule({
   declarations: [AppComponent],
@@ -27,27 +18,11 @@ import { DemobaseStore } from './core/stores/demobase.store';
     RouterModule.forRoot(
       [
         {
-          path: 'applications',
-          children: [
-            {
-              path: '',
-              loadChildren: () =>
-                import('./applications/applications.module').then(
-                  (m) => m.ApplicationsModule
-                ),
-            },
-            {
-              path: ':applicationId',
-              loadChildren: () =>
-                import('./application/application.module').then(
-                  (m) => m.ApplicationModule
-                ),
-            },
-          ],
-        },
-        {
-          path: '**',
-          redirectTo: 'applications',
+          path: '',
+          loadChildren: () =>
+            import('@demobase-labs/application/shell').then(
+              (m) => m.ShellModule
+            ),
         },
       ],
       {
@@ -56,10 +31,8 @@ import { DemobaseStore } from './core/stores/demobase.store';
         onSameUrlNavigation: 'reload',
       }
     ),
-    ReactiveFormsModule,
-    ReactiveComponentModule,
-    CoreModule,
   ],
+  bootstrap: [AppComponent],
   providers: [
     {
       provide: WALLET_CONFIG,
@@ -68,14 +41,6 @@ import { DemobaseStore } from './core/stores/demobase.store';
         autoConnect: true,
       },
     },
-    {
-      provide: DemobaseService,
-      useClass: DemobaseService,
-    },
-    ConnectionStore,
-    WalletStore,
-    DemobaseStore,
   ],
-  bootstrap: [AppComponent],
 })
 export class AppModule {}
