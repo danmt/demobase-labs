@@ -24,8 +24,17 @@
       "@demobase-labs/application/application/data-access/instruction": [
         "libs/application/application/data-access/instruction/src/index.ts"
       ],
+      "@demobase-labs/application/application/data-access/tabs": [
+        "libs/application/application/data-access/tabs/src/index.ts"
+      ],
       "@demobase-labs/application/application/features/view-application": [
         "libs/application/application/features/view-application/src/index.ts"
+      ],
+      "@demobase-labs/application/application/features/view-collection": [
+        "libs/application/application/features/view-collection/src/index.ts"
+      ],
+      "@demobase-labs/application/application/features/view-instruction": [
+        "libs/application/application/features/view-instruction/src/index.ts"
       ],
       "@demobase-labs/application/application/shell": [
         "libs/application/application/shell/src/index.ts"

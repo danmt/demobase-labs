@@ -18,7 +18,11 @@ import { map, shareReplay } from 'rxjs/operators';
 @Component({
   selector: 'demobase-labs-application-navigation',
   template: `
-    <mat-sidenav-container class="h-full" fullscreen>
+    <mat-sidenav-container
+      class="h-full"
+      fullscreen
+      *ngrxLet="application$; let application"
+    >
       <mat-sidenav
         #drawer
         fixedInViewport
@@ -34,7 +38,12 @@ import { map, shareReplay } from 'rxjs/operators';
             </figure>
             <h2 class="mt-4 text-center">DEMOBASE</h2>
 
-            <mat-accordion displayMode="flat" togglePosition="before" multi>
+            <mat-accordion
+              displayMode="flat"
+              togglePosition="before"
+              multi
+              *ngIf="application"
+            >
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
                   <mat-panel-title class="m-0 items-center justify-around">
@@ -53,7 +62,15 @@ import { map, shareReplay } from 'rxjs/operators';
                   <mat-list-item
                     *ngFor="let collection of collections$ | ngrxPush"
                   >
-                    <a matLine [routerLink]="['/collections', collection.id]">
+                    <a
+                      matLine
+                      [routerLink]="[
+                        '/applications',
+                        application.id,
+                        'collections',
+                        collection.id
+                      ]"
+                    >
                       {{ collection.data.name }}
                     </a>
 
@@ -98,7 +115,15 @@ import { map, shareReplay } from 'rxjs/operators';
                   <mat-list-item
                     *ngFor="let instruction of instructions$ | ngrxPush"
                   >
-                    <a matLine [routerLink]="['/instructions', instruction.id]">
+                    <a
+                      matLine
+                      [routerLink]="[
+                        '/applications',
+                        application.id,
+                        'instructions',
+                        instruction.id
+                      ]"
+                    >
                       {{ instruction.data.name }}
                     </a>
 
@@ -131,12 +156,7 @@ import { map, shareReplay } from 'rxjs/operators';
           <mat-expansion-panel class="flex-shrink-0" togglePosition="before">
             <mat-expansion-panel-header>
               <mat-panel-title class="m-0 items-center justify-around">
-                <ng-container
-                  *ngIf="
-                    application$ | ngrxPush as application;
-                    else noApplicationSelected
-                  "
-                >
+                <ng-container *ngIf="application; else noApplicationSelected">
                   {{ application.data.name }}
                 </ng-container>
                 <ng-template #noApplicationSelected>Applications</ng-template>

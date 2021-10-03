@@ -82,6 +82,31 @@
         }
       }
     },
+    "application-application-data-access-tabs": {
+      "projectType": "library",
+      "root": "libs/application/application/data-access/tabs",
+      "sourceRoot": "libs/application/application/data-access/tabs/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/application/application/data-access/tabs"],
+          "options": {
+            "jestConfig": "libs/application/application/data-access/tabs/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/data-access/tabs/src/**/*.ts",
+              "libs/application/application/data-access/tabs/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
     "application-application-features-view-application": {
       "projectType": "library",
       "root": "libs/application/application/features/view-application",
@@ -104,6 +129,60 @@
             "lintFilePatterns": [
               "libs/application/application/features/view-application/src/**/*.ts",
               "libs/application/application/features/view-application/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-features-view-collection": {
+      "projectType": "library",
+      "root": "libs/application/application/features/view-collection",
+      "sourceRoot": "libs/application/application/features/view-collection/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/features/view-collection"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/features/view-collection/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/features/view-collection/src/**/*.ts",
+              "libs/application/application/features/view-collection/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-features-view-instruction": {
+      "projectType": "library",
+      "root": "libs/application/application/features/view-instruction",
+      "sourceRoot": "libs/application/application/features/view-instruction/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/features/view-instruction"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/features/view-instruction/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/features/view-instruction/src/**/*.ts",
+              "libs/application/application/features/view-instruction/src/**/*.html"
             ]
           }
         }

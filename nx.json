@@ -36,7 +36,16 @@
     "application-application-data-access-instruction": {
       "tags": []
     },
+    "application-application-data-access-tabs": {
+      "tags": []
+    },
     "application-application-features-view-application": {
+      "tags": []
+    },
+    "application-application-features-view-collection": {
+      "tags": []
+    },
+    "application-application-features-view-instruction": {
       "tags": []
     },
     "application-application-shell": {
