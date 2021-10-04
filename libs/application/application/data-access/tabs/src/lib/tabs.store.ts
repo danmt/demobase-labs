@@ -6,6 +6,8 @@ import { ApplicationStore } from '@demobase-labs/application/application/data-ac
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { Observable, of, Subject } from 'rxjs';
 import { concatMap, filter, tap, withLatestFrom } from 'rxjs/operators';
+import { CollectionStore } from '@demobase-labs/application/application/data-access/collection';
+import { isNotNullOrUndefined } from '@demobase-labs/shared/utils/operators';
 
 export type TabKind = 'collections' | 'instructions';
 
@@ -27,17 +29,24 @@ export class TabsStore extends ComponentStore<ViewModel> {
   readonly selected$ = this.select(({ selected }) => selected, {
     debounce: true,
   });
+  readonly tab$ = this.select(
+    this.tabs$,
+    this.selected$,
+    (tabs, selected) => tabs.find(({ id }) => id === selected) || null
+  );
 
   constructor(
     private readonly _programStore: ProgramStore,
     private readonly _applicationStore: ApplicationStore,
+    private readonly _collectionStore: CollectionStore,
     private readonly _router: Router
   ) {
     super(initialState);
   }
 
-  openCollectionTab = this.effect((collectionId$: Observable<string>) =>
-    collectionId$.pipe(
+  openCollectionTab = this.effect(() =>
+    this._collectionStore.collectionId$.pipe(
+      isNotNullOrUndefined,
       tap((collectionId) => this.patchState({ selected: collectionId })),
       concatMap((collectionId) =>
         of(collectionId).pipe(

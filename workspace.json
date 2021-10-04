@@ -267,6 +267,33 @@
         }
       }
     },
+    "application-application-ui-edit-attribute": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/edit-attribute",
+      "sourceRoot": "libs/application/application/ui/edit-attribute/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/ui/edit-attribute"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/ui/edit-attribute/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/edit-attribute/src/**/*.ts",
+              "libs/application/application/ui/edit-attribute/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
     "application-application-ui-edit-collection": {
       "projectType": "library",
       "root": "libs/application/application/ui/edit-collection",
@@ -341,6 +368,58 @@
             "lintFilePatterns": [
               "libs/application/application/ui/navigation/src/**/*.ts",
               "libs/application/application/ui/navigation/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-ui-page-header": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/page-header",
+      "sourceRoot": "libs/application/application/ui/page-header/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/application/application/ui/page-header"],
+          "options": {
+            "jestConfig": "libs/application/application/ui/page-header/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/page-header/src/**/*.ts",
+              "libs/application/application/ui/page-header/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-utils-services-active-breakpoint": {
+      "projectType": "library",
+      "root": "libs/application/application/utils/services/active-breakpoint",
+      "sourceRoot": "libs/application/application/utils/services/active-breakpoint/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/utils/services/active-breakpoint"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/utils/services/active-breakpoint/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/utils/services/active-breakpoint/src/**/*.ts",
+              "libs/application/application/utils/services/active-breakpoint/src/**/*.html"
             ]
           }
         }

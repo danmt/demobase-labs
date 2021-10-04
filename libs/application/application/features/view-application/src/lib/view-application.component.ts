@@ -48,8 +48,6 @@ export class ViewApplicationComponent implements OnInit {
         map((paramMap) => paramMap.get('applicationId') as string)
       )
     );
-
-    this._tabsStore.state$.subscribe((a) => console.log(a));
   }
 
   onCloseTab(event: Event, tabId: string) {

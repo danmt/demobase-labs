@@ -45,6 +45,9 @@
       "@demobase-labs/application/application/ui/edit-application": [
         "libs/application/application/ui/edit-application/src/index.ts"
       ],
+      "@demobase-labs/application/application/ui/edit-attribute": [
+        "libs/application/application/ui/edit-attribute/src/index.ts"
+      ],
       "@demobase-labs/application/application/ui/edit-collection": [
         "libs/application/application/ui/edit-collection/src/index.ts"
       ],
@@ -53,6 +56,12 @@
       ],
       "@demobase-labs/application/application/ui/navigation": [
         "libs/application/application/ui/navigation/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/page-header": [
+        "libs/application/application/ui/page-header/src/index.ts"
+      ],
+      "@demobase-labs/application/application/utils/services/active-breakpoint": [
+        "libs/application/application/utils/services/active-breakpoint/src/index.ts"
       ],
       "@demobase-labs/application/shared/utils/pipes/obscure-address": [
         "libs/application/shared/utils/pipes/obscure-address/src/index.ts"

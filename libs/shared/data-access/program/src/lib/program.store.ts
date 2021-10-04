@@ -295,7 +295,7 @@ export class ProgramStore extends ComponentStore<ViewModel> {
       concatMap((reader) =>
         from(
           defer(() =>
-            reader.account.collectionArgument.all([
+            reader.account.collectionAttribute.all([
               { memcmp: { bytes: collectionId, offset: 72 } },
             ])
           )

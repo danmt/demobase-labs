@@ -57,6 +57,9 @@
     "application-application-ui-edit-application": {
       "tags": []
     },
+    "application-application-ui-edit-attribute": {
+      "tags": []
+    },
     "application-application-ui-edit-collection": {
       "tags": []
     },
@@ -64,6 +67,12 @@
       "tags": []
     },
     "application-application-ui-navigation": {
+      "tags": []
+    },
+    "application-application-ui-page-header": {
+      "tags": []
+    },
+    "application-application-utils-services-active-breakpoint": {
       "tags": []
     },
     "application-shared-utils-pipes-obscure-address": {
