@@ -46,8 +46,8 @@ import { map, shareReplay } from 'rxjs/operators';
             >
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
-                  <mat-panel-title class="m-0 items-center justify-around">
-                    Collections
+                  <div class="flex justify-between items-center flex-grow">
+                    <mat-panel-title> Collections </mat-panel-title>
                     <button
                       mat-icon-button
                       [disabled]="(connected$ | ngrxPush) === false"
@@ -56,7 +56,7 @@ import { map, shareReplay } from 'rxjs/operators';
                     >
                       <mat-icon>add</mat-icon>
                     </button>
-                  </mat-panel-title>
+                  </div>
                 </mat-expansion-panel-header>
                 <mat-nav-list dense>
                   <mat-list-item
@@ -76,31 +76,40 @@ import { map, shareReplay } from 'rxjs/operators';
 
                     <button
                       mat-icon-button
-                      (click)="onEditCollection(collection)"
-                      [disabled]="(connected$ | ngrxPush) === false"
                       [attr.aria-label]="
-                        'Edit ' + collection.data.name + ' collection'
+                        'More options of ' +
+                        collection.data.name +
+                        ' collection'
                       "
+                      [matMenuTriggerFor]="collectionOptionsMenu"
                     >
-                      <mat-icon>edit</mat-icon>
+                      <mat-icon>more_horiz</mat-icon>
                     </button>
-                    <button
-                      mat-icon-button
-                      (click)="onDeleteCollection(collection.id)"
-                      [disabled]="(connected$ | ngrxPush) === false"
-                      [attr.aria-label]="
-                        'Delete ' + collection.data.name + ' collection'
-                      "
-                    >
-                      <mat-icon>delete</mat-icon>
-                    </button>
+                    <mat-menu #collectionOptionsMenu="matMenu">
+                      <button
+                        mat-menu-item
+                        (click)="onEditCollection(collection)"
+                        [disabled]="(connected$ | ngrxPush) === false"
+                      >
+                        <mat-icon>edit</mat-icon>
+                        <span>Edit collection</span>
+                      </button>
+                      <button
+                        mat-menu-item
+                        (click)="onDeleteCollection(collection.id)"
+                        [disabled]="(connected$ | ngrxPush) === false"
+                      >
+                        <mat-icon>delete</mat-icon>
+                        <span>Delete collection</span>
+                      </button>
+                    </mat-menu>
                   </mat-list-item>
                 </mat-nav-list>
               </mat-expansion-panel>
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
-                  <mat-panel-title class="m-0 items-center justify-around">
-                    Instructions
+                  <div class="flex justify-between items-center flex-grow">
+                    <mat-panel-title> Instructions </mat-panel-title>
                     <button
                       mat-icon-button
                       [disabled]="(connected$ | ngrxPush) === false"
@@ -109,7 +118,7 @@ import { map, shareReplay } from 'rxjs/operators';
                     >
                       <mat-icon>add</mat-icon>
                     </button>
-                  </mat-panel-title>
+                  </div>
                 </mat-expansion-panel-header>
                 <mat-nav-list dense>
                   <mat-list-item
@@ -129,24 +138,33 @@ import { map, shareReplay } from 'rxjs/operators';
 
                     <button
                       mat-icon-button
-                      (click)="onEditInstruction(instruction)"
-                      [disabled]="(connected$ | ngrxPush) === false"
                       [attr.aria-label]="
-                        'Edit ' + instruction.data.name + ' instruction'
+                        'More options of ' +
+                        instruction.data.name +
+                        ' instruction'
                       "
+                      [matMenuTriggerFor]="instructionOptionsMenu"
                     >
-                      <mat-icon>edit</mat-icon>
+                      <mat-icon>more_horiz</mat-icon>
                     </button>
-                    <button
-                      mat-icon-button
-                      (click)="onDeleteInstruction(instruction.id)"
-                      [disabled]="(connected$ | ngrxPush) === false"
-                      [attr.aria-label]="
-                        'Delete ' + instruction.data.name + ' instruction'
-                      "
-                    >
-                      <mat-icon>delete</mat-icon>
-                    </button>
+                    <mat-menu #instructionOptionsMenu="matMenu">
+                      <button
+                        mat-menu-item
+                        (click)="onEditInstruction(instruction)"
+                        [disabled]="(connected$ | ngrxPush) === false"
+                      >
+                        <mat-icon>edit</mat-icon>
+                        <span>Edit instruction</span>
+                      </button>
+                      <button
+                        mat-menu-item
+                        (click)="onDeleteInstruction(instruction.id)"
+                        [disabled]="(connected$ | ngrxPush) === false"
+                      >
+                        <mat-icon>delete</mat-icon>
+                        <span>Delete instruction</span>
+                      </button>
+                    </mat-menu>
                   </mat-list-item>
                 </mat-nav-list>
               </mat-expansion-panel>
@@ -155,12 +173,13 @@ import { map, shareReplay } from 'rxjs/operators';
 
           <mat-expansion-panel class="flex-shrink-0" togglePosition="before">
             <mat-expansion-panel-header>
-              <mat-panel-title class="m-0 items-center justify-around">
-                <ng-container *ngIf="application; else noApplicationSelected">
-                  {{ application.data.name }}
-                </ng-container>
-                <ng-template #noApplicationSelected>Applications</ng-template>
-
+              <div class="flex justify-between items-center flex-grow">
+                <mat-panel-title>
+                  <ng-container *ngIf="application; else noApplicationSelected">
+                    {{ application.data.name }}
+                  </ng-container>
+                  <ng-template #noApplicationSelected>Applications</ng-template>
+                </mat-panel-title>
                 <button
                   mat-icon-button
                   [disabled]="(connected$ | ngrxPush) === false"
@@ -169,7 +188,7 @@ import { map, shareReplay } from 'rxjs/operators';
                 >
                   <mat-icon>add</mat-icon>
                 </button>
-              </mat-panel-title>
+              </div>
             </mat-expansion-panel-header>
             <mat-nav-list dense>
               <mat-list-item
@@ -181,24 +200,31 @@ import { map, shareReplay } from 'rxjs/operators';
 
                 <button
                   mat-icon-button
-                  (click)="onEditApplication(application)"
-                  [disabled]="(connected$ | ngrxPush) === false"
                   [attr.aria-label]="
-                    'Edit ' + application.data.name + ' application'
+                    'More options of ' + application.data.name + ' application'
                   "
+                  [matMenuTriggerFor]="applicationOptionsMenu"
                 >
-                  <mat-icon>edit</mat-icon>
+                  <mat-icon>more_horiz</mat-icon>
                 </button>
-                <button
-                  mat-icon-button
-                  (click)="onDeleteApplication(application.id)"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  [attr.aria-label]="
-                    'Delete ' + application.data.name + ' application'
-                  "
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+                <mat-menu #applicationOptionsMenu="matMenu">
+                  <button
+                    mat-menu-item
+                    (click)="onEditApplication(application)"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit application</span>
+                  </button>
+                  <button
+                    mat-menu-item
+                    (click)="onDeleteApplication(application.id)"
+                    [disabled]="(connected$ | ngrxPush) === false"
+                  >
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete application</span>
+                  </button>
+                </mat-menu>
               </mat-list-item>
             </mat-nav-list>
           </mat-expansion-panel>

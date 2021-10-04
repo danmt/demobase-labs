@@ -33,7 +33,7 @@ import { filter, map } from 'rxjs/operators';
 
       <main>
         <section *ngrxLet="attributes$; let attributes">
-          <h2>
+          <h2 class="flex items-center">
             Attributes
             <button
               mat-icon-button

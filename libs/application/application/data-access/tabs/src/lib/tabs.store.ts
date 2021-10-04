@@ -44,8 +44,15 @@ export class TabsStore extends ComponentStore<ViewModel> {
     super(initialState);
   }
 
+  clearTabs = this.updater((state) => ({
+    ...state,
+    tabs: [],
+    selected: null,
+  }));
+
   openCollectionTab = this.effect(() =>
     this._collectionStore.collectionId$.pipe(
+      tap((a) => console.log(a)),
       isNotNullOrUndefined,
       tap((collectionId) => this.patchState({ selected: collectionId })),
       concatMap((collectionId) =>
@@ -109,27 +116,31 @@ export class TabsStore extends ComponentStore<ViewModel> {
         )
       ),
       tap(([tabId, tabs, selectedTab, applicationId]) => {
-        const changes: Partial<ViewModel> = {
-          tabs: tabs.filter((tab) => tab.id !== tabId),
-        };
+        const filteredTabs = tabs.filter((tab) => tab.id !== tabId);
 
-        if (changes.tabs?.length === 0) {
+        if (filteredTabs?.length === 0) {
           this._router.navigate(['/applications', applicationId]);
+          this.patchState({
+            selected: null,
+            tabs: [],
+          });
+          this._collectionStore.selectCollection(null);
         } else {
-          const firstTab = changes.tabs ? changes.tabs[0] : null;
+          const firstTab = filteredTabs ? filteredTabs[0] : null;
 
           if (firstTab && tabId === selectedTab) {
-            changes.selected = firstTab.id;
             this._router.navigate([
               '/applications',
               applicationId,
               firstTab.kind,
               firstTab.id,
             ]);
+            this.patchState({
+              selected: firstTab.id,
+              tabs: filteredTabs,
+            });
           }
         }
-
-        this.patchState(changes);
       })
     )
   );

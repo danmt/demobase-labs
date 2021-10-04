@@ -8,14 +8,22 @@ import { filter, map } from 'rxjs/operators';
   selector: 'demobase-labs-application-view-application',
   template: `
     <nav mat-tab-nav-bar>
-      <a
+      <div
         mat-tab-link
+        class="flex items-center justify-between p-0"
         *ngFor="let tab of tabs$ | ngrxPush"
         [active]="(selectedTab$ | ngrxPush) === tab.id"
-        [routerLink]="['/applications', tab.data.application, tab.kind, tab.id]"
       >
-        {{ tab.data.name }}
-
+        <a
+          [routerLink]="[
+            '/applications',
+            tab.data.application,
+            tab.kind,
+            tab.id
+          ]"
+        >
+          {{ tab.data.name }}
+        </a>
         <button
           mat-icon-button
           (click)="onCloseTab($event, tab.id)"
@@ -23,7 +31,7 @@ import { filter, map } from 'rxjs/operators';
         >
           <mat-icon>close</mat-icon>
         </button>
-      </a>
+      </div>
     </nav>
 
     <router-outlet></router-outlet>
