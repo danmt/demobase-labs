@@ -42,8 +42,14 @@
       "@demobase-labs/application/application/ui/application-selector": [
         "libs/application/application/ui/application-selector/src/index.ts"
       ],
+      "@demobase-labs/application/application/ui/edit-account": [
+        "libs/application/application/ui/edit-account/src/index.ts"
+      ],
       "@demobase-labs/application/application/ui/edit-application": [
         "libs/application/application/ui/edit-application/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-argument": [
+        "libs/application/application/ui/edit-argument/src/index.ts"
       ],
       "@demobase-labs/application/application/ui/edit-attribute": [
         "libs/application/application/ui/edit-attribute/src/index.ts"

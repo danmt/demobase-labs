@@ -54,7 +54,13 @@
     "application-application-ui-application-selector": {
       "tags": []
     },
+    "application-application-ui-edit-account": {
+      "tags": []
+    },
     "application-application-ui-edit-application": {
+      "tags": []
+    },
+    "application-application-ui-edit-argument": {
       "tags": []
     },
     "application-application-ui-edit-attribute": {

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Collection, Instruction } from '@demobase-labs/demobase-sdk';
 import { ProgramStore } from '@demobase-labs/shared/data-access/program';
 import { ApplicationStore } from '@demobase-labs/application/application/data-access/application';
+import { InstructionStore } from '@demobase-labs/application/application/data-access/instruction';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
 import { Observable, of, Subject } from 'rxjs';
 import { concatMap, filter, tap, withLatestFrom } from 'rxjs/operators';
@@ -39,6 +40,7 @@ export class TabsStore extends ComponentStore<ViewModel> {
     private readonly _programStore: ProgramStore,
     private readonly _applicationStore: ApplicationStore,
     private readonly _collectionStore: CollectionStore,
+    private readonly _instructionStore: InstructionStore,
     private readonly _router: Router
   ) {
     super(initialState);
@@ -52,7 +54,6 @@ export class TabsStore extends ComponentStore<ViewModel> {
 
   openCollectionTab = this.effect(() =>
     this._collectionStore.collectionId$.pipe(
-      tap((a) => console.log(a)),
       isNotNullOrUndefined,
       tap((collectionId) => this.patchState({ selected: collectionId })),
       concatMap((collectionId) =>
@@ -78,8 +79,9 @@ export class TabsStore extends ComponentStore<ViewModel> {
     )
   );
 
-  openInstructionTab = this.effect((instructionId$: Observable<string>) =>
-    instructionId$.pipe(
+  openInstructionTab = this.effect(() =>
+    this._instructionStore.instructionId$.pipe(
+      isNotNullOrUndefined,
       tap((instructionId) => this.patchState({ selected: instructionId })),
       concatMap((instructionId) =>
         of(instructionId).pipe(
@@ -125,6 +127,7 @@ export class TabsStore extends ComponentStore<ViewModel> {
             tabs: [],
           });
           this._collectionStore.selectCollection(null);
+          this._instructionStore.selectInstruction(null);
         } else {
           const firstTab = filteredTabs ? filteredTabs[0] : null;
 

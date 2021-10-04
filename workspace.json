@@ -240,6 +240,31 @@
         }
       }
     },
+    "application-application-ui-edit-account": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/edit-account",
+      "sourceRoot": "libs/application/application/ui/edit-account/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/application/application/ui/edit-account"],
+          "options": {
+            "jestConfig": "libs/application/application/ui/edit-account/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/edit-account/src/**/*.ts",
+              "libs/application/application/ui/edit-account/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
     "application-application-ui-edit-application": {
       "projectType": "library",
       "root": "libs/application/application/ui/edit-application",
@@ -262,6 +287,31 @@
             "lintFilePatterns": [
               "libs/application/application/ui/edit-application/src/**/*.ts",
               "libs/application/application/ui/edit-application/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-ui-edit-argument": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/edit-argument",
+      "sourceRoot": "libs/application/application/ui/edit-argument/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/libs/application/application/ui/edit-argument"],
+          "options": {
+            "jestConfig": "libs/application/application/ui/edit-argument/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/edit-argument/src/**/*.ts",
+              "libs/application/application/ui/edit-argument/src/**/*.html"
             ]
           }
         }

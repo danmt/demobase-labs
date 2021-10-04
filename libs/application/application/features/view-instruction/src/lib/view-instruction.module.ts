@@ -1,6 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
+import { PageHeaderModule } from '@demobase-labs/application/application/ui/page-header';
+import { ObscureAddressModule } from '@demobase-labs/application/shared/utils/pipes/obscure-address';
+import { ReactiveComponentModule } from '@ngrx/component';
 
 import { ViewInstructionComponent } from './view-instruction.component';
 
@@ -8,8 +17,21 @@ import { ViewInstructionComponent } from './view-instruction.component';
   imports: [
     CommonModule,
     RouterModule.forChild([
-      { path: '', pathMatch: 'full', component: ViewInstructionComponent },
+      {
+        path: '',
+        component: ViewInstructionComponent,
+        pathMatch: 'full',
+      },
     ]),
+    MatButtonModule,
+    MatCardModule,
+    MatDialogModule,
+    MatGridListModule,
+    MatIconModule,
+    MatMenuModule,
+    ReactiveComponentModule,
+    ObscureAddressModule,
+    PageHeaderModule,
   ],
   declarations: [ViewInstructionComponent],
 })

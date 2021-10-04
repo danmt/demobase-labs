@@ -82,7 +82,6 @@ export class CollectionStore extends ComponentStore<ViewModel> {
   readonly selectCollection = this.effect(
     (collectionId$: Observable<string | null>) =>
       collectionId$.pipe(
-        tap((a) => console.log(a)),
         tap((collectionId) => this.patchState({ collectionId }))
       )
   );
