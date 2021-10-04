@@ -1,16 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
+import { PageHeaderModule } from '@demobase-labs/application/application/ui/page-header';
+import { ObscureAddressModule } from '@demobase-labs/application/shared/utils/pipes/obscure-address';
 import { ReactiveComponentModule } from '@ngrx/component';
 
-import { SharedModule } from '../shared/shared.module';
-import { CollectionsComponent } from './collections.component';
+import { ViewInstructionComponent } from './view-instruction.component';
 
 @NgModule({
   imports: [
@@ -18,19 +19,20 @@ import { CollectionsComponent } from './collections.component';
     RouterModule.forChild([
       {
         path: '',
-        component: CollectionsComponent,
+        component: ViewInstructionComponent,
         pathMatch: 'full',
       },
     ]),
-    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
     MatDialogModule,
     MatGridListModule,
     MatIconModule,
+    MatMenuModule,
     ReactiveComponentModule,
-    SharedModule,
+    ObscureAddressModule,
+    PageHeaderModule,
   ],
-  declarations: [CollectionsComponent],
+  declarations: [ViewInstructionComponent],
 })
-export class CollectionsModule {}
+export class ViewInstructionModule {}

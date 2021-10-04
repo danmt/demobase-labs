@@ -27,6 +27,72 @@
     ]
   },
   "projects": {
+    "application-application-data-access-application": {
+      "tags": []
+    },
+    "application-application-data-access-collection": {
+      "tags": []
+    },
+    "application-application-data-access-instruction": {
+      "tags": []
+    },
+    "application-application-data-access-tabs": {
+      "tags": []
+    },
+    "application-application-features-view-application": {
+      "tags": []
+    },
+    "application-application-features-view-collection": {
+      "tags": []
+    },
+    "application-application-features-view-instruction": {
+      "tags": []
+    },
+    "application-application-shell": {
+      "tags": []
+    },
+    "application-application-ui-application-selector": {
+      "tags": []
+    },
+    "application-application-ui-edit-account": {
+      "tags": []
+    },
+    "application-application-ui-edit-application": {
+      "tags": []
+    },
+    "application-application-ui-edit-argument": {
+      "tags": []
+    },
+    "application-application-ui-edit-attribute": {
+      "tags": []
+    },
+    "application-application-ui-edit-collection": {
+      "tags": []
+    },
+    "application-application-ui-edit-instruction": {
+      "tags": []
+    },
+    "application-application-ui-navigation": {
+      "tags": []
+    },
+    "application-application-ui-page-header": {
+      "tags": []
+    },
+    "application-application-utils-services-active-breakpoint": {
+      "tags": []
+    },
+    "application-shared-utils-pipes-obscure-address": {
+      "tags": []
+    },
+    "application-shared-utils-pipes-sanitize-url": {
+      "tags": []
+    },
+    "application-shell": {
+      "tags": []
+    },
+    "application-wallet-ui-connect-wallet": {
+      "tags": []
+    },
     "demobase": {},
     "demobase-angular": {
       "tags": []
@@ -36,6 +102,12 @@
       "implicitDependencies": ["demobase-angular"]
     },
     "demobase-sdk": {
+      "tags": []
+    },
+    "shared-data-access-program": {
+      "tags": []
+    },
+    "shared-utils-operators": {
       "tags": []
     }
   }

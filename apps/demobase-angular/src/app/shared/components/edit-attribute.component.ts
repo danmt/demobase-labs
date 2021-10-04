@@ -1,12 +1,17 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { CollectionAttribute, DemobaseService } from '@demobase-labs/demobase-sdk';
+import {
+  CollectionAttribute,
+  DemobaseService,
+} from '@demobase-labs/demobase-sdk';
 
 @Component({
   selector: 'demobase-edit-attribute',
   template: `
-    <h2 mat-dialog-title class="mat-primary">{{ data.attribute ? 'Edit' : 'Create' }} attribute</h2>
+    <h2 mat-dialog-title class="mat-primary">
+      {{ data?.attribute ? 'Edit' : 'Create' }} attribute
+    </h2>
 
     <form
       [formGroup]="attributeGroup"
@@ -96,7 +101,7 @@ import { CollectionAttribute, DemobaseService } from '@demobase-labs/demobase-sd
         class="w-full"
         [disabled]="submitted && attributeGroup.invalid"
       >
-        {{ data.attribute ? 'Save' : 'Create' }}
+        {{ data?.attribute ? 'Save' : 'Create' }}
       </button>
     </form>
 
@@ -139,11 +144,11 @@ export class EditAttributeComponent implements OnInit {
     private readonly _demobaseService: DemobaseService,
     private readonly _matDialogRef: MatDialogRef<EditAttributeComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: { applicationId: string; collectionId: string, attribute?: CollectionAttribute }
+    public data?: { attribute?: CollectionAttribute }
   ) {}
 
   ngOnInit() {
-    if (this.data.attribute) {
+    if (this.data?.attribute) {
       this.attributeGroup.setValue(
         {
           name: this.data.attribute.data.name,
@@ -161,27 +166,12 @@ export class EditAttributeComponent implements OnInit {
     this.attributeGroup.markAllAsTouched();
 
     if (this.attributeGroup.valid) {
-      const attribute = this.data.attribute;
-
-      if (attribute) {
-        await this._demobaseService.updateCollectionAttribute(
-          attribute.id,
-          this.nameControl.value,
-          this.kindControl.value,
-          this.modifierControl.value,
-          this.sizeControl.value
-        );
-      } else {
-        await this._demobaseService.createCollectionAttribute(
-          this.data.applicationId,
-          this.data.collectionId,
-          this.nameControl.value,
-          this.kindControl.value,
-          this.modifierControl.value,
-          this.sizeControl.value
-        );
-      }
-      this._matDialogRef.close();
+      this._matDialogRef.close({
+        name: this.nameControl.value,
+        kind: this.kindControl.value,
+        modifier: this.modifierControl.value,
+        size: this.sizeControl.value,
+      });
     }
   }
 }

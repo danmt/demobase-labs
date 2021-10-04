@@ -1,17 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostBinding,
-  OnInit,
-} from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
-import { Application, DemobaseService } from '@demobase-labs/demobase-sdk';
-import { BehaviorSubject } from 'rxjs';
+import { Application } from '@demobase-labs/demobase-sdk';
 import { map } from 'rxjs/operators';
 
 import { ActiveBreakpointService } from '../core/services/active-breakpoint.service';
-import { EditApplicationComponent } from '../shared/components/edit-application.component';
+import { ApplicationsStore } from './applications.store';
 
 @Component({
   selector: 'demobase-applications',
@@ -86,20 +79,20 @@ import { EditApplicationComponent } from '../shared/components/edit-application.
         class="block fixed right-4 bottom-4"
         mat-fab
         color="primary"
-        aria-label="Edit application"
-        (click)="onEditApplication()"
+        aria-label="Create application"
+        (click)="onCreateApplication()"
       >
         <mat-icon>add</mat-icon>
       </button>
     </main>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ApplicationsStore],
 })
-export class ApplicationsComponent implements OnInit {
+export class ApplicationsComponent {
   @HostBinding('class') class = 'block p-4';
   readonly connected$ = this._walletStore.connected$;
-  private readonly _applications = new BehaviorSubject<Application[]>([]);
-  readonly applications$ = this._applications.asObservable();
+  readonly applications$ = this._applicationsStore.applications$;
   readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
     map((activeBreakpoint) => {
       switch (activeBreakpoint) {
@@ -118,35 +111,23 @@ export class ApplicationsComponent implements OnInit {
 
   constructor(
     private readonly _walletStore: WalletStore,
-    private readonly _demobaseService: DemobaseService,
-    private readonly _matDialog: MatDialog,
+    private readonly _applicationsStore: ApplicationsStore,
     private readonly _activeBreakpointService: ActiveBreakpointService
   ) {}
 
-  ngOnInit() {
-    this._getApplications();
-  }
-
-  private async _getApplications() {
-    try {
-      const applications = await this._demobaseService.getApplications();
-      this._applications.next(applications);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   onReload() {
-    this._getApplications();
+    this._applicationsStore.reload();
   }
 
-  onEditApplication(application?: Application) {
-    this._matDialog.open(EditApplicationComponent, { data: { application } });
+  onCreateApplication() {
+    this._applicationsStore.createApplication();
+  }
+
+  onEditApplication(application: Application) {
+    this._applicationsStore.updateApplication(application);
   }
 
   onDeleteApplication(applicationId: string) {
-    if (confirm('Are you sure? This action cannot be reverted.')) {
-      this._demobaseService.deleteApplication(applicationId);
-    }
+    this._applicationsStore.deleteApplication(applicationId);
   }
 }

@@ -15,7 +15,79 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@demobase-labs/demobase-sdk": ["libs/demobase-sdk/src/index.ts"]
+      "@demobase-labs/application/application/data-access/application": [
+        "libs/application/application/data-access/application/src/index.ts"
+      ],
+      "@demobase-labs/application/application/data-access/collection": [
+        "libs/application/application/data-access/collection/src/index.ts"
+      ],
+      "@demobase-labs/application/application/data-access/instruction": [
+        "libs/application/application/data-access/instruction/src/index.ts"
+      ],
+      "@demobase-labs/application/application/data-access/tabs": [
+        "libs/application/application/data-access/tabs/src/index.ts"
+      ],
+      "@demobase-labs/application/application/features/view-application": [
+        "libs/application/application/features/view-application/src/index.ts"
+      ],
+      "@demobase-labs/application/application/features/view-collection": [
+        "libs/application/application/features/view-collection/src/index.ts"
+      ],
+      "@demobase-labs/application/application/features/view-instruction": [
+        "libs/application/application/features/view-instruction/src/index.ts"
+      ],
+      "@demobase-labs/application/application/shell": [
+        "libs/application/application/shell/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/application-selector": [
+        "libs/application/application/ui/application-selector/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-account": [
+        "libs/application/application/ui/edit-account/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-application": [
+        "libs/application/application/ui/edit-application/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-argument": [
+        "libs/application/application/ui/edit-argument/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-attribute": [
+        "libs/application/application/ui/edit-attribute/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-collection": [
+        "libs/application/application/ui/edit-collection/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-instruction": [
+        "libs/application/application/ui/edit-instruction/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/navigation": [
+        "libs/application/application/ui/navigation/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/page-header": [
+        "libs/application/application/ui/page-header/src/index.ts"
+      ],
+      "@demobase-labs/application/application/utils/services/active-breakpoint": [
+        "libs/application/application/utils/services/active-breakpoint/src/index.ts"
+      ],
+      "@demobase-labs/application/shared/utils/pipes/obscure-address": [
+        "libs/application/shared/utils/pipes/obscure-address/src/index.ts"
+      ],
+      "@demobase-labs/application/shared/utils/pipes/sanitize-url": [
+        "libs/application/shared/utils/pipes/sanitize-url/src/index.ts"
+      ],
+      "@demobase-labs/application/shell": [
+        "libs/application/shell/src/index.ts"
+      ],
+      "@demobase-labs/application/wallet/ui/connect-wallet": [
+        "libs/application/wallet/ui/connect-wallet/src/index.ts"
+      ],
+      "@demobase-labs/demobase-sdk": ["libs/demobase-sdk/src/index.ts"],
+      "@demobase-labs/shared/data-access/program": [
+        "libs/shared/data-access/program/src/index.ts"
+      ],
+      "@demobase-labs/shared/utils/operators": [
+        "libs/shared/utils/operators/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

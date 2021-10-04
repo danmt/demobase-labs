@@ -231,7 +231,7 @@
       "args": []
     },
     {
-      "name": "createCollectionInstruction",
+      "name": "createInstruction",
       "accounts": [
         {
           "name": "instruction",
@@ -240,11 +240,6 @@
         },
         {
           "name": "application",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "collection",
           "isMut": false,
           "isSigner": false
         },
@@ -267,7 +262,7 @@
       ]
     },
     {
-      "name": "updateCollectionInstruction",
+      "name": "updateInstruction",
       "accounts": [
         {
           "name": "instruction",
@@ -288,7 +283,7 @@
       ]
     },
     {
-      "name": "deleteCollectionInstruction",
+      "name": "deleteInstruction",
       "accounts": [
         {
           "name": "instruction",
@@ -304,7 +299,7 @@
       "args": []
     },
     {
-      "name": "createCollectionInstructionArgument",
+      "name": "createInstructionArgument",
       "accounts": [
         {
           "name": "argument",
@@ -313,11 +308,6 @@
         },
         {
           "name": "application",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "collection",
           "isMut": false,
           "isSigner": false
         },
@@ -357,7 +347,7 @@
       ]
     },
     {
-      "name": "updateCollectionInstructionArgument",
+      "name": "updateInstructionArgument",
       "accounts": [
         {
           "name": "argument",
@@ -390,7 +380,7 @@
       ]
     },
     {
-      "name": "deleteCollectionInstructionArgument",
+      "name": "deleteInstructionArgument",
       "accounts": [
         {
           "name": "argument",
@@ -406,7 +396,7 @@
       "args": []
     },
     {
-      "name": "createCollectionInstructionAccount",
+      "name": "createInstructionAccount",
       "accounts": [
         {
           "name": "account",
@@ -425,11 +415,6 @@
         },
         {
           "name": "instruction",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "accountCollection",
           "isMut": false,
           "isSigner": false
         },
@@ -460,7 +445,7 @@
       ]
     },
     {
-      "name": "updateCollectionInstructionAccount",
+      "name": "updateInstructionAccount",
       "accounts": [
         {
           "name": "account",
@@ -468,7 +453,7 @@
           "isSigner": false
         },
         {
-          "name": "accountCollection",
+          "name": "collection",
           "isMut": false,
           "isSigner": false
         },
@@ -494,7 +479,7 @@
       ]
     },
     {
-      "name": "deleteCollectionInstructionAccount",
+      "name": "deleteInstructionAccount",
       "accounts": [
         {
           "name": "account",
@@ -590,7 +575,7 @@
       }
     },
     {
-      "name": "CollectionInstruction",
+      "name": "Instruction",
       "type": {
         "kind": "struct",
         "fields": [
@@ -600,10 +585,6 @@
           },
           {
             "name": "application",
-            "type": "publicKey"
-          },
-          {
-            "name": "collection",
             "type": "publicKey"
           },
           {
@@ -626,10 +607,6 @@
           },
           {
             "name": "application",
-            "type": "publicKey"
-          },
-          {
-            "name": "collection",
             "type": "publicKey"
           },
           {
@@ -671,11 +648,11 @@
             "type": "publicKey"
           },
           {
-            "name": "collection",
+            "name": "instruction",
             "type": "publicKey"
           },
           {
-            "name": "instruction",
+            "name": "collection",
             "type": "publicKey"
           },
           {
@@ -683,10 +660,6 @@
             "type": {
               "array": ["u8", 32]
             }
-          },
-          {
-            "name": "accountCollection",
-            "type": "publicKey"
           },
           {
             "name": "kind",

@@ -1,13 +1,13 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Application, DemobaseService } from '@demobase-labs/demobase-sdk';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Application } from '@demobase-labs/demobase-sdk';
 
 @Component({
   selector: 'demobase-edit-application',
   template: `
     <h2 mat-dialog-title class="mat-primary">
-      {{ data.application ? 'Edit' : 'Create' }} application
+      {{ data?.application ? 'Edit' : 'Create' }} application
     </h2>
 
     <form
@@ -44,7 +44,7 @@ import { Application, DemobaseService } from '@demobase-labs/demobase-sdk';
         class="w-full"
         [disabled]="submitted && applicationGroup.invalid"
       >
-        {{ data.application ? 'Save' : 'Create' }}
+        {{ data?.application ? 'Save' : 'Create' }}
       </button>
     </form>
 
@@ -72,16 +72,15 @@ export class EditApplicationComponent implements OnInit {
   }
 
   constructor(
-    private readonly _demobaseService: DemobaseService,
     private readonly _matDialogRef: MatDialogRef<EditApplicationComponent>,
     @Inject(MAT_DIALOG_DATA)
-    public data: {
+    public data?: {
       application?: Application;
     }
   ) {}
-  
+
   ngOnInit() {
-    if (this.data.application) {
+    if (this.data?.application) {
       this.applicationGroup.setValue(
         {
           name: this.data.application.data.name,
@@ -96,19 +95,7 @@ export class EditApplicationComponent implements OnInit {
     this.applicationGroup.markAllAsTouched();
 
     if (this.applicationGroup.valid) {
-      const application = this.data.application;
-
-      if (application) {
-        await this._demobaseService.updateApplication(
-          application.id,
-          this.nameControl.value
-        );
-      } else {
-        await this._demobaseService.createApplication(
-          this.nameControl.value
-        );
-      }
-      this._matDialogRef.close();
+      this._matDialogRef.close({ name: this.nameControl.value });
     }
   }
 }

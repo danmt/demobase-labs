@@ -5,7 +5,7 @@ import {
   Application,
   Collection,
   CollectionAttribute,
-  CollectionInstruction,
+  Instruction,
   InstructionAccount,
   InstructionArgument,
 } from '../types';
@@ -88,23 +88,21 @@ export const CollectionAttributeParser = (
   };
 };
 
-interface RawCollectionInstruction {
+interface RawInstruction {
   authority: PublicKey;
   application: PublicKey;
-  collection: PublicKey;
   name: Uint8Array;
 }
 
-export const CollectionInstructionParser = (
+export const InstructionParser = (
   publicKey: PublicKey,
-  account: RawCollectionInstruction
-): CollectionInstruction => {
+  account: RawInstruction
+): Instruction => {
   return {
     id: publicKey.toBase58(),
     data: {
       authority: account.authority.toBase58(),
       application: account.application.toBase58(),
-      collection: account.collection.toBase58(),
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
@@ -115,7 +113,6 @@ export const CollectionInstructionParser = (
 interface RawInstructionArgument {
   authority: PublicKey;
   application: PublicKey;
-  collection: PublicKey;
   instruction: PublicKey;
   name: Uint8Array;
   kind: { [key: string]: { id: number; name: string; size: number } };
@@ -126,13 +123,11 @@ export const InstructionArgumentParser = (
   publicKey: PublicKey,
   account: RawInstructionArgument
 ): InstructionArgument => {
-  console.log(account);
   return {
     id: publicKey.toBase58(),
     data: {
       authority: account.authority.toBase58(),
       application: account.application.toBase58(),
-      collection: account.collection.toBase58(),
       instruction: account.instruction.toBase58(),
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
@@ -156,7 +151,6 @@ interface RawInstructionAccount {
   application: PublicKey;
   collection: PublicKey;
   instruction: PublicKey;
-  accountCollection: PublicKey;
   name: Uint8Array;
   kind: { [key: string]: { id: number; name: string } };
   markAttribute: { [key: string]: { id: number; name: string } };
@@ -173,7 +167,6 @@ export const InstructionAccountParser = (
       application: account.application.toBase58(),
       collection: account.collection.toBase58(),
       instruction: account.instruction.toBase58(),
-      accountCollection: account.accountCollection.toBase58(),
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),

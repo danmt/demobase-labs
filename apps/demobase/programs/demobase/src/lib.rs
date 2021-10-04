@@ -67,75 +67,72 @@ pub mod demobase {
         Ok(())
     }
 
-    pub fn create_collection_instruction(ctx: Context<CreateCollectionInstruction>, name: String) -> ProgramResult {
-        msg!("Create collection instruction");
+    pub fn create_instruction(ctx: Context<CreateInstruction>, name: String) -> ProgramResult {
+        msg!("Create instruction");
         ctx.accounts.instruction.name = parse_string(name);
         ctx.accounts.instruction.authority = ctx.accounts.authority.key();
-        ctx.accounts.instruction.collection = ctx.accounts.collection.key();
         ctx.accounts.instruction.application = ctx.accounts.application.key();
         Ok(())
     }
 
-    pub fn update_collection_instruction(ctx: Context<UpdateCollectionInstruction>, name: String) -> ProgramResult {
-        msg!("Update collection instruction");
+    pub fn update_instruction(ctx: Context<UpdateInstruction>, name: String) -> ProgramResult {
+        msg!("Update instruction");
         ctx.accounts.instruction.name = parse_string(name);
         Ok(())
     }
 
-    pub fn delete_collection_instruction(_ctx: Context<DeleteCollectionInstruction>) -> ProgramResult {
-        msg!("Delete collection instruction");
+    pub fn delete_instruction(_ctx: Context<DeleteInstruction>) -> ProgramResult {
+        msg!("Delete instruction");
         Ok(())
     }
 
-    pub fn create_collection_instruction_argument(ctx: Context<CreateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
-        msg!("Create collection instruction argument");
+    pub fn create_instruction_argument(ctx: Context<CreateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
+        msg!("Create instruction argument");
         ctx.accounts.argument.name = parse_string(name);
         ctx.accounts.argument.kind = AttributeKind::from(kind)?;
         ctx.accounts.argument.modifier = AttributeKindModifier::from(modifier, size)?;
         ctx.accounts.argument.authority = ctx.accounts.authority.key();
         ctx.accounts.argument.instruction = ctx.accounts.instruction.key();
-        ctx.accounts.argument.collection = ctx.accounts.collection.key();
         ctx.accounts.argument.application = ctx.accounts.application.key();
         Ok(())
     }
 
-    pub fn update_collection_instruction_argument(ctx: Context<UpdateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
-        msg!("Update collection instruction argument");
+    pub fn update_instruction_argument(ctx: Context<UpdateInstructionArgument>, name: String, kind: u8, modifier: u8, size: u8) -> ProgramResult {
+        msg!("Update instruction argument");
         ctx.accounts.argument.name = parse_string(name);
         ctx.accounts.argument.kind = AttributeKind::from(kind)?;
         ctx.accounts.argument.modifier = AttributeKindModifier::from(modifier, size)?;
         Ok(())
     }
 
-    pub fn delete_collection_instruction_argument(_ctx: Context<DeleteInstructionArgument>) -> ProgramResult {
-        msg!("Delete collection instruction argument");
+    pub fn delete_instruction_argument(_ctx: Context<DeleteInstructionArgument>) -> ProgramResult {
+        msg!("Delete instruction argument");
         Ok(())
     }
 
-    pub fn create_collection_instruction_account(ctx: Context<CreateInstructionAccount>, name: String, kind: u8, mark_attribute: u8) -> ProgramResult {
-        msg!("Create collection instruction account");
+    pub fn create_instruction_account(ctx: Context<CreateInstructionAccount>, name: String, kind: u8, mark_attribute: u8) -> ProgramResult {
+        msg!("Create instruction account");
         ctx.accounts.account.name = parse_string(name);
         ctx.accounts.account.kind = AccountKind::from(kind)?;
         ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
         ctx.accounts.account.authority = ctx.accounts.authority.key();
-        ctx.accounts.account.account_collection = ctx.accounts.account_collection.key();
         ctx.accounts.account.instruction = ctx.accounts.instruction.key();
         ctx.accounts.account.collection = ctx.accounts.collection.key();
         ctx.accounts.account.application = ctx.accounts.application.key();
         Ok(())
     }
 
-    pub fn update_collection_instruction_account(ctx: Context<UpdateInstructionAccount>, name: String, kind: u8, mark_attribute: u8) -> ProgramResult {
-        msg!("Update collection instruction account");
+    pub fn update_instruction_account(ctx: Context<UpdateInstructionAccount>, name: String, kind: u8, mark_attribute: u8) -> ProgramResult {
+        msg!("Update instruction account");
         ctx.accounts.account.name = parse_string(name);
         ctx.accounts.account.kind = AccountKind::from(kind)?;
         ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
-        ctx.accounts.account.account_collection = ctx.accounts.account_collection.key();
+        ctx.accounts.account.collection = ctx.accounts.collection.key();
         Ok(())
     }
 
-    pub fn delete_collection_instruction_account(_ctx: Context<DeleteInstructionAccount>) -> ProgramResult {
-        msg!("Delete collection instruction account");
+    pub fn delete_instruction_account(_ctx: Context<DeleteInstructionAccount>) -> ProgramResult {
+        msg!("Delete instruction account");
         Ok(())
     }
 }
@@ -232,15 +229,14 @@ pub struct DeleteCollectionAttribute<'info> {
 
 #[derive(Accounts)]
 #[instruction(name: String)]
-pub struct CreateCollectionInstruction<'info> {
+pub struct CreateInstruction<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32
+        space = 8 + 32 + 32 + 32
     )]
-    pub instruction: Box<Account<'info, CollectionInstruction>>,
+    pub instruction: Box<Account<'info, Instruction>>,
     pub application: Box<Account<'info, Application>>,
-    pub collection: Box<Account<'info, Collection>>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -248,16 +244,16 @@ pub struct CreateCollectionInstruction<'info> {
 
 #[derive(Accounts)]
 #[instruction(name: String)]
-pub struct UpdateCollectionInstruction<'info> {
+pub struct UpdateInstruction<'info> {
     #[account(mut, has_one = authority)]
-    pub instruction: Box<Account<'info, CollectionInstruction>>,
+    pub instruction: Box<Account<'info, Instruction>>,
     pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
-pub struct DeleteCollectionInstruction<'info> {
+pub struct DeleteInstruction<'info> {
     #[account(mut, has_one = authority, close = authority)]
-    pub instruction: Account<'info, CollectionInstruction>,
+    pub instruction: Account<'info, Instruction>,
     pub authority: Signer<'info>,
 }
 
@@ -267,12 +263,11 @@ pub struct CreateInstructionArgument<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 32 + 3 + 3,
+        space = 8 + 32 + 32 + 32 + 32 + 3 + 3,
     )]
     pub argument: Box<Account<'info, InstructionArgument>>,
     pub application: Box<Account<'info, Application>>,
-    pub collection: Box<Account<'info, Collection>>,
-    pub instruction: Box<Account<'info, CollectionInstruction>>,
+    pub instruction: Box<Account<'info, Instruction>>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -299,13 +294,12 @@ pub struct CreateInstructionAccount<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 32 + 32 + 2 + 2
+        space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 2
     )]
     pub account: Box<Account<'info, InstructionAccount>>,
     pub application: Box<Account<'info, Application>>,
     pub collection: Box<Account<'info, Collection>>,
-    pub instruction: Box<Account<'info, CollectionInstruction>>,
-    pub account_collection: Box<Account<'info, Collection>>,
+    pub instruction: Box<Account<'info, Instruction>>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -316,7 +310,7 @@ pub struct CreateInstructionAccount<'info> {
 pub struct UpdateInstructionAccount<'info> {
     #[account(mut, has_one = authority)]
     pub account: Box<Account<'info, InstructionAccount>>,
-    pub account_collection: Box<Account<'info, Collection>>,
+    pub collection: Box<Account<'info, Collection>>,
     pub authority: Signer<'info>,
 }
 
@@ -351,10 +345,9 @@ pub struct CollectionAttribute {
 }
 
 #[account]
-pub struct CollectionInstruction {
+pub struct Instruction {
     pub authority: Pubkey,
     pub application: Pubkey,
-    pub collection: Pubkey,
     pub name: [u8; 32],
 }
 
@@ -362,7 +355,6 @@ pub struct CollectionInstruction {
 pub struct InstructionArgument {
     pub authority: Pubkey,
     pub application: Pubkey,
-    pub collection: Pubkey,
     pub instruction: Pubkey,
     pub name: [u8; 32],
     pub kind: AttributeKind,
@@ -373,10 +365,9 @@ pub struct InstructionArgument {
 pub struct InstructionAccount {
     pub authority: Pubkey,
     pub application: Pubkey,
-    pub collection: Pubkey,
     pub instruction: Pubkey,
+    pub collection: Pubkey,
     pub name: [u8; 32],
-    pub account_collection: Pubkey,
     pub kind: AccountKind,
     pub mark_attribute: MarkAttribute,
 }

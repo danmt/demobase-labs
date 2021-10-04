@@ -1,10 +1,11 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { WalletStore } from '@danmt/wallet-adapter-angular';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
-import { WalletStore } from '@danmt/wallet-adapter-angular';
+
 import { isNotNullOrUndefined } from '../../shared/operators/is-not-null-or-undefined.operator';
-import { MatDialog } from '@angular/material/dialog';
 import { ConnectWalletComponent } from './connect-wallet.component';
 
 @Component({
@@ -25,7 +26,6 @@ import { ConnectWalletComponent } from './connect-wallet.component';
         <h2 class="mt-4 text-center">DEMOBASE</h2>
         <mat-nav-list>
           <a mat-list-item [routerLink]="['/applications']">Applications</a>
-          <a mat-list-item [routerLink]="['/collections']">Collections</a>
         </mat-nav-list>
       </mat-sidenav>
       <mat-sidenav-content>

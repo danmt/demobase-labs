@@ -5,7 +5,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterModule } from '@angular/router';
 import { ReactiveComponentModule } from '@ngrx/component';
 
@@ -19,7 +21,22 @@ import { ApplicationComponent } from './application.component';
       {
         path: '',
         component: ApplicationComponent,
-        pathMatch: 'full',
+        children: [
+          {
+            path: 'collections/:collectionId',
+            loadChildren: () =>
+              import('../collection/collection.module').then(
+                (m) => m.CollectionModule
+              ),
+          },
+          {
+            path: 'instructions/:instructionId',
+            loadChildren: () =>
+              import('../instruction/instruction.module').then(
+                (m) => m.InstructionModule
+              ),
+          },
+        ],
       },
     ]),
     MatButtonModule,
@@ -27,7 +44,9 @@ import { ApplicationComponent } from './application.component';
     MatDialogModule,
     MatGridListModule,
     MatIconModule,
+    MatListModule,
     MatMenuModule,
+    MatSidenavModule,
     ReactiveComponentModule,
     SharedModule,
   ],
