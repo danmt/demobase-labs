@@ -1,5 +1,5 @@
 module.exports = {
-  displayName: 'application-application-ui-edit-account',
+  displayName: 'application-application-ui-edit-basic-account',
   preset: '../../../../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   globals: {
@@ -9,7 +9,7 @@ module.exports = {
     },
   },
   coverageDirectory:
-    '../../../../../coverage/libs/application/application/ui/edit-account',
+    '../../../../../coverage/libs/application/application/ui/edit-basic-account',
   transform: {
     '^.+\\.(ts|js|html)$': 'jest-preset-angular',
   },

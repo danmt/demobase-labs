@@ -1,10 +1,10 @@
 import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Collection, InstructionAccount } from '@demobase-labs/demobase-sdk';
+import { InstructionSignerAccount } from '@demobase-labs/demobase-sdk';
 
 @Component({
-  selector: 'demobase-labs-edit-account',
+  selector: 'demobase-labs-edit-signer-account',
   template: `
     <h2 mat-dialog-title class="mat-primary">
       {{ data?.account ? 'Edit' : 'Create' }} account
@@ -13,7 +13,7 @@ import { Collection, InstructionAccount } from '@demobase-labs/demobase-sdk';
     <form
       [formGroup]="accountGroup"
       class="flex flex-col gap-4"
-      (ngSubmit)="onEditAccount()"
+      (ngSubmit)="onEditSignerAccount()"
     >
       <mat-form-field
         class="w-full"
@@ -36,38 +36,6 @@ import { Collection, InstructionAccount } from '@demobase-labs/demobase-sdk';
         <mat-error *ngIf="submitted && nameControl.errors?.maxlength"
           >Maximum length is 32.</mat-error
         >
-      </mat-form-field>
-
-      <mat-form-field
-        class="w-full"
-        appearance="fill"
-        hintLabel="Select a kind."
-      >
-        <mat-label>Kind</mat-label>
-        <mat-select formControlName="kind">
-          <mat-option [value]="0">Account</mat-option>
-          <mat-option [value]="1">Signer</mat-option>
-          <mat-option [value]="2">Program</mat-option>
-        </mat-select>
-        <mat-error *ngIf="submitted">The kind is required.</mat-error>
-      </mat-form-field>
-
-      <mat-form-field
-        class="w-full"
-        appearance="fill"
-        hintLabel="Select a collection."
-      >
-        <mat-label>Collection</mat-label>
-        <mat-select formControlName="collection">
-          <mat-option
-            *ngFor="let collection of data?.collections"
-            [value]="collection.id"
-          >
-            {{ collection.data.name }} |
-            {{ collection.id | obscureAddress }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="submitted">The collection is required.</mat-error>
       </mat-form-field>
 
       <mat-form-field
@@ -105,34 +73,25 @@ import { Collection, InstructionAccount } from '@demobase-labs/demobase-sdk';
     </button>
   `,
 })
-export class EditAccountComponent implements OnInit {
+export class EditSignerAccountComponent implements OnInit {
   @HostBinding('class') class = 'block w-72 relative';
   submitted = false;
   readonly accountGroup = new FormGroup({
     name: new FormControl('', { validators: [Validators.required] }),
-    kind: new FormControl(0, { validators: [Validators.required] }),
-    collection: new FormControl(null, { validators: [Validators.required] }),
     markAttribute: new FormControl(0, { validators: [Validators.required] }),
   });
   get nameControl() {
     return this.accountGroup.get('name') as FormControl;
-  }
-  get kindControl() {
-    return this.accountGroup.get('kind') as FormControl;
-  }
-  get collectionControl() {
-    return this.accountGroup.get('collection') as FormControl;
   }
   get markAttributeControl() {
     return this.accountGroup.get('markAttribute') as FormControl;
   }
 
   constructor(
-    private readonly _matDialogRef: MatDialogRef<EditAccountComponent>,
+    private readonly _matDialogRef: MatDialogRef<EditSignerAccountComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data?: {
-      account?: InstructionAccount;
-      collections: Collection[];
+      account?: InstructionSignerAccount;
     }
   ) {}
 
@@ -141,8 +100,6 @@ export class EditAccountComponent implements OnInit {
       this.accountGroup.setValue(
         {
           name: this.data.account.data.name,
-          kind: this.data.account.data.kind.id,
-          collection: this.data.account.data.collection,
           markAttribute: this.data.account.data.markAttribute.id,
         },
         { emitEvent: false }
@@ -150,16 +107,14 @@ export class EditAccountComponent implements OnInit {
     }
   }
 
-  async onEditAccount() {
+  async onEditSignerAccount() {
     this.submitted = true;
     this.accountGroup.markAllAsTouched();
 
     if (this.accountGroup.valid) {
       this._matDialogRef.close({
         name: this.nameControl.value,
-        kind: this.kindControl.value,
         markAttribute: this.markAttributeControl.value,
-        collection: this.collectionControl.value,
       });
     }
   }

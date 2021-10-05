@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ObscureAddressModule } from '@demobase-labs/application/shared/utils/pipes/obscure-address';
 
-import { EditAccountComponent } from './edit-account.component';
+import { EditBasicAccountComponent } from './edit-basic-account.component';
 
 @NgModule({
   imports: [
@@ -23,6 +23,6 @@ import { EditAccountComponent } from './edit-account.component';
     MatSelectModule,
     ObscureAddressModule,
   ],
-  declarations: [EditAccountComponent],
+  declarations: [EditBasicAccountComponent],
 })
-export class EditAccountModule {}
+export class EditBasicAccountModule {}

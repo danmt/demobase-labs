@@ -127,3 +127,8 @@ export interface InstructionProgramAccount {
   id: string;
   data: InstructionProgramAccountInfo;
 }
+
+export interface Program {
+  id: string;
+  name: string;
+}

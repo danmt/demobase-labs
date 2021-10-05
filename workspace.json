@@ -240,31 +240,6 @@
         }
       }
     },
-    "application-application-ui-edit-account": {
-      "projectType": "library",
-      "root": "libs/application/application/ui/edit-account",
-      "sourceRoot": "libs/application/application/ui/edit-account/src",
-      "prefix": "demobase-labs",
-      "targets": {
-        "test": {
-          "executor": "@nrwl/jest:jest",
-          "outputs": ["coverage/libs/application/application/ui/edit-account"],
-          "options": {
-            "jestConfig": "libs/application/application/ui/edit-account/jest.config.js",
-            "passWithNoTests": true
-          }
-        },
-        "lint": {
-          "executor": "@nrwl/linter:eslint",
-          "options": {
-            "lintFilePatterns": [
-              "libs/application/application/ui/edit-account/src/**/*.ts",
-              "libs/application/application/ui/edit-account/src/**/*.html"
-            ]
-          }
-        }
-      }
-    },
     "application-application-ui-edit-application": {
       "projectType": "library",
       "root": "libs/application/application/ui/edit-application",
@@ -344,6 +319,33 @@
         }
       }
     },
+    "application-application-ui-edit-basic-account": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/edit-basic-account",
+      "sourceRoot": "libs/application/application/ui/edit-basic-account/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/ui/edit-basic-account"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/ui/edit-basic-account/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/edit-basic-account/src/**/*.ts",
+              "libs/application/application/ui/edit-basic-account/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
     "application-application-ui-edit-collection": {
       "projectType": "library",
       "root": "libs/application/application/ui/edit-collection",
@@ -393,6 +395,60 @@
             "lintFilePatterns": [
               "libs/application/application/ui/edit-instruction/src/**/*.ts",
               "libs/application/application/ui/edit-instruction/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-ui-edit-program-account": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/edit-program-account",
+      "sourceRoot": "libs/application/application/ui/edit-program-account/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/ui/edit-program-account"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/ui/edit-program-account/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/edit-program-account/src/**/*.ts",
+              "libs/application/application/ui/edit-program-account/src/**/*.html"
+            ]
+          }
+        }
+      }
+    },
+    "application-application-ui-edit-signer-account": {
+      "projectType": "library",
+      "root": "libs/application/application/ui/edit-signer-account",
+      "sourceRoot": "libs/application/application/ui/edit-signer-account/src",
+      "prefix": "demobase-labs",
+      "targets": {
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/libs/application/application/ui/edit-signer-account"
+          ],
+          "options": {
+            "jestConfig": "libs/application/application/ui/edit-signer-account/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "libs/application/application/ui/edit-signer-account/src/**/*.ts",
+              "libs/application/application/ui/edit-signer-account/src/**/*.html"
             ]
           }
         }
