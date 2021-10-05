@@ -82,25 +82,48 @@ export interface InstructionArgument {
   data: InstructionArgumentInfo;
 }
 
-export interface InstructionAccountInfo {
+export interface InstructionBasicAccountInfo {
   authority: string;
   application: string;
-  collection: string;
   instruction: string;
   name: string;
-  kind: {
-    id: number;
-    name: string;
-  };
+  collection: string;
   markAttribute: {
     id: number;
     name: string;
   };
 }
 
-export interface InstructionAccount {
+export interface InstructionBasicAccount {
   id: string;
-  data: InstructionAccountInfo;
+  data: InstructionBasicAccountInfo;
 }
 
-export type AccountBoolAttributeKind = 0 | 1 | 2;
+export interface InstructionSignerAccountInfo {
+  authority: string;
+  application: string;
+  instruction: string;
+  name: string;
+  markAttribute: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface InstructionSignerAccount {
+  id: string;
+  data: InstructionSignerAccountInfo;
+}
+
+export interface InstructionProgramAccountInfo {
+  authority: string;
+  application: string;
+  instruction: string;
+  name: string;
+  program: string;
+}
+
+export interface InstructionProgramAccount {
+  id: string;
+  data: InstructionProgramAccountInfo;
+}
