@@ -4,7 +4,7 @@ import {
   HostBinding,
   OnInit,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import { InstructionStore } from '@demobase-labs/application/application/data-access/instruction';
 import { TabsStore } from '@demobase-labs/application/application/data-access/tabs';
@@ -15,7 +15,7 @@ import {
   InstructionProgramAccount,
   InstructionSignerAccount,
 } from '@demobase-labs/demobase-sdk';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'demobase-labs-view-instruction',
@@ -335,6 +335,7 @@ export class ViewInstructionComponent implements OnInit {
 
   constructor(
     private readonly _route: ActivatedRoute,
+    private readonly _router: Router,
     private readonly _tabsStore: TabsStore,
     private readonly _walletStore: WalletStore,
     private readonly _activeBreakpointService: ActiveBreakpointService,
@@ -343,9 +344,20 @@ export class ViewInstructionComponent implements OnInit {
 
   ngOnInit() {
     this._instructionStore.selectInstruction(
-      this._route.paramMap.pipe(
-        filter((paramMap) => paramMap.has('instructionId')),
-        map((paramMap) => paramMap.get('instructionId') as string)
+      this._router.events.pipe(
+        filter(
+          (event): event is NavigationStart => event instanceof NavigationStart
+        ),
+        map((event) => {
+          const urlAsArray = event.url.split('/').filter((segment) => segment);
+
+          if (urlAsArray.length !== 4 || urlAsArray[2] !== 'instructions') {
+            return null;
+          } else {
+            return urlAsArray[3];
+          }
+        }),
+        startWith(this._route.snapshot.paramMap.get('instructionId') || null)
       )
     );
   }
