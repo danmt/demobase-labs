@@ -142,6 +142,10 @@ export class TabsStore extends ComponentStore<ViewModel> {
               selected: firstTab.id,
               tabs: filteredTabs,
             });
+          } else {
+            this.patchState({
+              tabs: filteredTabs,
+            });
           }
         }
       })
