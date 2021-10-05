@@ -4,13 +4,13 @@ import {
   HostBinding,
   OnInit,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import { CollectionStore } from '@demobase-labs/application/application/data-access/collection';
 import { TabsStore } from '@demobase-labs/application/application/data-access/tabs';
 import { ActiveBreakpointService } from '@demobase-labs/application/application/utils/services/active-breakpoint';
 import { CollectionAttribute } from '@demobase-labs/demobase-sdk';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'demobase-labs-view-collection',
@@ -35,14 +35,25 @@ import { filter, map } from 'rxjs/operators';
         <section *ngrxLet="attributes$; let attributes">
           <h2 class="flex items-center">
             Attributes
+
             <button
               mat-icon-button
-              (click)="onCreateAttribute()"
-              [disabled]="(connected$ | ngrxPush) === false"
-              aria-label="Create attribute"
+              aria-label="Attributes menu"
+              [matMenuTriggerFor]="attributesMenu"
             >
-              <mat-icon>add</mat-icon>
+              <mat-icon>more_vert</mat-icon>
             </button>
+
+            <mat-menu #attributesMenu="matMenu">
+              <button
+                mat-menu-item
+                (click)="onCreateAttribute()"
+                [disabled]="(connected$ | ngrxPush) === false"
+              >
+                <mat-icon>add</mat-icon>
+                <span>Add attribute</span>
+              </button>
+            </mat-menu>
           </h2>
 
           <mat-grid-list
@@ -58,35 +69,40 @@ import { filter, map } from 'rxjs/operators';
               class="overflow-visible"
             >
               <mat-card class="w-full h-full">
-                <h3>Name: {{ attribute.data.name }}.</h3>
+                <h3 class="flex justify-between items-center">
+                  {{ attribute.data.name }}
+                  <button
+                    mat-icon-button
+                    aria-label="Attribute menu"
+                    [matMenuTriggerFor]="attributeMenu"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #attributeMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="onEditAttribute(attribute)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit attribute</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="onDeleteAttribute(attribute.id)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete attribute</span>
+                    </button>
+                  </mat-menu>
+                </h3>
                 <p>Kind: {{ attribute.data.kind.name }}.</p>
                 <p>
                   Modifier: {{ attribute.data.modifier.name }} ({{
                     attribute.data.modifier.size
                   }}).
                 </p>
-                <button
-                  mat-mini-fab
-                  color="primary"
-                  [attr.aria-label]="
-                    'Edit ' + attribute.data.name + ' attribute'
-                  "
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onEditAttribute(attribute)"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-mini-fab
-                  color="warn"
-                  [attr.aria-label]="
-                    'Delete ' + attribute.data.name + ' attribute'
-                  "
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onDeleteAttribute(attribute.id)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -124,6 +140,7 @@ export class ViewCollectionComponent implements OnInit {
 
   constructor(
     private readonly _route: ActivatedRoute,
+    private readonly _router: Router,
     private readonly _tabsStore: TabsStore,
     private readonly _walletStore: WalletStore,
     private readonly _activeBreakpointService: ActiveBreakpointService,
@@ -132,9 +149,20 @@ export class ViewCollectionComponent implements OnInit {
 
   ngOnInit() {
     this._collectionStore.selectCollection(
-      this._route.paramMap.pipe(
-        filter((paramMap) => paramMap.has('collectionId')),
-        map((paramMap) => paramMap.get('collectionId') as string)
+      this._router.events.pipe(
+        filter(
+          (event): event is NavigationStart => event instanceof NavigationStart
+        ),
+        map((event) => {
+          const urlAsArray = event.url.split('/').filter((segment) => segment);
+
+          if (urlAsArray.length !== 4 || urlAsArray[2] !== 'collections') {
+            return null;
+          } else {
+            return urlAsArray[3];
+          }
+        }),
+        startWith(this._route.snapshot.paramMap.get('collectionId') || null)
       )
     );
   }

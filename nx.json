@@ -54,9 +54,6 @@
     "application-application-ui-application-selector": {
       "tags": []
     },
-    "application-application-ui-edit-account": {
-      "tags": []
-    },
     "application-application-ui-edit-application": {
       "tags": []
     },
@@ -66,10 +63,19 @@
     "application-application-ui-edit-attribute": {
       "tags": []
     },
+    "application-application-ui-edit-basic-account": {
+      "tags": []
+    },
     "application-application-ui-edit-collection": {
       "tags": []
     },
     "application-application-ui-edit-instruction": {
+      "tags": []
+    },
+    "application-application-ui-edit-program-account": {
+      "tags": []
+    },
+    "application-application-ui-edit-signer-account": {
       "tags": []
     },
     "application-application-ui-navigation": {

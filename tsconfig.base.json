@@ -42,9 +42,6 @@
       "@demobase-labs/application/application/ui/application-selector": [
         "libs/application/application/ui/application-selector/src/index.ts"
       ],
-      "@demobase-labs/application/application/ui/edit-account": [
-        "libs/application/application/ui/edit-account/src/index.ts"
-      ],
       "@demobase-labs/application/application/ui/edit-application": [
         "libs/application/application/ui/edit-application/src/index.ts"
       ],
@@ -54,11 +51,20 @@
       "@demobase-labs/application/application/ui/edit-attribute": [
         "libs/application/application/ui/edit-attribute/src/index.ts"
       ],
+      "@demobase-labs/application/application/ui/edit-basic-account": [
+        "libs/application/application/ui/edit-basic-account/src/index.ts"
+      ],
       "@demobase-labs/application/application/ui/edit-collection": [
         "libs/application/application/ui/edit-collection/src/index.ts"
       ],
       "@demobase-labs/application/application/ui/edit-instruction": [
         "libs/application/application/ui/edit-instruction/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-program-account": [
+        "libs/application/application/ui/edit-program-account/src/index.ts"
+      ],
+      "@demobase-labs/application/application/ui/edit-signer-account": [
+        "libs/application/application/ui/edit-signer-account/src/index.ts"
       ],
       "@demobase-labs/application/application/ui/navigation": [
         "libs/application/application/ui/navigation/src/index.ts"

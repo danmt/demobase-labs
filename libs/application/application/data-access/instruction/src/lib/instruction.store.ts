@@ -2,17 +2,22 @@ import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ApplicationStore } from '@demobase-labs/application/application/data-access/application';
 import { CollectionStore } from '@demobase-labs/application/application/data-access/collection';
-import { EditAccountComponent } from '@demobase-labs/application/application/ui/edit-account';
 import { EditArgumentComponent } from '@demobase-labs/application/application/ui/edit-argument';
+import { EditBasicAccountComponent } from '@demobase-labs/application/application/ui/edit-basic-account';
 import { EditInstructionComponent } from '@demobase-labs/application/application/ui/edit-instruction';
+import { EditProgramAccountComponent } from '@demobase-labs/application/application/ui/edit-program-account';
+import { EditSignerAccountComponent } from '@demobase-labs/application/application/ui/edit-signer-account';
 import {
   Instruction,
-  InstructionAccount,
   InstructionArgument,
+  InstructionBasicAccount,
+  InstructionProgramAccount,
+  InstructionSignerAccount,
 } from '@demobase-labs/demobase-sdk';
 import { ProgramStore } from '@demobase-labs/shared/data-access/program';
 import { isNotNullOrUndefined } from '@demobase-labs/shared/utils/operators';
 import { ComponentStore, tapResponse } from '@ngrx/component-store';
+import { SystemProgram } from '@solana/web3.js';
 import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
 import {
   concatMap,
@@ -27,14 +32,18 @@ interface ViewModel {
   instructionId: string | null;
   instructions: Instruction[];
   arguments: InstructionArgument[];
-  accounts: InstructionAccount[];
+  basicAccounts: InstructionBasicAccount[];
+  signerAccounts: InstructionSignerAccount[];
+  programAccounts: InstructionProgramAccount[];
 }
 
 const initialState: ViewModel = {
   instructionId: null,
   instructions: [],
   arguments: [],
-  accounts: [],
+  basicAccounts: [],
+  signerAccounts: [],
+  programAccounts: [],
 };
 
 @Injectable()
@@ -47,7 +56,13 @@ export class InstructionStore extends ComponentStore<ViewModel> {
   readonly arguments$ = this.select(
     ({ arguments: instructionArguments }) => instructionArguments
   );
-  readonly accounts$ = this.select(({ accounts }) => accounts);
+  readonly basicAccounts$ = this.select(({ basicAccounts }) => basicAccounts);
+  readonly signerAccounts$ = this.select(
+    ({ signerAccounts }) => signerAccounts
+  );
+  readonly programAccounts$ = this.select(
+    ({ programAccounts }) => programAccounts
+  );
   readonly instructionId$ = this.select(({ instructionId }) => instructionId);
 
   constructor(
@@ -92,15 +107,47 @@ export class InstructionStore extends ComponentStore<ViewModel> {
     )
   );
 
-  readonly loadAccounts = this.effect(() =>
+  readonly loadBasicAccounts = this.effect(() =>
     combineLatest([
       this.instructionId$.pipe(isNotNullOrUndefined),
       this.reload$,
     ]).pipe(
       switchMap(([instructionId]) =>
-        this._programStore.getInstructionAccounts(instructionId).pipe(
+        this._programStore.getInstructionBasicAccounts(instructionId).pipe(
           tapResponse(
-            (accounts) => this.patchState({ accounts }),
+            (basicAccounts) => this.patchState({ basicAccounts }),
+            (error) => this._error.next(error)
+          )
+        )
+      )
+    )
+  );
+
+  readonly loadSignerAccounts = this.effect(() =>
+    combineLatest([
+      this.instructionId$.pipe(isNotNullOrUndefined),
+      this.reload$,
+    ]).pipe(
+      switchMap(([instructionId]) =>
+        this._programStore.getInstructionSignerAccounts(instructionId).pipe(
+          tapResponse(
+            (signerAccounts) => this.patchState({ signerAccounts }),
+            (error) => this._error.next(error)
+          )
+        )
+      )
+    )
+  );
+
+  readonly loadProgramAccounts = this.effect(() =>
+    combineLatest([
+      this.instructionId$.pipe(isNotNullOrUndefined),
+      this.reload$,
+    ]).pipe(
+      switchMap(([instructionId]) =>
+        this._programStore.getInstructionProgramAccounts(instructionId).pipe(
+          tapResponse(
+            (programAccounts) => this.patchState({ programAccounts }),
             (error) => this._error.next(error)
           )
         )
@@ -112,16 +159,6 @@ export class InstructionStore extends ComponentStore<ViewModel> {
     (instructionId$: Observable<string | null>) =>
       instructionId$.pipe(
         tap((instructionId) => this.patchState({ instructionId }))
-      )
-  );
-
-  readonly deleteInstruction = this.effect(
-    (instructionId$: Observable<string>) =>
-      instructionId$.pipe(
-        concatMap((instructionId) =>
-          this._programStore.deleteInstruction(instructionId)
-        ),
-        tap(() => this._reload.next(null))
       )
   );
 
@@ -162,11 +199,11 @@ export class InstructionStore extends ComponentStore<ViewModel> {
       )
   );
 
-  readonly deleteInstructionArgument = this.effect(
-    (argumentId$: Observable<string>) =>
-      argumentId$.pipe(
-        concatMap((argumentId) =>
-          this._programStore.deleteInstructionArgument(argumentId)
+  readonly deleteInstruction = this.effect(
+    (instructionId$: Observable<string>) =>
+      instructionId$.pipe(
+        concatMap((instructionId) =>
+          this._programStore.deleteInstruction(instructionId)
         ),
         tap(() => this._reload.next(null))
       )
@@ -232,17 +269,17 @@ export class InstructionStore extends ComponentStore<ViewModel> {
       )
   );
 
-  readonly deleteInstructionAccount = this.effect(
-    (accountId$: Observable<string>) =>
-      accountId$.pipe(
-        concatMap((accountId) =>
-          this._programStore.deleteInstructionAccount(accountId)
+  readonly deleteInstructionArgument = this.effect(
+    (argumentId$: Observable<string>) =>
+      argumentId$.pipe(
+        concatMap((argumentId) =>
+          this._programStore.deleteInstructionArgument(argumentId)
         ),
         tap(() => this._reload.next(null))
       )
   );
 
-  readonly createInstructionAccount = this.effect((action$) =>
+  readonly createInstructionBasicAccount = this.effect((action$) =>
     action$.pipe(
       concatMap(() =>
         of(null).pipe(
@@ -253,19 +290,17 @@ export class InstructionStore extends ComponentStore<ViewModel> {
           )
         )
       ),
-      tap((a) => console.log(a)),
       exhaustMap(([, applicationId, instructionId, collections]) =>
         this._matDialog
-          .open(EditAccountComponent, { data: { collections } })
+          .open(EditBasicAccountComponent, { data: { collections } })
           .afterClosed()
           .pipe(
-            concatMap(({ name, kind, markAttribute, collection }) =>
-              this._programStore.createInstructionAccount(
+            concatMap(({ name, markAttribute, collection }) =>
+              this._programStore.createInstructionBasicAccount(
                 applicationId,
                 instructionId,
-                collection,
                 name,
-                kind,
+                collection,
                 markAttribute
               )
             )
@@ -275,30 +310,182 @@ export class InstructionStore extends ComponentStore<ViewModel> {
     )
   );
 
-  readonly updateInstructionAccount = this.effect(
-    (account$: Observable<InstructionAccount>) =>
+  readonly updateInstructionBasicAccount = this.effect(
+    (account$: Observable<InstructionBasicAccount>) =>
       account$.pipe(
         concatMap((account) =>
           of(account).pipe(withLatestFrom(this._collectionStore.collections$))
         ),
         exhaustMap(([account, collections]) =>
           this._matDialog
-            .open(EditAccountComponent, {
+            .open(EditBasicAccountComponent, {
               data: { account, collections },
             })
             .afterClosed()
             .pipe(
               filter((data) => data),
-              concatMap(({ name, kind, markAttribute, collection }) =>
-                this._programStore.updateInstructionAccount(
+              concatMap(({ name, markAttribute, collection }) =>
+                this._programStore.updateInstructionBasicAccount(
                   account.id,
-                  collection,
                   name,
-                  kind,
+                  collection,
                   markAttribute
                 )
               )
             )
+        ),
+        tap(() => this._reload.next(null))
+      )
+  );
+
+  readonly deleteInstructionBasicAccount = this.effect(
+    (accountId$: Observable<string>) =>
+      accountId$.pipe(
+        concatMap((accountId) =>
+          this._programStore.deleteInstructionBasicAccount(accountId)
+        ),
+        tap(() => this._reload.next(null))
+      )
+  );
+
+  readonly createInstructionSignerAccount = this.effect((action$) =>
+    action$.pipe(
+      concatMap(() =>
+        of(null).pipe(
+          withLatestFrom(
+            this._applicationStore.applicationId$.pipe(isNotNullOrUndefined),
+            this.instructionId$.pipe(isNotNullOrUndefined)
+          )
+        )
+      ),
+      exhaustMap(([, applicationId, instructionId]) =>
+        this._matDialog
+          .open(EditSignerAccountComponent)
+          .afterClosed()
+          .pipe(
+            concatMap(({ name, markAttribute }) =>
+              this._programStore.createInstructionSignerAccount(
+                applicationId,
+                instructionId,
+                name,
+                markAttribute
+              )
+            )
+          )
+      ),
+      tap(() => this._reload.next(null))
+    )
+  );
+
+  readonly updateInstructionSignerAccount = this.effect(
+    (account$: Observable<InstructionSignerAccount>) =>
+      account$.pipe(
+        exhaustMap((account) =>
+          this._matDialog
+            .open(EditSignerAccountComponent, {
+              data: { account },
+            })
+            .afterClosed()
+            .pipe(
+              filter((data) => data),
+              concatMap(({ name, markAttribute }) =>
+                this._programStore.updateInstructionSignerAccount(
+                  account.id,
+                  name,
+                  markAttribute
+                )
+              )
+            )
+        ),
+        tap(() => this._reload.next(null))
+      )
+  );
+
+  readonly deleteInstructionSignerAccount = this.effect(
+    (accountId$: Observable<string>) =>
+      accountId$.pipe(
+        concatMap((accountId) =>
+          this._programStore.deleteInstructionSignerAccount(accountId)
+        ),
+        tap(() => this._reload.next(null))
+      )
+  );
+
+  readonly createInstructionProgramAccount = this.effect((action$) =>
+    action$.pipe(
+      concatMap(() =>
+        of(null).pipe(
+          withLatestFrom(
+            this._applicationStore.applicationId$.pipe(isNotNullOrUndefined),
+            this.instructionId$.pipe(isNotNullOrUndefined)
+          )
+        )
+      ),
+      exhaustMap(([, applicationId, instructionId]) =>
+        this._matDialog
+          .open(EditProgramAccountComponent, {
+            data: {
+              programs: [
+                {
+                  id: SystemProgram.programId.toBase58(),
+                  name: 'System program',
+                },
+              ],
+            },
+          })
+          .afterClosed()
+          .pipe(
+            concatMap(({ name, program }) =>
+              this._programStore.createInstructionProgramAccount(
+                applicationId,
+                instructionId,
+                name,
+                program
+              )
+            )
+          )
+      ),
+      tap(() => this._reload.next(null))
+    )
+  );
+
+  readonly updateInstructionProgramAccount = this.effect(
+    (account$: Observable<InstructionProgramAccount>) =>
+      account$.pipe(
+        exhaustMap((account) =>
+          this._matDialog
+            .open(EditProgramAccountComponent, {
+              data: {
+                account,
+                programs: [
+                  {
+                    id: SystemProgram.programId.toBase58(),
+                    name: 'System program',
+                  },
+                ],
+              },
+            })
+            .afterClosed()
+            .pipe(
+              filter((data) => data),
+              concatMap(({ name, program }) =>
+                this._programStore.updateInstructionProgramAccount(
+                  account.id,
+                  name,
+                  program
+                )
+              )
+            )
+        ),
+        tap(() => this._reload.next(null))
+      )
+  );
+
+  readonly deleteInstructionProgramAccount = this.effect(
+    (accountId$: Observable<string>) =>
+      accountId$.pipe(
+        concatMap((accountId) =>
+          this._programStore.deleteInstructionProgramAccount(accountId)
         ),
         tap(() => this._reload.next(null))
       )

@@ -554,106 +554,276 @@ describe('demobase', () => {
       });
     });
 
-    it('should create account', async () => {
-      // arrange
-      const instructionAccountName = 'data';
-      const instructionAccountKind = 0;
-      const instructionAccountMarkAttribute = 0;
-      // act
-      await program.rpc.createInstructionAccount(
-        instructionAccountName,
-        instructionAccountKind,
-        instructionAccountMarkAttribute,
-        {
-          accounts: {
-            authority: program.provider.wallet.publicKey,
-            application: application.publicKey,
-            collection: collection.publicKey,
-            instruction: instruction.publicKey,
-            account: instructionAccount.publicKey,
-            systemProgram: SystemProgram.programId,
-          },
-          signers: [instructionAccount],
-        }
-      );
-      // assert
-      const account = await program.account.instructionAccount.fetch(
-        instructionAccount.publicKey
-      );
-      assert.ok(account.authority.equals(program.provider.wallet.publicKey));
-      assert.equal(
-        utils.bytes.utf8.decode(
-          new Uint8Array(
-            account.name.filter((segment: number) => segment !== 0)
-          )
-        ),
-        instructionAccountName
-      );
-      assert.ok('account' in account.kind);
-      assert.equal(account.kind.account.id, instructionAccountKind);
-      assert.ok('none' in account.markAttribute);
-      assert.equal(
-        account.markAttribute.none.id,
-        instructionAccountMarkAttribute
-      );
-      assert.ok(account.instruction.equals(instruction.publicKey));
-      assert.ok(account.collection.equals(collection.publicKey));
-      assert.ok(account.application.equals(application.publicKey));
-    });
-
-    it('should update account', async () => {
-      // arrange
-      const instructionAccountName = 'data-2';
-      const instructionAccountKind = 1;
-      const instructionAccountMarkAttribute = 1;
-      // act
-      await program.rpc.updateInstructionAccount(
-        instructionAccountName,
-        instructionAccountKind,
-        instructionAccountMarkAttribute,
-        {
-          accounts: {
-            authority: program.provider.wallet.publicKey,
-            account: instructionAccount.publicKey,
-            collection: anotherCollection.publicKey,
-          },
-        }
-      );
-      // assert
-      const account = await program.account.instructionAccount.fetch(
-        instructionAccount.publicKey
-      );
-      assert.equal(
-        utils.bytes.utf8.decode(
-          new Uint8Array(
-            account.name.filter((segment: number) => segment !== 0)
-          )
-        ),
-        instructionAccountName
-      );
-      assert.ok('signer' in account.kind);
-      assert.equal(account.kind.signer.id, instructionAccountKind);
-      assert.ok('init' in account.markAttribute);
-      assert.equal(
-        account.markAttribute.init.id,
-        instructionAccountMarkAttribute
-      );
-      assert.ok(account.collection.equals(anotherCollection.publicKey));
-    });
-
-    it('should delete account', async () => {
-      // act
-      await program.rpc.deleteInstructionAccount({
-        accounts: {
-          authority: program.provider.wallet.publicKey,
-          account: instructionAccount.publicKey,
-        },
+    describe('basic', () => {
+      it('should create account', async () => {
+        // arrange
+        const instructionAccountName = 'data';
+        const instructionAccountMarkAttribute = 0;
+        // act
+        await program.rpc.createInstructionBasicAccount(
+          instructionAccountName,
+          instructionAccountMarkAttribute,
+          {
+            accounts: {
+              authority: program.provider.wallet.publicKey,
+              application: application.publicKey,
+              instruction: instruction.publicKey,
+              collection: collection.publicKey,
+              account: instructionAccount.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            signers: [instructionAccount],
+          }
+        );
+        // assert
+        const account = await program.account.instructionBasicAccount.fetch(
+          instructionAccount.publicKey
+        );
+        assert.ok(account.authority.equals(program.provider.wallet.publicKey));
+        assert.equal(
+          utils.bytes.utf8.decode(
+            new Uint8Array(
+              account.name.filter((segment: number) => segment !== 0)
+            )
+          ),
+          instructionAccountName
+        );
+        assert.ok('none' in account.markAttribute);
+        assert.equal(
+          account.markAttribute.none.id,
+          instructionAccountMarkAttribute
+        );
+        assert.ok(account.instruction.equals(instruction.publicKey));
+        assert.ok(account.application.equals(application.publicKey));
+        assert.ok(account.collection.equals(collection.publicKey));
       });
-      // assert
-      const account = await program.account.instructionAccount.fetchNullable(
-        instructionAccount.publicKey
-      );
-      assert.equal(account, null);
+
+      it('should update account', async () => {
+        // arrange
+        const instructionAccountName = 'data-2';
+        const instructionAccountMarkAttribute = 1;
+        // act
+        await program.rpc.updateInstructionBasicAccount(
+          instructionAccountName,
+          instructionAccountMarkAttribute,
+          {
+            accounts: {
+              authority: program.provider.wallet.publicKey,
+              account: instructionAccount.publicKey,
+              collection: anotherCollection.publicKey,
+            },
+          }
+        );
+        // assert
+        const account = await program.account.instructionBasicAccount.fetch(
+          instructionAccount.publicKey
+        );
+        assert.equal(
+          utils.bytes.utf8.decode(
+            new Uint8Array(
+              account.name.filter((segment: number) => segment !== 0)
+            )
+          ),
+          instructionAccountName
+        );
+        assert.ok('init' in account.markAttribute);
+        assert.equal(
+          account.markAttribute.init.id,
+          instructionAccountMarkAttribute
+        );
+        assert.ok(account.collection.equals(anotherCollection.publicKey));
+      });
+
+      it('should delete account', async () => {
+        // act
+        await program.rpc.deleteInstructionBasicAccount({
+          accounts: {
+            authority: program.provider.wallet.publicKey,
+            account: instructionAccount.publicKey,
+          },
+        });
+        // assert
+        const account =
+          await program.account.instructionBasicAccount.fetchNullable(
+            instructionAccount.publicKey
+          );
+        assert.equal(account, null);
+      });
+    });
+
+    describe('signer', () => {
+      it('should create account', async () => {
+        // arrange
+        const instructionAccountName = 'data';
+        const instructionAccountMarkAttribute = 0;
+        // act
+        await program.rpc.createInstructionSignerAccount(
+          instructionAccountName,
+          instructionAccountMarkAttribute,
+          {
+            accounts: {
+              authority: program.provider.wallet.publicKey,
+              application: application.publicKey,
+              instruction: instruction.publicKey,
+              account: instructionAccount.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            signers: [instructionAccount],
+          }
+        );
+        // assert
+        const account = await program.account.instructionSignerAccount.fetch(
+          instructionAccount.publicKey
+        );
+        assert.ok(account.authority.equals(program.provider.wallet.publicKey));
+        assert.equal(
+          utils.bytes.utf8.decode(
+            new Uint8Array(
+              account.name.filter((segment: number) => segment !== 0)
+            )
+          ),
+          instructionAccountName
+        );
+        assert.ok('none' in account.markAttribute);
+        assert.equal(
+          account.markAttribute.none.id,
+          instructionAccountMarkAttribute
+        );
+        assert.ok(account.instruction.equals(instruction.publicKey));
+        assert.ok(account.application.equals(application.publicKey));
+      });
+
+      it('should update account', async () => {
+        // arrange
+        const instructionAccountName = 'data-2';
+        const instructionAccountMarkAttribute = 1;
+        // act
+        await program.rpc.updateInstructionSignerAccount(
+          instructionAccountName,
+          instructionAccountMarkAttribute,
+          {
+            accounts: {
+              authority: program.provider.wallet.publicKey,
+              account: instructionAccount.publicKey,
+            },
+          }
+        );
+        // assert
+        const account = await program.account.instructionSignerAccount.fetch(
+          instructionAccount.publicKey
+        );
+        assert.equal(
+          utils.bytes.utf8.decode(
+            new Uint8Array(
+              account.name.filter((segment: number) => segment !== 0)
+            )
+          ),
+          instructionAccountName
+        );
+        assert.ok('init' in account.markAttribute);
+        assert.equal(
+          account.markAttribute.init.id,
+          instructionAccountMarkAttribute
+        );
+      });
+
+      it('should delete account', async () => {
+        // act
+        await program.rpc.deleteInstructionSignerAccount({
+          accounts: {
+            authority: program.provider.wallet.publicKey,
+            account: instructionAccount.publicKey,
+          },
+        });
+        // assert
+        const account =
+          await program.account.instructionSignerAccount.fetchNullable(
+            instructionAccount.publicKey
+          );
+        assert.equal(account, null);
+      });
+    });
+
+    describe('program', () => {
+      it('should create account', async () => {
+        // arrange
+        const instructionAccountName = 'data';
+        // act
+        await program.rpc.createInstructionProgramAccount(
+          instructionAccountName,
+          {
+            accounts: {
+              authority: program.provider.wallet.publicKey,
+              application: application.publicKey,
+              instruction: instruction.publicKey,
+              program: SystemProgram.programId,
+              account: instructionAccount.publicKey,
+              systemProgram: SystemProgram.programId,
+            },
+            signers: [instructionAccount],
+          }
+        );
+        // assert
+        const account = await program.account.instructionProgramAccount.fetch(
+          instructionAccount.publicKey
+        );
+        assert.ok(account.authority.equals(program.provider.wallet.publicKey));
+        assert.equal(
+          utils.bytes.utf8.decode(
+            new Uint8Array(
+              account.name.filter((segment: number) => segment !== 0)
+            )
+          ),
+          instructionAccountName
+        );
+        assert.ok(account.instruction.equals(instruction.publicKey));
+        assert.ok(account.application.equals(application.publicKey));
+        assert.ok(account.program.equals(SystemProgram.programId));
+      });
+
+      it('should update account', async () => {
+        // arrange
+        const instructionAccountName = 'data-2';
+        // act
+        await program.rpc.updateInstructionProgramAccount(
+          instructionAccountName,
+          {
+            accounts: {
+              authority: program.provider.wallet.publicKey,
+              account: instructionAccount.publicKey,
+              program: SystemProgram.programId,
+            },
+          }
+        );
+        // assert
+        const account = await program.account.instructionProgramAccount.fetch(
+          instructionAccount.publicKey
+        );
+        assert.equal(
+          utils.bytes.utf8.decode(
+            new Uint8Array(
+              account.name.filter((segment: number) => segment !== 0)
+            )
+          ),
+          instructionAccountName
+        );
+      });
+
+      it('should delete account', async () => {
+        // act
+        await program.rpc.deleteInstructionProgramAccount({
+          accounts: {
+            authority: program.provider.wallet.publicKey,
+            account: instructionAccount.publicKey,
+          },
+        });
+        // assert
+        const account =
+          await program.account.instructionProgramAccount.fetchNullable(
+            instructionAccount.publicKey
+          );
+        assert.equal(account, null);
+      });
     });
   });
 });

@@ -4,16 +4,18 @@ import {
   HostBinding,
   OnInit,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { WalletStore } from '@danmt/wallet-adapter-angular';
 import { InstructionStore } from '@demobase-labs/application/application/data-access/instruction';
 import { TabsStore } from '@demobase-labs/application/application/data-access/tabs';
 import { ActiveBreakpointService } from '@demobase-labs/application/application/utils/services/active-breakpoint';
 import {
-  InstructionAccount,
   InstructionArgument,
+  InstructionBasicAccount,
+  InstructionProgramAccount,
+  InstructionSignerAccount,
 } from '@demobase-labs/demobase-sdk';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'demobase-labs-view-instruction',
@@ -38,14 +40,25 @@ import { filter, map } from 'rxjs/operators';
         <section *ngrxLet="arguments$; let arguments">
           <h2 class="flex items-center">
             Arguments
+
             <button
               mat-icon-button
-              (click)="onCreateInstructionArgument()"
-              [disabled]="(connected$ | ngrxPush) === false"
-              aria-label="Create instruction argument"
+              aria-label="Arguments menu"
+              [matMenuTriggerFor]="argumentsMenu"
             >
-              <mat-icon>add</mat-icon>
+              <mat-icon>more_vert</mat-icon>
             </button>
+
+            <mat-menu #argumentsMenu="matMenu">
+              <button
+                mat-menu-item
+                (click)="onCreateInstructionArgument()"
+                [disabled]="(connected$ | ngrxPush) === false"
+              >
+                <mat-icon>add</mat-icon>
+                <span>Add argument</span>
+              </button>
+            </mat-menu>
           </h2>
 
           <mat-grid-list
@@ -61,33 +74,40 @@ import { filter, map } from 'rxjs/operators';
               class="overflow-visible"
             >
               <mat-card class="w-full h-full">
-                <h3>Name: {{ argument.data.name }}.</h3>
+                <h3 class="flex justify-between items-center">
+                  {{ argument.data.name }}
+                  <button
+                    mat-icon-button
+                    aria-label="Argument menu"
+                    [matMenuTriggerFor]="argumentMenu"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #argumentMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="onEditInstructionArgument(argument)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit argument</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="onDeleteInstructionArgument(argument.id)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete argument</span>
+                    </button>
+                  </mat-menu>
+                </h3>
                 <p>Kind: {{ argument.data.kind.name }}.</p>
                 <p>
                   Modifier: {{ argument.data.modifier.name }} ({{
                     argument.data.modifier.size
                   }}).
                 </p>
-                <button
-                  mat-mini-fab
-                  color="primary"
-                  [attr.aria-label]="'Edit ' + argument.data.name + ' argument'"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onEditInstructionArgument(argument)"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-mini-fab
-                  color="warn"
-                  [attr.aria-label]="
-                    'Delete ' + argument.data.name + ' argument'
-                  "
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onDeleteInstructionArgument(argument.id)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -97,34 +117,93 @@ import { filter, map } from 'rxjs/operators';
           </ng-template>
         </section>
 
-        <section *ngrxLet="accounts$; let accounts">
-          <h2 class="flex items-center">
+        <section>
+          <h2 class="flex items-center my-4">
             Accounts
+
             <button
               mat-icon-button
-              (click)="onCreateInstructionAccount()"
-              [disabled]="(connected$ | ngrxPush) === false"
-              aria-label="Create instruction account"
+              aria-label="Accounts menu"
+              [matMenuTriggerFor]="accountsMenu"
             >
-              <mat-icon>add</mat-icon>
+              <mat-icon>more_vert</mat-icon>
             </button>
+
+            <mat-menu #accountsMenu="matMenu">
+              <button mat-menu-item [matMenuTriggerFor]="addAccountMenu">
+                Add account
+              </button>
+            </mat-menu>
+
+            <mat-menu #addAccountMenu="matMenu">
+              <button
+                mat-menu-item
+                (click)="onCreateInstructionBasicAccount()"
+                [disabled]="(connected$ | ngrxPush) === false"
+              >
+                <mat-icon>description</mat-icon>
+                <span>Basic account</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="onCreateInstructionSignerAccount()"
+                [disabled]="(connected$ | ngrxPush) === false"
+              >
+                <mat-icon>rate_review</mat-icon>
+                <span>Signer account</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="onCreateInstructionProgramAccount()"
+                [disabled]="(connected$ | ngrxPush) === false"
+              >
+                <mat-icon>group_work</mat-icon>
+                <span>Program account</span>
+              </button>
+            </mat-menu>
           </h2>
 
           <mat-grid-list
-            *ngIf="accounts.length > 0; else emptyList"
             [cols]="gridCols$ | ngrxPush"
-            rowHeight="14rem"
+            rowHeight="10rem"
             gutterSize="16"
           >
             <mat-grid-tile
-              *ngFor="let account of accounts"
+              *ngFor="let account of basicAccounts$ | ngrxPush"
               [colspan]="1"
               [rowspan]="1"
               class="overflow-visible"
             >
               <mat-card class="w-full h-full">
-                <h3>Name: {{ account.data.name }}</h3>
-                <p>Kind: {{ account.data.kind.name }}</p>
+                <h3 class="flex justify-between items-center">
+                  {{ account.data.name }}
+
+                  <button
+                    mat-icon-button
+                    aria-label="Basic account menu"
+                    [matMenuTriggerFor]="basicAccountMenu"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #basicAccountMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="onEditInstructionBasicAccount(account)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit account</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="onDeleteInstructionBasicAccount(account.id)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete account</span>
+                    </button>
+                  </mat-menu>
+                </h3>
                 <p>Mark argument: {{ account.data.markAttribute.name }}</p>
                 <p>
                   Collection:
@@ -139,31 +218,90 @@ import { filter, map } from 'rxjs/operators';
                     >view</a
                   >
                 </p>
-                <button
-                  mat-mini-fab
-                  color="primary"
-                  [attr.aria-label]="'Edit ' + account.data.name + ' account'"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onEditInstructionAccount(account)"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-mini-fab
-                  color="warn"
-                  [attr.aria-label]="'Delete ' + account.data.name + ' account'"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onDeleteInstructionAccount(account.id)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+              </mat-card>
+            </mat-grid-tile>
+
+            <mat-grid-tile
+              *ngFor="let account of signerAccounts$ | ngrxPush"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
+            >
+              <mat-card class="w-full h-full">
+                <h3 class="flex justify-between items-center">
+                  {{ account.data.name }}
+                  <button
+                    mat-icon-button
+                    aria-label="Signer account menu"
+                    [matMenuTriggerFor]="signerAccountMenu"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #signerAccountMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="onEditInstructionSignerAccount(account)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit account</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="onDeleteInstructionSignerAccount(account.id)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete account</span>
+                    </button>
+                  </mat-menu>
+                </h3>
+                <p>Mark argument: {{ account.data.markAttribute.name }}</p>
+              </mat-card>
+            </mat-grid-tile>
+
+            <mat-grid-tile
+              *ngFor="let account of programAccounts$ | ngrxPush"
+              [colspan]="1"
+              [rowspan]="1"
+              class="overflow-visible"
+            >
+              <mat-card class="w-full h-full">
+                <h3 class="flex justify-between items-center">
+                  {{ account.data.name }}
+                  <button
+                    mat-icon-button
+                    aria-label="Program account menu"
+                    [matMenuTriggerFor]="programAccountMenu"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #programAccountMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="onEditInstructionProgramAccount(account)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit account</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="onDeleteInstructionProgramAccount(account.id)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete account</span>
+                    </button>
+                  </mat-menu>
+                </h3>
+                <p>
+                  Program:
+                  {{ account.data.program | obscureAddress }}
+                </p>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
-
-          <ng-template #emptyList>
-            <p class="text-center text-xl">There's no accounts yet.</p>
-          </ng-template>
         </section>
       </main>
     </ng-container>
@@ -176,7 +314,9 @@ export class ViewInstructionComponent implements OnInit {
   readonly connected$ = this._walletStore.connected$;
   readonly instruction$ = this._tabsStore.tab$;
   readonly arguments$ = this._instructionStore.arguments$;
-  readonly accounts$ = this._instructionStore.accounts$;
+  readonly basicAccounts$ = this._instructionStore.basicAccounts$;
+  readonly signerAccounts$ = this._instructionStore.signerAccounts$;
+  readonly programAccounts$ = this._instructionStore.programAccounts$;
   readonly gridCols$ = this._activeBreakpointService.activeBreakpoint$.pipe(
     map((activeBreakpoint) => {
       switch (activeBreakpoint) {
@@ -195,6 +335,7 @@ export class ViewInstructionComponent implements OnInit {
 
   constructor(
     private readonly _route: ActivatedRoute,
+    private readonly _router: Router,
     private readonly _tabsStore: TabsStore,
     private readonly _walletStore: WalletStore,
     private readonly _activeBreakpointService: ActiveBreakpointService,
@@ -203,9 +344,20 @@ export class ViewInstructionComponent implements OnInit {
 
   ngOnInit() {
     this._instructionStore.selectInstruction(
-      this._route.paramMap.pipe(
-        filter((paramMap) => paramMap.has('instructionId')),
-        map((paramMap) => paramMap.get('instructionId') as string)
+      this._router.events.pipe(
+        filter(
+          (event): event is NavigationStart => event instanceof NavigationStart
+        ),
+        map((event) => {
+          const urlAsArray = event.url.split('/').filter((segment) => segment);
+
+          if (urlAsArray.length !== 4 || urlAsArray[2] !== 'instructions') {
+            return null;
+          } else {
+            return urlAsArray[3];
+          }
+        }),
+        startWith(this._route.snapshot.paramMap.get('instructionId') || null)
       )
     );
   }
@@ -226,15 +378,39 @@ export class ViewInstructionComponent implements OnInit {
     this._instructionStore.deleteInstructionArgument(argumentId);
   }
 
-  onCreateInstructionAccount() {
-    this._instructionStore.createInstructionAccount();
+  onCreateInstructionBasicAccount() {
+    this._instructionStore.createInstructionBasicAccount();
   }
 
-  onEditInstructionAccount(account: InstructionAccount) {
-    this._instructionStore.updateInstructionAccount(account);
+  onEditInstructionBasicAccount(account: InstructionBasicAccount) {
+    this._instructionStore.updateInstructionBasicAccount(account);
   }
 
-  onDeleteInstructionAccount(accountId: string) {
-    this._instructionStore.deleteInstructionAccount(accountId);
+  onDeleteInstructionBasicAccount(accountId: string) {
+    this._instructionStore.deleteInstructionBasicAccount(accountId);
+  }
+
+  onCreateInstructionSignerAccount() {
+    this._instructionStore.createInstructionSignerAccount();
+  }
+
+  onEditInstructionSignerAccount(account: InstructionSignerAccount) {
+    this._instructionStore.updateInstructionSignerAccount(account);
+  }
+
+  onDeleteInstructionSignerAccount(accountId: string) {
+    this._instructionStore.deleteInstructionSignerAccount(accountId);
+  }
+
+  onCreateInstructionProgramAccount() {
+    this._instructionStore.createInstructionProgramAccount();
+  }
+
+  onEditInstructionProgramAccount(account: InstructionProgramAccount) {
+    this._instructionStore.updateInstructionProgramAccount(account);
+  }
+
+  onDeleteInstructionProgramAccount(accountId: string) {
+    this._instructionStore.deleteInstructionProgramAccount(accountId);
   }
 }

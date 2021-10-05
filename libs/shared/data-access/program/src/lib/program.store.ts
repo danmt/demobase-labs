@@ -7,9 +7,11 @@ import {
   DEMOBASE_PROGRAM_ID,
   DummyWallet,
   idl,
-  InstructionAccountParser,
+  InstructionBasicAccountParser,
   InstructionArgumentParser,
   InstructionParser,
+  InstructionSignerAccountParser,
+  InstructionProgramAccountParser,
 } from '@demobase-labs/demobase-sdk';
 import { isNotNullOrUndefined } from '@demobase-labs/shared/utils/operators';
 import { ComponentStore } from '@ngrx/component-store';
@@ -512,21 +514,21 @@ export class ProgramStore extends ComponentStore<ViewModel> {
     );
   }
 
-  getInstructionAccounts(instructionId: string) {
+  getInstructionBasicAccounts(instructionId: string) {
     return this.reader$.pipe(
       isNotNullOrUndefined,
       take(1),
       concatMap((reader) =>
         from(
           defer(() =>
-            reader.account.instructionAccount.all([
+            reader.account.instructionBasicAccount.all([
               { memcmp: { bytes: instructionId, offset: 72 } },
             ])
           )
         ).pipe(
           map((programAccounts) =>
             programAccounts.map(({ publicKey, account }) =>
-              InstructionAccountParser(publicKey, account)
+              InstructionBasicAccountParser(publicKey, account)
             )
           )
         )
@@ -534,12 +536,11 @@ export class ProgramStore extends ComponentStore<ViewModel> {
     );
   }
 
-  createInstructionAccount(
+  createInstructionBasicAccount(
     applicationId: string,
     instructionId: string,
-    collectionId: string,
     accountName: string,
-    accountKind: number,
+    collectionId: string,
     accountMarkAttribute: number
   ) {
     return combineLatest([
@@ -552,17 +553,16 @@ export class ProgramStore extends ComponentStore<ViewModel> {
 
         return from(
           defer(() =>
-            writer.rpc.createInstructionAccount(
+            writer.rpc.createInstructionBasicAccount(
               accountName,
-              accountKind,
               accountMarkAttribute,
               {
                 accounts: {
-                  account: account.publicKey,
-                  instruction: new PublicKey(instructionId),
-                  collection: new PublicKey(collectionId),
-                  application: new PublicKey(applicationId),
                   authority: walletPublicKey,
+                  application: new PublicKey(applicationId),
+                  instruction: new PublicKey(instructionId),
+                  account: account.publicKey,
+                  collection: new PublicKey(collectionId),
                   systemProgram: SystemProgram.programId,
                 },
                 signers: [account],
@@ -574,11 +574,10 @@ export class ProgramStore extends ComponentStore<ViewModel> {
     );
   }
 
-  updateInstructionAccount(
+  updateInstructionBasicAccount(
     accountId: string,
-    collectionId: string,
     accountName: string,
-    accountKind: number,
+    collectionId: string,
     accountMarkAttribute: number
   ) {
     return combineLatest([
@@ -589,14 +588,13 @@ export class ProgramStore extends ComponentStore<ViewModel> {
       concatMap(([writer, walletPublicKey]) =>
         from(
           defer(() =>
-            writer.rpc.updateInstructionAccount(
+            writer.rpc.updateInstructionBasicAccount(
               accountName,
-              accountKind,
               accountMarkAttribute,
               {
                 accounts: {
-                  account: new PublicKey(accountId),
                   authority: walletPublicKey,
+                  account: new PublicKey(accountId),
                   collection: new PublicKey(collectionId),
                 },
               }
@@ -607,7 +605,7 @@ export class ProgramStore extends ComponentStore<ViewModel> {
     );
   }
 
-  deleteInstructionAccount(accountId: string) {
+  deleteInstructionBasicAccount(accountId: string) {
     return combineLatest([
       this.writer$.pipe(isNotNullOrUndefined),
       this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
@@ -616,10 +614,220 @@ export class ProgramStore extends ComponentStore<ViewModel> {
       concatMap(([writer, walletPublicKey]) =>
         from(
           defer(() =>
-            writer.rpc.deleteInstructionAccount({
+            writer.rpc.deleteInstructionBasicAccount({
               accounts: {
-                account: new PublicKey(accountId),
                 authority: walletPublicKey,
+                account: new PublicKey(accountId),
+              },
+            })
+          )
+        )
+      )
+    );
+  }
+
+  getInstructionSignerAccounts(instructionId: string) {
+    return this.reader$.pipe(
+      isNotNullOrUndefined,
+      take(1),
+      concatMap((reader) =>
+        from(
+          defer(() =>
+            reader.account.instructionSignerAccount.all([
+              { memcmp: { bytes: instructionId, offset: 72 } },
+            ])
+          )
+        ).pipe(
+          map((programAccounts) =>
+            programAccounts.map(({ publicKey, account }) =>
+              InstructionSignerAccountParser(publicKey, account)
+            )
+          )
+        )
+      )
+    );
+  }
+
+  createInstructionSignerAccount(
+    applicationId: string,
+    instructionId: string,
+    accountName: string,
+    accountMarkAttribute: number
+  ) {
+    return combineLatest([
+      this.writer$.pipe(isNotNullOrUndefined),
+      this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
+    ]).pipe(
+      take(1),
+      concatMap(([writer, walletPublicKey]) => {
+        const account = Keypair.generate();
+
+        return from(
+          defer(() =>
+            writer.rpc.createInstructionSignerAccount(
+              accountName,
+              accountMarkAttribute,
+              {
+                accounts: {
+                  authority: walletPublicKey,
+                  application: new PublicKey(applicationId),
+                  instruction: new PublicKey(instructionId),
+                  account: account.publicKey,
+                  systemProgram: SystemProgram.programId,
+                },
+                signers: [account],
+              }
+            )
+          )
+        );
+      })
+    );
+  }
+
+  updateInstructionSignerAccount(
+    accountId: string,
+    accountName: string,
+    accountMarkAttribute: number
+  ) {
+    return combineLatest([
+      this.writer$.pipe(isNotNullOrUndefined),
+      this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
+    ]).pipe(
+      take(1),
+      concatMap(([writer, walletPublicKey]) =>
+        from(
+          defer(() =>
+            writer.rpc.updateInstructionSignerAccount(
+              accountName,
+              accountMarkAttribute,
+              {
+                accounts: {
+                  authority: walletPublicKey,
+                  account: new PublicKey(accountId),
+                },
+              }
+            )
+          )
+        )
+      )
+    );
+  }
+
+  deleteInstructionSignerAccount(accountId: string) {
+    return combineLatest([
+      this.writer$.pipe(isNotNullOrUndefined),
+      this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
+    ]).pipe(
+      take(1),
+      concatMap(([writer, walletPublicKey]) =>
+        from(
+          defer(() =>
+            writer.rpc.deleteInstructionSignerAccount({
+              accounts: {
+                authority: walletPublicKey,
+                account: new PublicKey(accountId),
+              },
+            })
+          )
+        )
+      )
+    );
+  }
+
+  getInstructionProgramAccounts(instructionId: string) {
+    return this.reader$.pipe(
+      isNotNullOrUndefined,
+      take(1),
+      concatMap((reader) =>
+        from(
+          defer(() =>
+            reader.account.instructionProgramAccount.all([
+              { memcmp: { bytes: instructionId, offset: 72 } },
+            ])
+          )
+        ).pipe(
+          map((programAccounts) =>
+            programAccounts.map(({ publicKey, account }) =>
+              InstructionProgramAccountParser(publicKey, account)
+            )
+          )
+        )
+      )
+    );
+  }
+
+  createInstructionProgramAccount(
+    applicationId: string,
+    instructionId: string,
+    accountName: string,
+    programId: string
+  ) {
+    return combineLatest([
+      this.writer$.pipe(isNotNullOrUndefined),
+      this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
+    ]).pipe(
+      take(1),
+      concatMap(([writer, walletPublicKey]) => {
+        const account = Keypair.generate();
+
+        return from(
+          defer(() =>
+            writer.rpc.createInstructionProgramAccount(accountName, {
+              accounts: {
+                authority: walletPublicKey,
+                application: new PublicKey(applicationId),
+                instruction: new PublicKey(instructionId),
+                account: account.publicKey,
+                program: new PublicKey(programId),
+                systemProgram: SystemProgram.programId,
+              },
+              signers: [account],
+            })
+          )
+        );
+      })
+    );
+  }
+
+  updateInstructionProgramAccount(
+    accountId: string,
+    accountName: string,
+    programId: string
+  ) {
+    return combineLatest([
+      this.writer$.pipe(isNotNullOrUndefined),
+      this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
+    ]).pipe(
+      take(1),
+      concatMap(([writer, walletPublicKey]) =>
+        from(
+          defer(() =>
+            writer.rpc.updateInstructionProgramAccount(accountName, {
+              accounts: {
+                authority: walletPublicKey,
+                account: new PublicKey(accountId),
+                program: new PublicKey(programId),
+              },
+            })
+          )
+        )
+      )
+    );
+  }
+
+  deleteInstructionProgramAccount(accountId: string) {
+    return combineLatest([
+      this.writer$.pipe(isNotNullOrUndefined),
+      this._walletStore.publicKey$.pipe(isNotNullOrUndefined),
+    ]).pipe(
+      take(1),
+      concatMap(([writer, walletPublicKey]) =>
+        from(
+          defer(() =>
+            writer.rpc.deleteInstructionProgramAccount({
+              accounts: {
+                authority: walletPublicKey,
+                account: new PublicKey(accountId),
               },
             })
           )

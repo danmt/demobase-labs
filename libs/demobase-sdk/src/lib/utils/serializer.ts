@@ -6,8 +6,10 @@ import {
   Collection,
   CollectionAttribute,
   Instruction,
-  InstructionAccount,
   InstructionArgument,
+  InstructionBasicAccount,
+  InstructionProgramAccount,
+  InstructionSignerAccount,
 } from '../types';
 
 interface RawApplication {
@@ -146,38 +148,88 @@ export const InstructionArgumentParser = (
   };
 };
 
-interface RawInstructionAccount {
+interface RawInstructionBasicAccount {
   authority: PublicKey;
   application: PublicKey;
-  collection: PublicKey;
   instruction: PublicKey;
   name: Uint8Array;
-  kind: { [key: string]: { id: number; name: string } };
+  collection: PublicKey;
   markAttribute: { [key: string]: { id: number; name: string } };
 }
 
-export const InstructionAccountParser = (
+export const InstructionBasicAccountParser = (
   publicKey: PublicKey,
-  account: RawInstructionAccount
-): InstructionAccount => {
+  account: RawInstructionBasicAccount
+): InstructionBasicAccount => {
   return {
     id: publicKey.toBase58(),
     data: {
       authority: account.authority.toBase58(),
       application: account.application.toBase58(),
-      collection: account.collection.toBase58(),
       instruction: account.instruction.toBase58(),
       name: utils.bytes.utf8.decode(
         new Uint8Array(account.name.filter((segment) => segment !== 0))
       ),
-      kind: {
-        id: Object.values(account.kind)[0].id,
-        name: Object.keys(account.kind)[0],
-      },
+      collection: account.collection.toBase58(),
       markAttribute: {
         id: Object.values(account.markAttribute)[0].id,
         name: Object.keys(account.markAttribute)[0],
       },
+    },
+  };
+};
+
+interface RawInstructionSignerAccount {
+  authority: PublicKey;
+  application: PublicKey;
+  instruction: PublicKey;
+  name: Uint8Array;
+  markAttribute: { [key: string]: { id: number; name: string } };
+}
+
+export const InstructionSignerAccountParser = (
+  publicKey: PublicKey,
+  account: RawInstructionSignerAccount
+): InstructionSignerAccount => {
+  return {
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      instruction: account.instruction.toBase58(),
+      name: utils.bytes.utf8.decode(
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
+      ),
+      markAttribute: {
+        id: Object.values(account.markAttribute)[0].id,
+        name: Object.keys(account.markAttribute)[0],
+      },
+    },
+  };
+};
+
+interface RawInstructionProgramAccount {
+  authority: PublicKey;
+  application: PublicKey;
+  instruction: PublicKey;
+  name: Uint8Array;
+  program: PublicKey;
+}
+
+export const InstructionProgramAccountParser = (
+  publicKey: PublicKey,
+  account: RawInstructionProgramAccount
+): InstructionProgramAccount => {
+  return {
+    id: publicKey.toBase58(),
+    data: {
+      authority: account.authority.toBase58(),
+      application: account.application.toBase58(),
+      instruction: account.instruction.toBase58(),
+      name: utils.bytes.utf8.decode(
+        new Uint8Array(account.name.filter((segment) => segment !== 0))
+      ),
+      program: account.program.toBase58(),
     },
   };
 };
