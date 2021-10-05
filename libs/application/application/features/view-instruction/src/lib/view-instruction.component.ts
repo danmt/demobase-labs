@@ -40,14 +40,25 @@ import { filter, map } from 'rxjs/operators';
         <section *ngrxLet="arguments$; let arguments">
           <h2 class="flex items-center">
             Arguments
+
             <button
               mat-icon-button
-              (click)="onCreateInstructionArgument()"
-              [disabled]="(connected$ | ngrxPush) === false"
-              aria-label="Create instruction argument"
+              aria-label="Arguments menu"
+              [matMenuTriggerFor]="argumentsMenu"
             >
-              <mat-icon>add</mat-icon>
+              <mat-icon>more_vert</mat-icon>
             </button>
+
+            <mat-menu #argumentsMenu="matMenu">
+              <button
+                mat-menu-item
+                (click)="onCreateInstructionArgument()"
+                [disabled]="(connected$ | ngrxPush) === false"
+              >
+                <mat-icon>add</mat-icon>
+                <span>Add argument</span>
+              </button>
+            </mat-menu>
           </h2>
 
           <mat-grid-list
@@ -63,33 +74,40 @@ import { filter, map } from 'rxjs/operators';
               class="overflow-visible"
             >
               <mat-card class="w-full h-full">
-                <h3>Name: {{ argument.data.name }}.</h3>
+                <h3 class="flex justify-between items-center">
+                  {{ argument.data.name }}
+                  <button
+                    mat-icon-button
+                    aria-label="Argument menu"
+                    [matMenuTriggerFor]="argumentMenu"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #argumentMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="onEditInstructionArgument(argument)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit argument</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="onDeleteInstructionArgument(argument.id)"
+                      [disabled]="(connected$ | ngrxPush) === false"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete argument</span>
+                    </button>
+                  </mat-menu>
+                </h3>
                 <p>Kind: {{ argument.data.kind.name }}.</p>
                 <p>
                   Modifier: {{ argument.data.modifier.name }} ({{
                     argument.data.modifier.size
                   }}).
                 </p>
-                <button
-                  mat-mini-fab
-                  color="primary"
-                  [attr.aria-label]="'Edit ' + argument.data.name + ' argument'"
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onEditInstructionArgument(argument)"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-mini-fab
-                  color="warn"
-                  [attr.aria-label]="
-                    'Delete ' + argument.data.name + ' argument'
-                  "
-                  [disabled]="(connected$ | ngrxPush) === false"
-                  (click)="onDeleteInstructionArgument(argument.id)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
               </mat-card>
             </mat-grid-tile>
           </mat-grid-list>
@@ -100,7 +118,7 @@ import { filter, map } from 'rxjs/operators';
         </section>
 
         <section>
-          <h2 class="flex items-center">
+          <h2 class="flex items-center my-4">
             Accounts
 
             <button
