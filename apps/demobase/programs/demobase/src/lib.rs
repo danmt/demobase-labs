@@ -110,29 +110,71 @@ pub mod demobase {
         Ok(())
     }
 
-    pub fn create_instruction_account(ctx: Context<CreateInstructionAccount>, name: String, kind: u8, mark_attribute: u8) -> ProgramResult {
-        msg!("Create instruction account");
-        ctx.accounts.account.name = parse_string(name);
-        ctx.accounts.account.kind = AccountKind::from(kind)?;
-        ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
+    pub fn create_instruction_basic_account(ctx: Context<CreateInstructionBasicAccount>, name: String, mark_attribute: u8) -> ProgramResult {
+        msg!("Create instruction basic account");
         ctx.accounts.account.authority = ctx.accounts.authority.key();
-        ctx.accounts.account.instruction = ctx.accounts.instruction.key();
-        ctx.accounts.account.collection = ctx.accounts.collection.key();
         ctx.accounts.account.application = ctx.accounts.application.key();
-        Ok(())
-    }
-
-    pub fn update_instruction_account(ctx: Context<UpdateInstructionAccount>, name: String, kind: u8, mark_attribute: u8) -> ProgramResult {
-        msg!("Update instruction account");
+        ctx.accounts.account.instruction = ctx.accounts.instruction.key();
         ctx.accounts.account.name = parse_string(name);
-        ctx.accounts.account.kind = AccountKind::from(kind)?;
-        ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
         ctx.accounts.account.collection = ctx.accounts.collection.key();
+        ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
         Ok(())
     }
 
-    pub fn delete_instruction_account(_ctx: Context<DeleteInstructionAccount>) -> ProgramResult {
-        msg!("Delete instruction account");
+    pub fn update_instruction_basic_account(ctx: Context<UpdateInstructionBasicAccount>, name: String, mark_attribute: u8) -> ProgramResult {
+        msg!("Update instruction basic account");
+        ctx.accounts.account.name = parse_string(name);
+        ctx.accounts.account.collection = ctx.accounts.collection.key();
+        ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
+        Ok(())
+    }
+
+    pub fn delete_instruction_basic_account(_ctx: Context<DeleteInstructionBasicAccount>) -> ProgramResult {
+        msg!("Delete instruction basic account");
+        Ok(())
+    }
+
+    pub fn create_instruction_signer_account(ctx: Context<CreateInstructionSignerAccount>, name: String, mark_attribute: u8) -> ProgramResult {
+        msg!("Create instruction signer account");
+        ctx.accounts.account.authority = ctx.accounts.authority.key();
+        ctx.accounts.account.application = ctx.accounts.application.key();
+        ctx.accounts.account.instruction = ctx.accounts.instruction.key();
+        ctx.accounts.account.name = parse_string(name);
+        ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
+        Ok(())
+    }
+
+    pub fn update_instruction_signer_account(ctx: Context<UpdateInstructionSignerAccount>, name: String, mark_attribute: u8) -> ProgramResult {
+        msg!("Update instruction signer account");
+        ctx.accounts.account.name = parse_string(name);
+        ctx.accounts.account.mark_attribute = MarkAttribute::from(mark_attribute)?;
+        Ok(())
+    }
+
+    pub fn delete_instruction_signer_account(_ctx: Context<DeleteInstructionSignerAccount>) -> ProgramResult {
+        msg!("Delete instruction signer account");
+        Ok(())
+    }
+
+    pub fn create_instruction_program_account(ctx: Context<CreateInstructionProgramAccount>, name: String) -> ProgramResult {
+        msg!("Create instruction program account");
+        ctx.accounts.account.authority = ctx.accounts.authority.key();
+        ctx.accounts.account.application = ctx.accounts.application.key();
+        ctx.accounts.account.instruction = ctx.accounts.instruction.key();
+        ctx.accounts.account.name = parse_string(name);
+        ctx.accounts.account.program = ctx.accounts.program.key();
+        Ok(())
+    }
+
+    pub fn update_instruction_program_account(ctx: Context<UpdateInstructionProgramAccount>, name: String) -> ProgramResult {
+        msg!("Update instruction program account");
+        ctx.accounts.account.name = parse_string(name);
+        ctx.accounts.account.program = ctx.accounts.program.key();
+        Ok(())
+    }
+
+    pub fn delete_instruction_program_account(_ctx: Context<DeleteInstructionProgramAccount>) -> ProgramResult {
+        msg!("Delete instruction program account");
         Ok(())
     }
 }
@@ -289,14 +331,14 @@ pub struct DeleteInstructionArgument<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, kind: u8, mark_attribute: u8)]
-pub struct CreateInstructionAccount<'info> {
+#[instruction(name: String, mark_attribute: u8)]
+pub struct CreateInstructionBasicAccount<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 32 + 32 + 32 + 32 + 2 + 2
+        space = 8 + 32 + 32 + 32 + 32 + 32 + 2
     )]
-    pub account: Box<Account<'info, InstructionAccount>>,
+    pub account: Box<Account<'info, InstructionBasicAccount>>,
     pub application: Box<Account<'info, Application>>,
     pub collection: Box<Account<'info, Collection>>,
     pub instruction: Box<Account<'info, Instruction>>,
@@ -306,18 +348,84 @@ pub struct CreateInstructionAccount<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(name: String, kind: u8, mark_attribute: u8)]
-pub struct UpdateInstructionAccount<'info> {
+#[instruction(name: String, mark_attribute: u8)]
+pub struct UpdateInstructionBasicAccount<'info> {
     #[account(mut, has_one = authority)]
-    pub account: Box<Account<'info, InstructionAccount>>,
+    pub account: Box<Account<'info, InstructionBasicAccount>>,
     pub collection: Box<Account<'info, Collection>>,
     pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
-pub struct DeleteInstructionAccount<'info> {
+pub struct DeleteInstructionBasicAccount<'info> {
     #[account(mut, close = authority, has_one = authority)]
-    pub account: Account<'info, InstructionAccount>,
+    pub account: Account<'info, InstructionBasicAccount>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, mark_attribute: u8)]
+pub struct CreateInstructionSignerAccount<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + 32 + 32 + 32 + 32 + 2
+    )]
+    pub account: Box<Account<'info, InstructionSignerAccount>>,
+    pub application: Box<Account<'info, Application>>,
+    pub instruction: Box<Account<'info, Instruction>>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String, mark_attribute: u8)]
+pub struct UpdateInstructionSignerAccount<'info> {
+    #[account(mut, has_one = authority)]
+    pub account: Box<Account<'info, InstructionSignerAccount>>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteInstructionSignerAccount<'info> {
+    #[account(mut, close = authority, has_one = authority)]
+    pub account: Account<'info, InstructionSignerAccount>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String)]
+pub struct CreateInstructionProgramAccount<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + 32 + 32 + 32 + 32 + 32 + 2
+    )]
+    pub account: Box<Account<'info, InstructionProgramAccount>>,
+    pub application: Box<Account<'info, Application>>,
+    #[account(executable)]
+    pub program: UncheckedAccount<'info>,
+    pub instruction: Box<Account<'info, Instruction>>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(name: String)]
+pub struct UpdateInstructionProgramAccount<'info> {
+    #[account(mut, has_one = authority)]
+    pub account: Box<Account<'info, InstructionProgramAccount>>,
+    #[account(executable)]
+    pub program: UncheckedAccount<'info>,
+    pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteInstructionProgramAccount<'info> {
+    #[account(mut, close = authority, has_one = authority)]
+    pub account: Account<'info, InstructionProgramAccount>,
     pub authority: Signer<'info>,
 }
 
@@ -362,14 +470,33 @@ pub struct InstructionArgument {
 }
 
 #[account]
-pub struct InstructionAccount {
+pub struct InstructionBasicAccount {
     pub authority: Pubkey,
     pub application: Pubkey,
     pub instruction: Pubkey,
-    pub collection: Pubkey,
     pub name: [u8; 32],
-    pub kind: AccountKind,
+    // collection associated to the account
+    pub collection: Pubkey,
     pub mark_attribute: MarkAttribute,
+}
+
+#[account]
+pub struct InstructionSignerAccount {
+    pub authority: Pubkey,
+    pub application: Pubkey,
+    pub instruction: Pubkey,
+    pub name: [u8; 32],
+    pub mark_attribute: MarkAttribute,
+}
+
+#[account]
+pub struct InstructionProgramAccount {
+    pub authority: Pubkey,
+    pub application: Pubkey,
+    pub instruction: Pubkey,
+    pub name: [u8; 32],
+    // program associated to the account
+    pub program: Pubkey,
 }
 
 pub fn parse_string(string: String) -> [u8; 32] {
@@ -451,31 +578,6 @@ impl AttributeKindModifier {
 
 #[repr(u8)]
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
-pub enum AccountKind {
-    Account {
-        id: u8
-    },
-    Signer {
-        id: u8
-    },
-    Program {
-        id: u8
-    },
-}
-
-impl AccountKind {
-    fn from(index: u8) -> Result<Self> {
-        match index {
-            0 => Ok(AccountKind::Account{ id: 0 }),
-            1 => Ok(AccountKind::Signer{ id: 1 }),
-            2 => Ok(AccountKind::Program{ id: 2 }),
-            _ => Err(ErrorCode::InvalidAccountKind.into()),
-        }
-    }
-}
-
-#[repr(u8)]
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum MarkAttribute {
     None {
         id: u8
@@ -509,8 +611,6 @@ pub enum ErrorCode {
     InvalidAttributeKind,
     #[msg("Invalid attribute modifier")]
     InvalidAttributeModifier,
-    #[msg("Invalid account kind")]
-    InvalidAccountKind,
     #[msg("Invalid mark attribute")]
     InvalidMarkAttribute,
 }
